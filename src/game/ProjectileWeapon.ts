@@ -1,7 +1,6 @@
 import { Projectile } from './Projectile';
 import { Enemy } from './Enemy';
 import { SoundManager } from './SoundManager';
-import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class ProjectileWeapon {
   projectiles: Projectile[];
@@ -11,7 +10,7 @@ export class ProjectileWeapon {
   private lastFireTime: number;
   public projectileRadius: number;
   private projectileLifetime: number;
-  private projectileSprite: HTMLImageElement | undefined;
+  private projectileSprite: HTMLImageElement | undefined; // Now specifically for player projectiles
   private soundManager: SoundManager;
 
   constructor(baseDamage: number, projectileSpeed: number, fireRate: number, projectileRadius: number, projectileLifetime: number, projectileSprite: HTMLImageElement | undefined, soundManager: SoundManager) {
@@ -22,7 +21,7 @@ export class ProjectileWeapon {
     this.lastFireTime = 0;
     this.projectileRadius = projectileRadius;
     this.projectileLifetime = projectileLifetime;
-    this.projectileSprite = projectileSprite;
+    this.projectileSprite = projectileSprite; // Assign the player-specific projectile sprite
     this.soundManager = soundManager;
   }
 
@@ -66,9 +65,9 @@ export class ProjectileWeapon {
               this.baseDamage,
               directionX,
               directionY,
-              'cyan',
+              'cyan', // This color is now less relevant if using a sprite
               this.projectileLifetime,
-              this.projectileSprite
+              this.projectileSprite // Use the player-specific sprite
             )
           );
           this.soundManager.playSound('projectile_fire');
@@ -91,9 +90,9 @@ export class ProjectileWeapon {
     });
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     for (const projectile of this.projectiles) {
-      projectile.draw(ctx, cameraX, cameraY, gameEngine);
+      projectile.draw(ctx, cameraX, cameraY);
     }
   }
 

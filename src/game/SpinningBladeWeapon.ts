@@ -1,7 +1,6 @@
 import { SpinningBlade } from './SpinningBlade';
 import { Enemy } from './Enemy';
-import { SoundManager } from './SoundManager';
-import { GameEngine } from './GameEngine'; // Import GameEngine
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class SpinningBladeWeapon {
   blades: SpinningBlade[];
@@ -13,7 +12,7 @@ export class SpinningBladeWeapon {
   private attackCooldown: number;
   private lastHitTime: Map<string, number>;
   private bladeSprite: HTMLImageElement | undefined;
-  private soundManager: SoundManager;
+  private soundManager: SoundManager; // New: SoundManager instance
 
   constructor(baseDamage: number, orbitDistance: number, rotationSpeed: number, bladeRadius: number, numBlades: number, bladeSprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.baseDamage = baseDamage;
@@ -24,7 +23,7 @@ export class SpinningBladeWeapon {
     this.attackCooldown = 0.2;
     this.lastHitTime = new Map();
     this.bladeSprite = bladeSprite;
-    this.soundManager = soundManager;
+    this.soundManager = soundManager; // Assign SoundManager
     this.blades = this.createBlades();
   }
 
@@ -47,7 +46,7 @@ export class SpinningBladeWeapon {
           const currentTime = performance.now() / 1000;
 
           if (!this.lastHitTime.has(hitKey) || (currentTime - this.lastHitTime.get(hitKey)! > this.attackCooldown)) {
-            enemy.takeDamage(blade.damage);
+            enemy.takeDamage(blade.damage); // Enemy's takeDamage will play hit sound
             this.lastHitTime.set(hitKey, currentTime);
           }
         }
@@ -62,9 +61,9 @@ export class SpinningBladeWeapon {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     this.blades.forEach(blade => {
-      blade.draw(ctx, cameraX, cameraY, gameEngine);
+      blade.draw(ctx, cameraX, cameraY);
     });
   }
 

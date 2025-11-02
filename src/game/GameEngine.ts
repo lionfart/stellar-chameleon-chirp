@@ -4,7 +4,7 @@ import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
-import { HomingMissileWeapon } from './HomingMissileWeapon';
+import { HomingMissileWeapon } from './HomingMissileWeapon'; // New: Homing Missile Weapon
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
@@ -19,11 +19,6 @@ import { GameOverScreen } from './GameOverScreen';
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
 import { showSuccess, showError } from '@/utils/toast';
-import { ExperienceGem } from './ExperienceGem';
-import { MagnetPowerUp } from './MagnetPowerUp';
-import { Projectile } from './Projectile';
-import { SpinningBlade } from './SpinningBlade';
-import { HomingMissile } from './HomingMissile';
 
 // Define shop item types
 interface ShopItem {
@@ -112,7 +107,7 @@ export class GameEngine {
     { id: 'buy_aura_weapon', name: 'Aura Weapon', description: 'A constant damage aura around you.', cost: 100, type: 'weapon' },
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
-    { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
+    { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' }, // New shop item
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
@@ -136,9 +131,9 @@ export class GameEngine {
     // Randomly select one starting weapon
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
-      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
+      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager), // New starting weapon
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -162,9 +157,9 @@ export class GameEngine {
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
     this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45));
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Generic enemy projectile
-    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Player specific projectile
+    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // NEW: Player specific projectile
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
-    this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24));
+    this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24)); // New missile sprite
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
@@ -176,7 +171,7 @@ export class GameEngine {
     this.soundManager.loadSound('enemy_hit', SoundManager.getEnemyHitSound());
     this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
     this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
-    this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound());
+    this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound()); // New missile sound
     this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
     this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
     this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
@@ -196,12 +191,13 @@ export class GameEngine {
 
       this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
       if (this.gameState.projectileWeapon) {
+        // Use player_projectile sprite for player's projectile weapon
         this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
       }
       if (this.gameState.spinningBladeWeapon) {
         this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
       }
-      if (this.gameState.homingMissileWeapon) {
+      if (this.gameState.homingMissileWeapon) { // Set sprite for new weapon
         this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
@@ -258,7 +254,7 @@ export class GameEngine {
       if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-      if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+      if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false; // Filter if already owned
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -288,12 +284,12 @@ export class GameEngine {
           this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
           break;
         case 'buy_projectile_weapon':
-          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('player_projectile'), this.soundManager);
+          this.gameState.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('player_projectile'), this.soundManager); // Use player_projectile
           break;
         case 'buy_spinning_blade_weapon':
           this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
           break;
-        case 'buy_homing_missile_weapon':
+        case 'buy_homing_missile_weapon': // New purchase logic
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_explosion_ability':
@@ -317,7 +313,7 @@ export class GameEngine {
         if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-        if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+        if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false; // Filter if already owned
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -338,9 +334,9 @@ export class GameEngine {
 
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
+      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
-      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
+      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager), // New starting weapon
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -352,12 +348,12 @@ export class GameEngine {
 
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
     if (this.gameState.projectileWeapon) {
-      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
+      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile'); // Use player_projectile
     }
     if (this.gameState.spinningBladeWeapon) {
       this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
     }
-    if (this.gameState.homingMissileWeapon) {
+    if (this.gameState.homingMissileWeapon) { // Set sprite for new weapon
       this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
     }
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
@@ -386,13 +382,13 @@ export class GameEngine {
       case 'projectile_fire_rate':
         this.gameState.projectileWeapon?.decreaseFireRate(0.2);
         break;
-      case 'homing_missile_damage':
+      case 'homing_missile_damage': // New upgrade
         this.gameState.homingMissileWeapon?.increaseDamage(10);
         break;
-      case 'homing_missile_fire_rate':
+      case 'homing_missile_fire_rate': // New upgrade
         this.gameState.homingMissileWeapon?.decreaseFireRate(0.3);
         break;
-      case 'homing_missile_count':
+      case 'homing_missile_count': // New upgrade
         this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
         break;
       case 'dash_cooldown':
@@ -454,6 +450,8 @@ export class GameEngine {
 
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
+    console.log("GameEngine: Updating with deltaTime:", deltaTime);
+
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
 
     if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility) {
@@ -493,7 +491,7 @@ export class GameEngine {
     this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
-    this.gameState.homingMissileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
+    this.gameState.homingMissileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Update new weapon
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
     this.gameState.healAbility?.update(deltaTime);
@@ -553,38 +551,6 @@ export class GameEngine {
     });
   }
 
-  // New helper to get 2.5D drawing properties
-  public getDrawProperties(entity: { x: number; y: number; size: number }) {
-    const minScale = 0.8; // Objects at world top are 80% size
-    const maxScale = 1.2; // Objects at world bottom are 120% size
-    const scaleRange = maxScale - minScale;
-
-    // Calculate scale based on Y position (0 at top, worldHeight at bottom)
-    const normalizedY = entity.y / this.worldHeight;
-    const scale = minScale + normalizedY * scaleRange;
-
-    // Adjust drawY to keep the "bottom" of the object aligned with its world Y
-    // This makes objects appear to stand on the ground plane.
-    const scaledSize = entity.size * scale;
-    const verticalOffset = (scaledSize - entity.size) / 2; // Difference in size due to scaling
-    const drawY = entity.y - verticalOffset;
-
-    // Shadow properties
-    const shadowSizeMultiplier = 0.8; // Shadow is slightly smaller than the base
-    const shadowAlpha = 0.3 * (1 - normalizedY * 0.5); // Shadows fade out further up
-    const shadowOffset = entity.size * 0.1 * scale; // Shadow slightly offset down-right
-
-    return {
-      drawX: entity.x,
-      drawY: drawY,
-      scale: scale,
-      scaledSize: scaledSize,
-      shadowOffset: shadowOffset,
-      shadowRadius: (entity.size / 2) * shadowSizeMultiplier * scale,
-      shadowAlpha: shadowAlpha,
-    };
-  }
-
   private draw() {
     if (!this.assetsLoaded) {
       this.ctx.fillStyle = 'black';
@@ -624,55 +590,30 @@ export class GameEngine {
       this.gameState.worldHeight
     );
 
-    // Collect all drawable entities for Z-ordering
-    const drawableEntities: { entity: any; y: number; drawFn: (ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) => void }[] = [];
-
-    // Add player and vendor
-    drawableEntities.push({ entity: this.gameState.player, y: this.gameState.player.y, drawFn: (ctx, cx, cy, ge) => this.gameState.player.draw(ctx, cx, cy, ge) });
-    drawableEntities.push({ entity: this.gameState.vendor, y: this.gameState.vendor.y, drawFn: (ctx, cx, cy, ge) => this.gameState.vendor.draw(ctx, cx, cy, ge) });
-
-    // Add enemies
-    this.gameState.enemies.forEach(enemy => {
-      drawableEntities.push({ entity: enemy, y: enemy.y, drawFn: (ctx, cx, cy, ge) => enemy.draw(ctx, cx, cy, ge) });
-    });
-
-    // Add experience gems
-    this.gameState.experienceGems.forEach(gem => {
-      drawableEntities.push({ entity: gem, y: gem.y, drawFn: (ctx, cx, cy, ge) => gem.draw(ctx, cx, cy, ge) });
-    });
-
-    // Add magnet power-ups
-    this.gameState.magnetPowerUps.forEach(magnet => {
-      drawableEntities.push({ entity: magnet, y: magnet.y, drawFn: (ctx, cx, cy, ge) => magnet.draw(ctx, cx, cy, ge) });
-    });
-
-    // Sort entities by their Y-coordinate for correct 2.5D rendering (further objects drawn first)
-    drawableEntities.sort((a, b) => a.y - b.y);
-
-    // Draw sorted entities
-    drawableEntities.forEach(({ entity, drawFn }) => {
-      drawFn(this.ctx, this.cameraX, this.cameraY, this);
-    });
-
-    // Draw weapons and abilities (these are usually drawn relative to player or independently, so their Z-order with other entities is less critical)
     this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY);
-    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY, this);
-    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY, this);
-    this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY, this);
+    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Draw new weapon
     this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
+
+    this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
+    this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
+
+    this.gameState.player.draw(this.ctx, this.cameraX, this.cameraY);
     this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY);
 
-    // Draw damage numbers (always on top)
-    this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY, this));
+    this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
+
+    this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY);
+
+    // Draw damage numbers
+    this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY));
 
     if (this.gameState.activeMagnetRadius > 0) {
-      const { drawX, drawY, scaledSize, scale } = this.getDrawProperties({ x: this.gameState.player.x, y: this.gameState.player.y, size: this.gameState.player.size });
-      const magnetDrawRadius = this.gameState.activeMagnetRadius * scale; // Scale magnet radius too
-
       this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
-      this.ctx.arc(drawX - this.cameraX, drawY - this.cameraY + (scaledSize - this.gameState.player.size) / 2, magnetDrawRadius, 0, Math.PI * 2);
+      this.ctx.arc(this.gameState.player.x - this.cameraX, this.gameState.player.y - this.cameraY, this.gameState.activeMagnetRadius, 0, Math.PI * 2);
       this.ctx.stroke();
     }
 
