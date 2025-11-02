@@ -23,7 +23,7 @@ export class GameState {
   projectileWeapon: ProjectileWeapon | undefined;
   spinningBladeWeapon: SpinningBladeWeapon | undefined;
   homingMissileWeapon: HomingMissileWeapon | undefined;
-  explosionAbility: ExplosionAbility | undefined;
+  explosionAbility: ExplosionAbility; // Made non-optional
   shieldAbility: ShieldAbility | undefined;
   healAbility: HealAbility | undefined;
   vendor: Vendor;
@@ -58,10 +58,10 @@ export class GameState {
     vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
-    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon,
-    initialExplosionAbility?: ExplosionAbility,
-    initialShieldAbility?: ShieldAbility,
-    initialHealAbility?: HealAbility
+    initialWeapon: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon | undefined,
+    initialExplosionAbility: ExplosionAbility, // Now required
+    initialShieldAbility: ShieldAbility | undefined,
+    initialHealAbility: HealAbility | undefined
   ) {
     this.player = player;
     this.vendor = vendor;
@@ -70,8 +70,8 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
-    this.explosionAbility = undefined;
-    this.shieldAbility = undefined;
+    this.explosionAbility = initialExplosionAbility; // Assign it
+    this.shieldAbility = initialShieldAbility;
     this.healAbility = initialHealAbility;
 
     if (initialWeapon instanceof AuraWeapon) {
@@ -83,9 +83,6 @@ export class GameState {
     } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.homingMissileWeapon = initialWeapon;
     }
-
-    this.explosionAbility = initialExplosionAbility;
-    this.shieldAbility = initialShieldAbility;
 
     this.enemies = [];
     this.experienceGems = [];
@@ -131,7 +128,7 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
-    this.explosionAbility = undefined;
+    this.explosionAbility = undefined as any; // Will be re-initialized in GameEngine
     this.shieldAbility = undefined;
     this.healAbility = undefined;
 
