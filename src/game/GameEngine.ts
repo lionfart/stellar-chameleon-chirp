@@ -1,6 +1,6 @@
 import { Player } from './Player';
 import { InputHandler } from './InputHandler';
-import { Enemy } from './Enemy'; // Corrected import statement
+import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
@@ -158,7 +158,7 @@ export class GameEngine {
   };
 
   pause() {
-    console.log("GameEngine: Pausing game."); // Debug log
+    console.log("GameEngine: Pausing game.");
     this.gameState.isPaused = true;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -167,7 +167,7 @@ export class GameEngine {
   }
 
   resume() {
-    console.log("GameEngine: Resuming game. Last time before resume:", this.lastTime); // Debug log
+    console.log("GameEngine: Resuming game.");
     this.gameState.isPaused = false;
     this.lastTime = performance.now(); // Reset lastTime to current time to prevent large deltaTime
     if (!this.animationFrameId) { // Only request a new frame if not already running
@@ -176,10 +176,10 @@ export class GameEngine {
   }
 
   openShop() {
-    console.log("GameEngine: Opening shop. Current isPaused:", this.gameState.isPaused); // Debug log
-    // The game is paused when the shop is opened, preventing game logic from running.
-    this.gameState.isPaused = true;
+    if (this.gameState.showShop) return; // Prevent opening if already open
+    console.log("GameEngine: Opening shop.");
     this.gameState.showShop = true;
+    this.pause(); // This will set isPaused = true and cancel animation frame
     this.onOpenShopCallback(this.shopItems.filter(item => {
       // Filter out items player already has
       if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
@@ -188,16 +188,15 @@ export class GameEngine {
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       return true;
-    }), this.gameState.player.gold); // Modified: Pass player gold
-    this.pause(); // Ensure the game loop is properly paused
+    }), this.gameState.player.gold);
   }
 
   closeShop = () => {
-    console.log("GameEngine: Closing shop. Current isPaused:", this.gameState.isPaused); // Debug log
-    // The game resumes when the shop is closed.
+    if (!this.gameState.showShop) return; // Prevent closing if already closed
+    console.log("GameEngine: Closing shop.");
     this.gameState.showShop = false;
     this.onCloseShopCallback();
-    this.resume(); // Ensure the game loop is properly resumed
+    this.resume(); // This will set isPaused = false and request a new animation frame
   }
 
   purchaseItem = (itemId: string) => {
@@ -469,8 +468,6 @@ export class GameEngine {
 
   private gameLoop = (currentTime: number) => {
     if (this.gameState.isPaused || !this.assetsLoaded) {
-      // If paused or assets not loaded, just request the next frame without updating/drawing
-      // This ensures the loop continues to check the paused state
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }

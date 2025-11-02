@@ -55,13 +55,16 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.resume();
   }, []);
 
+  // These callbacks are now responsible for updating GameCanvas's state
   const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
+    console.log("GameCanvas: handleOpenShop called.");
     setCurrentShopItems(items);
     setPlayerGold(gold);
     setShowShopScreen(true);
   }, []);
 
   const handleCloseShop = useCallback(() => {
+    console.log("GameCanvas: handleCloseShop called.");
     setShowShopScreen(false);
   }, []);
 
@@ -104,7 +107,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop]);
+  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Added handleOpenShop, handleCloseShop to dependencies
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -116,7 +119,7 @@ const GameCanvas: React.FC = () => {
         <ShopScreen
           items={currentShopItems}
           onPurchase={handlePurchaseItem}
-          onClose={handleCloseShop}
+          onClose={() => gameEngineRef.current?.closeShop()} // Directly call GameEngine's closeShop
           playerGold={playerGold}
         />
       )}
