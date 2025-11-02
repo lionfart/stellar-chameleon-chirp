@@ -14,6 +14,14 @@ export class Player {
   experienceToNextLevel: number;
   private onLevelUpCallback: () => void;
 
+  // Dash properties
+  private dashSpeedMultiplier: number = 2.5; // How much faster the player moves during a dash
+  private dashDuration: number = 0.15; // How long the dash lasts in seconds
+  private dashCooldown: number = 2; // How long until the dash can be used again in seconds
+  private isDashing: boolean = false;
+  private currentDashCooldown: number = 0;
+  private currentDashDuration: number = 0;
+
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void) {
     this.x = x;
     this.y = y;
@@ -31,7 +39,30 @@ export class Player {
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
-    const moveAmount = this.speed * deltaTime;
+    // Update dash cooldown
+    if (this.currentDashCooldown > 0) {
+      this.currentDashCooldown -= deltaTime;
+    }
+
+    // Check for dash input
+    if (input.isPressed('shift') && !this.isDashing && this.currentDashCooldown <= 0) {
+      this.isDashing = true;
+      this.currentDashDuration = this.dashDuration;
+      this.currentDashCooldown = this.dashCooldown; // Start cooldown immediately
+      console.log("Dash activated!");
+    }
+
+    let moveAmount = this.speed * deltaTime;
+
+    // Apply dash speed multiplier if dashing
+    if (this.isDashing) {
+      moveAmount *= this.dashSpeedMultiplier;
+      this.currentDashDuration -= deltaTime;
+      if (this.currentDashDuration <= 0) {
+        this.isDashing = false;
+        console.log("Dash ended.");
+      }
+    }
 
     if (input.isPressed('w') || input.isPressed('arrowup')) {
       this.y -= moveAmount;
@@ -108,5 +139,10 @@ export class Player {
     this.maxHealth += amount;
     this.currentHealth = this.maxHealth; // Heal to full on health upgrade
     console.log(`Player max health increased to ${this.maxHealth}`);
+  }
+
+  reduceDashCooldown(amount: number) {
+    this.dashCooldown = Math.max(0.5, this.dashCooldown - amount); // Minimum cooldown of 0.5 seconds
+    console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
   }
 }

@@ -84,6 +84,9 @@ export class GameEngine {
       case 'projectile_fire_rate':
         this.projectileWeapon.decreaseFireRate(0.2);
         break;
+      case 'dash_cooldown': // New upgrade case
+        this.player.reduceDashCooldown(0.3);
+        break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
     }
@@ -239,7 +242,7 @@ export class GameEngine {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '48px Arial';
       this.ctx.textAlign = 'center';
-    this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+      this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
       this.ctx.font = '24px Arial';
       this.ctx.fillText('Refresh to restart', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2 + 50);
     }

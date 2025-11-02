@@ -50,6 +50,7 @@ const GameCanvas: React.FC = () => {
     { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
     { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
     { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
+    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' }, // New dash upgrade
   ];
 
   return (
