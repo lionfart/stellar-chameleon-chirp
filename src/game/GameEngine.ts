@@ -120,16 +120,23 @@ export class GameEngine {
     spawnX = clamp(spawnX, 0, this.worldWidth);
     spawnY = clamp(spawnY, 0, this.worldHeight);
 
+    // Base stats for different enemy types
+    const enemyTypes = [
+      { name: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red' },
+      { name: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green' },
+      { name: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple' },
+    ];
+
+    const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+
     // Scale enemy stats with wave number
-    const enemyBaseHealth = 30;
-    const enemyBaseSpeed = 100;
     const healthMultiplier = 1 + (this.waveNumber - 1) * 0.2; // +20% health per wave
     const speedMultiplier = 1 + (this.waveNumber - 1) * 0.05; // +5% speed per wave
 
-    const enemyHealth = Math.floor(enemyBaseHealth * healthMultiplier);
-    const enemySpeed = enemyBaseSpeed * speedMultiplier;
+    const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
+    const enemySpeed = randomType.baseSpeed * speedMultiplier;
 
-    this.enemies.push(new Enemy(spawnX, spawnY, 20, enemySpeed, 'red', enemyHealth));
+    this.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth));
   }
 
   private update(deltaTime: number) {
@@ -232,7 +239,7 @@ export class GameEngine {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '48px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+    this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
       this.ctx.font = '24px Arial';
       this.ctx.fillText('Refresh to restart', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2 + 50);
     }
