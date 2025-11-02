@@ -13,9 +13,9 @@ import { SoundManager } from './SoundManager';
 import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
-import { HUD } from './HUD';
 import { GameOverScreen } from './GameOverScreen';
 import { showSuccess, showError } from '@/utils/toast'; // Import toast utilities
+import { HUDProps } from '@/components/HUD'; // Import HUDProps interface
 
 // Define shop item types
 interface ShopItem {
@@ -36,6 +36,7 @@ export class GameEngine {
   private onLevelUpCallback: () => void;
   private onOpenShopCallback: (items: ShopItem[], playerGold: number) => void; // Modified: Added playerGold
   private onCloseShopCallback: () => void; // New callback for closing shop
+  private onUpdateHUDCallback: (hudData: HUDProps) => void; // New callback for HUD updates
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
@@ -45,7 +46,7 @@ export class GameEngine {
   private gameState: GameState;
   private waveManager: WaveManager;
   private powerUpManager: PowerUpManager;
-  private hud: HUD;
+  // private hud: HUD; // REMOVED: HUD is now a React component
   private gameOverScreen: GameOverScreen;
 
   // World dimensions
@@ -65,13 +66,14 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void) {
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateHUD: (hudData: HUDProps) => void) {
     console.log("GameEngine constructor called!"); // Debug log
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
     this.onOpenShopCallback = onOpenShop;
     this.onCloseShopCallback = onCloseShop;
+    this.onUpdateHUDCallback = onUpdateHUD; // Assign new callback
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
     this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
@@ -88,12 +90,9 @@ export class GameEngine {
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    // Removed redundant if (this.gameState.shieldAbility) block
-    // The player's shield ability is set when the shield is purchased.
-
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    this.hud = new HUD(this.gameState);
+    // this.hud = new HUD(this.gameState); // REMOVED: HUD is now a React component
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
 
     this.lastTime = 0;
@@ -277,7 +276,8 @@ export class GameEngine {
     // Re-initialize managers with the new GameState instance
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    this.hud = new HUD(this.gameState); // Re-initialize HUD with the new gameState
+    // this.hud = new HUD(this.gameState); // REMOVED: HUD is now a React component
+    this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
 
     // Re-apply sprites to the new player and weapons
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
@@ -413,6 +413,21 @@ export class GameEngine {
       this.gameState.gameOver = true;
       console.log("Game Over!");
     }
+
+    // Update HUD state via callback
+    this.onUpdateHUDCallback({
+      playerHealth: this.gameState.player.currentHealth,
+      playerMaxHealth: this.gameState.player.maxHealth,
+      playerLevel: this.gameState.player.level,
+      playerExperience: this.gameState.player.experience,
+      playerExperienceToNextLevel: this.gameState.player.experienceToNextLevel,
+      playerGold: this.gameState.player.gold,
+      shieldActive: this.gameState.shieldAbility?.shield.isActive || false,
+      shieldCurrentHealth: this.gameState.shieldAbility?.shield.currentHealth || 0,
+      shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
+      waveNumber: this.gameState.waveNumber,
+      waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
+    });
   }
 
   private draw() {
@@ -490,7 +505,7 @@ export class GameEngine {
       this.ctx.shadowColor = 'transparent';
     }
 
-    this.hud.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
+    // this.hud.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height); // REMOVED: HUD is now a React component
 
     if (this.gameState.gameOver) {
       this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);

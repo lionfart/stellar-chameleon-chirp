@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GameEngine } from '@/game/GameEngine';
 import LevelUpSelection from './LevelUpSelection';
 import ShopScreen from './ShopScreen';
+import HUD, { HUDProps } from './HUD'; // Import the new HUD component and its props
 import { showSuccess } from '@/utils/toast';
 
 // Define ShopItem interface here as well for type consistency
@@ -42,6 +43,21 @@ const GameCanvas: React.FC = () => {
   const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
 
+  // State for HUD data
+  const [hudState, setHudState] = useState<HUDProps>({
+    playerHealth: 100,
+    playerMaxHealth: 100,
+    playerLevel: 1,
+    playerExperience: 0,
+    playerExperienceToNextLevel: 100,
+    playerGold: 0,
+    shieldActive: false,
+    shieldCurrentHealth: 0,
+    shieldMaxHealth: 0,
+    waveNumber: 1,
+    waveTimeRemaining: 60,
+  });
+
   // Level Up Callbacks
   const handleLevelUp = useCallback(() => {
     const shuffled = [...ALL_LEVEL_UP_OPTIONS].sort(() => 0.5 - Math.random());
@@ -74,6 +90,11 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.purchaseItem(itemId);
   }, []);
 
+  // New callback for HUD updates
+  const handleUpdateHUD = useCallback((data: HUDProps) => {
+    setHudState(data);
+  }, []);
+
   useEffect(() => {
     console.log("GameCanvas useEffect: Initializing GameEngine...");
     const canvas = canvasRef.current;
@@ -85,8 +106,8 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Pass the stable callback references to GameEngine
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop);
+    // Pass the stable callback references to GameEngine, including the new HUD update callback
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateHUD);
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {
@@ -110,7 +131,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Keep these in dependencies as they are passed to GameEngine constructor
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateHUD]); // Add handleUpdateHUD to dependencies
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -126,6 +147,7 @@ const GameCanvas: React.FC = () => {
           playerGold={playerGold}
         />
       )}
+      <HUD {...hudState} /> {/* Render the new HUD component */}
     </div>
   );
 };
