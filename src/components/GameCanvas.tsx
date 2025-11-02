@@ -23,6 +23,9 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
     { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
     { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
+    { id: 'homing_missile_damage', name: 'Increase Missile Damage', description: 'Your homing missiles deal more damage.' }, // New upgrade
+    { id: 'homing_missile_fire_rate', name: 'Increase Missile Fire Rate', description: 'Your homing missiles fire more frequently.' }, // New upgrade
+    { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' }, // New upgrade
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
     { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
     { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
@@ -45,6 +48,7 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     if (option.id.startsWith('aura_') && !gameState.auraWeapon) return false;
     if (option.id.startsWith('projectile_') && !gameState.projectileWeapon) return false;
     if (option.id.startsWith('blade_') && !gameState.spinningBladeWeapon) return false;
+    if (option.id.startsWith('homing_missile_') && !gameState.homingMissileWeapon) return false; // Filter for new weapon
     if (option.id.startsWith('explosion_') && !gameState.explosionAbility) return false;
     if (option.id.startsWith('shield_') && !gameState.shieldAbility) return false;
     if (option.id.startsWith('heal_') && !gameState.healAbility) return false;

@@ -5,6 +5,7 @@ import { MagnetPowerUp } from './MagnetPowerUp';
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
+import { HomingMissileWeapon } from './HomingMissileWeapon'; // New: Homing Missile Weapon
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { Vendor } from './Vendor'; // Import Vendor
@@ -15,10 +16,11 @@ export class GameState {
   player: Player;
   enemies: Enemy[];
   experienceGems: ExperienceGem[];
-  magnetPowerUps: MagnetPowerUp[]; // Düzeltildi: MagnetPowerPowerUp -> MagnetPowerUp
+  magnetPowerUps: MagnetPowerUp[];
   auraWeapon: AuraWeapon | undefined; // Made optional
   projectileWeapon: ProjectileWeapon | undefined; // Made optional
   spinningBladeWeapon: SpinningBladeWeapon | undefined; // Made optional
+  homingMissileWeapon: HomingMissileWeapon | undefined; // New: Homing Missile Weapon
   explosionAbility: ExplosionAbility | undefined; // Made optional
   shieldAbility: ShieldAbility | undefined; // Made optional
   healAbility: HealAbility | undefined; // New: Heal ability
@@ -44,7 +46,7 @@ export class GameState {
     vendor: Vendor, // Vendor is always present
     worldWidth: number,
     worldHeight: number,
-    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon, // Optional initial weapon
+    initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon, // Optional initial weapon
     initialExplosionAbility?: ExplosionAbility, // Optional initial ability
     initialShieldAbility?: ShieldAbility, // Optional initial ability
     initialHealAbility?: HealAbility // Optional initial heal ability
@@ -55,6 +57,7 @@ export class GameState {
     this.auraWeapon = undefined;
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
+    this.homingMissileWeapon = undefined; // Initialize new weapon
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = initialHealAbility; // Assign heal ability
@@ -65,6 +68,8 @@ export class GameState {
       this.projectileWeapon = initialWeapon;
     } else if (initialWeapon instanceof SpinningBladeWeapon) {
       this.spinningBladeWeapon = initialWeapon;
+    } else if (initialWeapon instanceof HomingMissileWeapon) { // Handle new weapon
+      this.homingMissileWeapon = initialWeapon;
     }
 
     this.explosionAbility = initialExplosionAbility;
@@ -108,6 +113,7 @@ export class GameState {
     this.auraWeapon = undefined;
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
+    this.homingMissileWeapon = undefined; // Reset new weapon
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined; // Reset heal ability

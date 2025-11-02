@@ -153,6 +153,22 @@ export class SpriteManager {
     `;
   }
 
+  static getHomingMissileSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="missileGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FF5722" />
+            <stop offset="100%" stop-color="#E64A19" />
+          </linearGradient>
+        </defs>
+        <path d="M${size / 2},0 L${size * 0.75},${size * 0.25} L${size * 0.75},${size * 0.75} L${size / 2},${size} L${size * 0.25},${size * 0.75} L${size * 0.25},${size * 0.25} Z" fill="url(#missileGradient)" stroke="#BF360C" stroke-width="1"/>
+        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.1}" fill="#FFEB3B"/>
+        <rect x="${size * 0.4}" y="${size * 0.7}" width="${size * 0.2}" height="${size * 0.2}" fill="#FFFFFF" opacity="0.5"/>
+      </svg>
+    `;
+  }
+
   static getExperienceGemSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">

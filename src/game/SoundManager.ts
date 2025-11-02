@@ -88,6 +88,11 @@ export class SoundManager {
     return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
   }
 
+  static getHomingMissileFireSound(): string {
+    // A distinct "whoosh" or "launch" sound for homing missiles
+    return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
+  }
+
   static getExplosionSound(): string {
     // A short "boom"
     return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";

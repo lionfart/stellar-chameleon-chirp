@@ -4,6 +4,7 @@ import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
+import { HomingMissileWeapon } from './HomingMissileWeapon'; // New: Homing Missile Weapon
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
@@ -106,6 +107,7 @@ export class GameEngine {
     { id: 'buy_aura_weapon', name: 'Aura Weapon', description: 'A constant damage aura around you.', cost: 100, type: 'weapon' },
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
+    { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' }, // New shop item
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
@@ -131,6 +133,7 @@ export class GameEngine {
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
+      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager), // New starting weapon
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -156,6 +159,7 @@ export class GameEngine {
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Generic enemy projectile
     this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // NEW: Player specific projectile
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
+    this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24)); // New missile sprite
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
@@ -167,6 +171,7 @@ export class GameEngine {
     this.soundManager.loadSound('enemy_hit', SoundManager.getEnemyHitSound());
     this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
     this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
+    this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound()); // New missile sound
     this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
     this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
     this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
@@ -191,6 +196,9 @@ export class GameEngine {
       }
       if (this.gameState.spinningBladeWeapon) {
         this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
+      }
+      if (this.gameState.homingMissileWeapon) { // Set sprite for new weapon
+        this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
@@ -246,6 +254,7 @@ export class GameEngine {
       if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+      if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false; // Filter if already owned
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -280,6 +289,9 @@ export class GameEngine {
         case 'buy_spinning_blade_weapon':
           this.gameState.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
           break;
+        case 'buy_homing_missile_weapon': // New purchase logic
+          this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
+          break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
           break;
@@ -301,6 +313,7 @@ export class GameEngine {
         if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+        if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false; // Filter if already owned
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -323,6 +336,7 @@ export class GameEngine {
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager), // Placeholder sprite for now
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
+      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager), // New starting weapon
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -338,6 +352,9 @@ export class GameEngine {
     }
     if (this.gameState.spinningBladeWeapon) {
       this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
+    }
+    if (this.gameState.homingMissileWeapon) { // Set sprite for new weapon
+      this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
     }
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
@@ -364,6 +381,15 @@ export class GameEngine {
         break;
       case 'projectile_fire_rate':
         this.gameState.projectileWeapon?.decreaseFireRate(0.2);
+        break;
+      case 'homing_missile_damage': // New upgrade
+        this.gameState.homingMissileWeapon?.increaseDamage(10);
+        break;
+      case 'homing_missile_fire_rate': // New upgrade
+        this.gameState.homingMissileWeapon?.decreaseFireRate(0.3);
+        break;
+      case 'homing_missile_count': // New upgrade
+        this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
         break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
@@ -465,6 +491,7 @@ export class GameEngine {
     this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
+    this.gameState.homingMissileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Update new weapon
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
     this.gameState.healAbility?.update(deltaTime);
@@ -566,6 +593,7 @@ export class GameEngine {
     this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY);
     this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
     this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.homingMissileWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Draw new weapon
     this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
