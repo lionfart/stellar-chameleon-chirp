@@ -1,4 +1,5 @@
 import { Player } from './Player';
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class MagnetPowerUp {
   x: number;
@@ -8,9 +9,10 @@ export class MagnetPowerUp {
   radius: number;
   color: string;
   private currentDuration: number;
-  private sprite: HTMLImageElement | undefined; // New: Magnet sprite
+  private sprite: HTMLImageElement | undefined;
+  private soundManager: SoundManager; // New: SoundManager instance
 
-  constructor(x: number, y: number, duration: number = 5, radius: number = 300, sprite: HTMLImageElement | undefined) {
+  constructor(x: number, y: number, duration: number = 5, radius: number = 300, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.x = x;
     this.y = y;
     this.size = 20;
@@ -19,6 +21,7 @@ export class MagnetPowerUp {
     this.color = 'lightblue';
     this.currentDuration = duration;
     this.sprite = sprite;
+    this.soundManager = soundManager; // Assign SoundManager
   }
 
   update(deltaTime: number): boolean {

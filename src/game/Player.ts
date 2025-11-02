@@ -1,6 +1,7 @@
 import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class Player {
   x: number;
@@ -15,7 +16,8 @@ export class Player {
   experienceToNextLevel: number;
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
-  private sprite: HTMLImageElement | undefined; // New: Player sprite
+  private sprite: HTMLImageElement | undefined;
+  private soundManager: SoundManager; // New: SoundManager instance
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5;
@@ -26,7 +28,7 @@ export class Player {
   private currentDashDuration: number = 0;
   private dashTrail: { x: number; y: number; alpha: number; size: number }[] = []; // For dash visual effect
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void, sprite: HTMLImageElement | undefined) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -39,6 +41,7 @@ export class Player {
     this.experienceToNextLevel = 100;
     this.onLevelUpCallback = onLevelUp;
     this.sprite = sprite;
+    this.soundManager = soundManager; // Assign SoundManager
   }
 
   setSprite(sprite: HTMLImageElement | undefined) {
@@ -62,6 +65,7 @@ export class Player {
       this.isDashing = true;
       this.currentDashDuration = this.dashDuration;
       this.currentDashCooldown = this.dashCooldown;
+      this.soundManager.playSound('dash'); // Play dash sound
       console.log("Dash activated!");
     }
 
@@ -184,7 +188,7 @@ export class Player {
     this.level++;
     this.experience -= this.experienceToNextLevel;
     this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * 1.5);
-    this.onLevelUpCallback();
+    this.onLevelUpCallback(); // Trigger the callback to show the level-up screen and play sound
   }
 
   increaseSpeed(amount: number) {

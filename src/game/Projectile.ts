@@ -11,7 +11,7 @@ export class Projectile {
   color: string;
   lifetime: number;
   private currentLifetime: number;
-  private sprite: HTMLImageElement | undefined; // New: Projectile sprite
+  private sprite: HTMLImageElement | undefined;
 
   constructor(x: number, y: number, radius: number, speed: number, damage: number, directionX: number, directionY: number, color: string, lifetime: number, sprite: HTMLImageElement | undefined) {
     this.x = x;

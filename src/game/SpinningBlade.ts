@@ -9,7 +9,7 @@ export class SpinningBlade {
   orbitDistance: number;
   rotationSpeed: number;
   color: string;
-  private sprite: HTMLImageElement | undefined; // New: Blade sprite
+  private sprite: HTMLImageElement | undefined;
 
   constructor(orbitDistance: number, rotationSpeed: number, damage: number, radius: number, initialAngle: number, sprite: HTMLImageElement | undefined) {
     this.orbitDistance = orbitDistance;

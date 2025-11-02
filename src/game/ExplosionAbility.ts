@@ -1,5 +1,6 @@
 import { Explosion } from './Explosion';
 import { Enemy } from './Enemy';
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class ExplosionAbility {
   explosions: Explosion[];
@@ -7,13 +8,15 @@ export class ExplosionAbility {
   private radius: number;
   private cooldown: number; // seconds
   private currentCooldown: number;
+  private soundManager: SoundManager; // New: SoundManager instance
 
-  constructor(baseDamage: number, radius: number, cooldown: number) {
+  constructor(baseDamage: number, radius: number, cooldown: number, soundManager: SoundManager) {
     this.explosions = [];
     this.baseDamage = baseDamage;
     this.radius = radius;
     this.cooldown = cooldown;
     this.currentCooldown = 0;
+    this.soundManager = soundManager; // Assign SoundManager
   }
 
   update(deltaTime: number, enemies: Enemy[]) {
@@ -37,6 +40,7 @@ export class ExplosionAbility {
     if (this.currentCooldown <= 0) {
       this.explosions.push(new Explosion(playerX, playerY, this.radius, this.baseDamage));
       this.currentCooldown = this.cooldown;
+      this.soundManager.playSound('explosion'); // Play explosion sound
       console.log("Explosion triggered!");
       return true;
     }

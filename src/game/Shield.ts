@@ -1,3 +1,5 @@
+import { SoundManager } from './SoundManager'; // Import SoundManager
+
 export class Shield {
   x: number;
   y: number;
@@ -7,8 +9,9 @@ export class Shield {
   color: string;
   isActive: boolean;
   private pulseTimer: number = 0; // For pulsing effect
+  private soundManager: SoundManager; // New: SoundManager instance
 
-  constructor(radius: number, maxHealth: number) {
+  constructor(radius: number, maxHealth: number, soundManager: SoundManager) {
     this.x = 0;
     this.y = 0;
     this.radius = radius;
@@ -16,6 +19,7 @@ export class Shield {
     this.currentHealth = maxHealth;
     this.color = 'rgba(0, 191, 255, 0.4)';
     this.isActive = false;
+    this.soundManager = soundManager; // Assign SoundManager
   }
 
   updatePosition(playerX: number, playerY: number) {
@@ -70,6 +74,7 @@ export class Shield {
     if (this.currentHealth <= 0) {
       this.currentHealth = 0;
       this.isActive = false;
+      this.soundManager.playSound('shield_break'); // Play shield break sound
       console.log("Shield broken!");
       return Math.abs(this.currentHealth);
     }
@@ -84,11 +89,13 @@ export class Shield {
 
   activate() {
     this.isActive = true;
+    this.soundManager.playSound('shield_activate'); // Play shield activate sound
     console.log("Shield activated!");
   }
 
   deactivate() {
     this.isActive = false;
+    this.soundManager.playSound('shield_deactivate'); // Play shield deactivate sound
     console.log("Shield deactivated!");
   }
 

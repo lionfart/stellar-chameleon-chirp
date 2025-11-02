@@ -1,5 +1,6 @@
 import { Projectile } from './Projectile';
 import { Enemy } from './Enemy';
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class ProjectileWeapon {
   projectiles: Projectile[];
@@ -7,11 +8,12 @@ export class ProjectileWeapon {
   private projectileSpeed: number;
   private fireRate: number;
   private lastFireTime: number;
-  public projectileRadius: number; // Changed to public
+  public projectileRadius: number;
   private projectileLifetime: number;
-  private projectileSprite: HTMLImageElement | undefined; // New: Projectile sprite
+  private projectileSprite: HTMLImageElement | undefined;
+  private soundManager: SoundManager; // New: SoundManager instance
 
-  constructor(baseDamage: number, projectileSpeed: number, fireRate: number, projectileRadius: number, projectileLifetime: number, projectileSprite: HTMLImageElement | undefined) {
+  constructor(baseDamage: number, projectileSpeed: number, fireRate: number, projectileRadius: number, projectileLifetime: number, projectileSprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.projectiles = [];
     this.baseDamage = baseDamage;
     this.projectileSpeed = projectileSpeed;
@@ -20,6 +22,7 @@ export class ProjectileWeapon {
     this.projectileRadius = projectileRadius;
     this.projectileLifetime = projectileLifetime;
     this.projectileSprite = projectileSprite;
+    this.soundManager = soundManager; // Assign SoundManager
   }
 
   update(deltaTime: number, playerX: number, playerY: number, enemies: Enemy[]) {
@@ -64,9 +67,10 @@ export class ProjectileWeapon {
               directionY,
               'cyan',
               this.projectileLifetime,
-              this.projectileSprite // Pass the sprite
+              this.projectileSprite
             )
           );
+          this.soundManager.playSound('projectile_fire'); // Play fire sound
         }
       }
     }

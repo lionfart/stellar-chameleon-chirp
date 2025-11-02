@@ -9,7 +9,8 @@ import { MagnetPowerUp } from './MagnetPowerUp';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { clamp } from './utils';
-import { SpriteManager } from './SpriteManager'; // Import SpriteManager
+import { SpriteManager } from './SpriteManager';
+import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
@@ -32,7 +33,8 @@ export class GameEngine {
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
-  private spriteManager: SpriteManager; // New: SpriteManager instance
+  private spriteManager: SpriteManager;
+  private soundManager: SoundManager; // New: SoundManager instance
   private assetsLoaded: boolean = false;
 
   // Wave system properties
@@ -52,15 +54,16 @@ export class GameEngine {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
-    this.spriteManager = new SpriteManager(this.onAllAssetsLoaded); // Initialize SpriteManager
+    this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
+    this.soundManager = new SoundManager(this.onAllAssetsLoaded); // Initialize SoundManager
 
-    // Initialize game objects with placeholder sprites for now, will be updated after assets load
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined);
+    // Initialize game objects with placeholder sprites/sounds for now, will be updated after assets load
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, undefined);
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
-    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined);
-    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined);
-    this.explosionAbility = new ExplosionAbility(50, 150, 5);
-    this.shieldAbility = new ShieldAbility(40, 100, 10, 10);
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, undefined);
+    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, undefined);
+    this.explosionAbility = new ExplosionAbility(50, 150, 5, undefined);
+    this.shieldAbility = new ShieldAbility(40, 100, 10, 10, undefined);
     this.player.setShieldAbility(this.shieldAbility);
 
     this.lastTime = 0;
@@ -74,35 +77,53 @@ export class GameEngine {
   }
 
   private loadAssets() {
-    // Player
-    this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.player.size * 2)); // Load larger sprite for better detail
-
-    // Enemies
+    // Sprites
+    this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.player.size * 2));
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
-
-    // Weapons/Abilities
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.projectileWeapon.projectileRadius * 2));
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.spinningBladeWeapon.bladeRadius * 2));
-
-    // Pickups
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
+    this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
 
-    // Background
-    this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100)); // Tile size 100x100
+    // Sounds (using placeholder base64 audio)
+    this.soundManager.loadSound('dash', SoundManager.getDashSound());
+    this.soundManager.loadSound('level_up', SoundManager.getLevelUpSound());
+    this.soundManager.loadSound('enemy_hit', SoundManager.getEnemyHitSound());
+    this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
+    this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
+    this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
+    this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
+    this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
+    this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
+    this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
+    this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
   }
 
   private onAllAssetsLoaded = () => {
-    this.assetsLoaded = true;
-    console.log("All game assets loaded!");
-    // Re-initialize game objects with loaded sprites
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'));
-    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'));
-    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'));
-    this.player.setShieldAbility(this.shieldAbility); // Re-set shield ability after player re-init
-    this.gameLoop(0); // Start the game loop only after assets are loaded
+    // This callback will be called twice (once for SpriteManager, once for SoundManager)
+    // We only want to set assetsLoaded to true and start the loop once all are truly loaded.
+    // A simple counter or a Promise.all approach would be more robust for multiple managers.
+    // For now, we'll assume this is called after both managers have finished their loading.
+    // A more robust solution would involve a shared loading state or a single promise.all.
+    // For this example, we'll just check if both managers have finished their internal counts.
+    if (this.spriteManager['loadedCount'] === this.spriteManager['totalCount'] &&
+        this.soundManager['loadedCount'] === this.soundManager['totalCount']) {
+      this.assetsLoaded = true;
+      console.log("All game assets (sprites and sounds) loaded!");
+
+      // Re-initialize game objects with loaded sprites and soundManager
+      this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, this.spriteManager.getSprite('player'), this.soundManager);
+      this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3, this.spriteManager.getSprite('projectile'), this.soundManager);
+      this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1, this.spriteManager.getSprite('spinning_blade'), this.soundManager);
+      this.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
+      this.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
+      this.player.setShieldAbility(this.shieldAbility);
+
+      this.gameLoop(0); // Start the game loop only after assets are loaded
+    }
   };
 
   init() {
@@ -113,6 +134,7 @@ export class GameEngine {
   }
 
   private triggerLevelUp = () => {
+    this.soundManager.playSound('level_up');
     this.onLevelUpCallback();
   };
 
@@ -223,7 +245,7 @@ export class GameEngine {
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
     const enemySprite = this.spriteManager.getSprite(randomType.spriteName);
 
-    this.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite));
+    this.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite, this.soundManager));
   }
 
   private update(deltaTime: number) {
@@ -274,11 +296,11 @@ export class GameEngine {
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
       const gemSprite = this.spriteManager.getSprite('experience_gem');
-      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10, gemSprite));
+      this.experienceGems.push(new ExperienceGem(enemy.x, enemy.y, 10, gemSprite, this.soundManager));
       // 10% chance to drop a magnet power-up
       if (Math.random() < 0.1) {
         const magnetSprite = this.spriteManager.getSprite('magnet_powerup');
-        this.magnetPowerUps.push(new MagnetPowerUp(enemy.x, enemy.y, 5, 300, magnetSprite));
+        this.magnetPowerUps.push(new MagnetPowerUp(enemy.x, enemy.y, 5, 300, magnetSprite, this.soundManager));
       }
     });
     this.enemies = this.enemies.filter(enemy => enemy.isAlive());
@@ -288,6 +310,7 @@ export class GameEngine {
       if (magnet.collidesWith(this.player)) {
         this.activeMagnetRadius = magnet.radius;
         this.activeMagnetDuration = magnet.duration;
+        this.soundManager.playSound('magnet_collect'); // Play sound on collect
         console.log(`Magnet power-up collected! Radius: ${this.activeMagnetRadius}, Duration: ${this.activeMagnetDuration}`);
         return false; // Remove power-up after collection
       }
@@ -316,6 +339,7 @@ export class GameEngine {
 
       if (gem.collidesWith(this.player)) {
         this.player.gainExperience(gem.value);
+        this.soundManager.playSound('gem_collect'); // Play sound on collect
         return false;
       }
       return true;
