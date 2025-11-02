@@ -396,6 +396,15 @@ export class GameEngine {
       case 'heal_cooldown':
         this.gameState.healAbility?.reduceCooldown(2);
         break;
+      case 'player_magnet_radius':
+        this.gameState.player.increaseMagnetRadius(50); // Increase by 50 units
+        break;
+      case 'experience_boost':
+        this.gameState.player.increaseExperienceGain(0.1); // Increase by 10%
+        break;
+      case 'gold_boost':
+        this.gameState.player.increaseGoldGain(0.1); // Increase by 10%
+        break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
     }
@@ -620,5 +629,10 @@ export class GameEngine {
     this.inputHandler.destroy();
     this.gameOverScreen.clearClickListener();
     this.soundManager.stopSound(this.backgroundMusicInstance);
+  }
+
+  // Public getter for gameState
+  public getGameState(): GameState {
+    return this.gameState;
   }
 }

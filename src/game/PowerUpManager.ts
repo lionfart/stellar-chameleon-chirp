@@ -7,7 +7,7 @@ import { ExperienceGem } from './ExperienceGem';
 export class PowerUpManager {
   private gameState: GameState;
   private spriteManager: SpriteManager;
-  private soundManager: SoundManager;
+  private soundManager: SoundManager; // Düzeltildi: Sound SoundManager -> SoundManager
 
   constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager) {
     this.gameState = gameState;
@@ -37,14 +37,17 @@ export class PowerUpManager {
       }
     }
 
+    // Determine effective magnet radius (player's base + active power-up)
+    const effectiveMagnetRadius = Math.max(this.gameState.player.baseMagnetRadius, this.gameState.activeMagnetRadius);
+
     // Handle experience gem collection and magnet pull
     this.gameState.experienceGems = this.gameState.experienceGems.filter(gem => {
       // If magnet is active and gem is within range, pull it towards the player
-      if (this.gameState.activeMagnetRadius > 0) {
+      if (effectiveMagnetRadius > 0) {
         const dx = this.gameState.player.x - gem.x;
         const dy = this.gameState.player.y - gem.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < this.gameState.activeMagnetRadius) {
+        if (distance < effectiveMagnetRadius) { // Use effective magnet radius
           gem.pullTowards(this.gameState.player.x, this.gameState.player.y, deltaTime);
         }
       }

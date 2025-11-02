@@ -15,25 +15,42 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
-// Move allLevelUpOptions outside the component to ensure it's stable
-const ALL_LEVEL_UP_OPTIONS = [
-  { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
-  { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
-  { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
-  { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
-  { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
-  { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
-  { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
-  { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
-  { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
-  { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
-  { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
-  { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
-  { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
-  { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
-  { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' }, // New heal upgrade
-  { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' }, // New heal upgrade
-];
+// ALL_LEVEL_UP_OPTIONS'ı bir fonksiyon olarak tanımlayalım, böylece mevcut oyun durumuna göre filtreleyebiliriz.
+const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçici olarak kullanıyoruz
+  const options = [
+    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
+    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
+    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
+    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
+    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
+    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
+    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
+    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
+    { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
+    { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
+    { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
+    { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
+    { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
+    { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
+    { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' },
+    { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' },
+    // New general upgrades
+    { id: 'player_magnet_radius', name: 'Increase Magnet Radius', description: 'Increase the radius for collecting experience gems.' },
+    { id: 'experience_boost', name: 'Increase XP Gain', description: 'Gain more experience from defeated enemies.' },
+    { id: 'gold_boost', name: 'Increase Gold Gain', description: 'Gain more gold from defeated enemies.' },
+  ];
+
+  // Filter options based on whether the player has the corresponding weapon/ability
+  return options.filter(option => {
+    if (option.id.startsWith('aura_') && !gameState.auraWeapon) return false;
+    if (option.id.startsWith('projectile_') && !gameState.projectileWeapon) return false;
+    if (option.id.startsWith('blade_') && !gameState.spinningBladeWeapon) return false;
+    if (option.id.startsWith('explosion_') && !gameState.explosionAbility) return false;
+    if (option.id.startsWith('shield_') && !gameState.shieldAbility) return false;
+    if (option.id.startsWith('heal_') && !gameState.healAbility) return false;
+    return true;
+  });
+};
 
 const GameCanvas: React.FC = () => {
   console.log("GameCanvas component rendering...");
@@ -83,7 +100,9 @@ const GameCanvas: React.FC = () => {
 
   // Level Up Callbacks
   const handleLevelUp = useCallback(() => {
-    const shuffled = [...ALL_LEVEL_UP_OPTIONS].sort(() => 0.5 - Math.random());
+    if (!gameEngineRef.current) return;
+    const availableOptions = getLevelUpOptions(gameEngineRef.current.getGameState()); // Düzeltildi: gameState'e getter ile erişim
+    const shuffled = [...availableOptions].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
     gameEngineRef.current?.pause();

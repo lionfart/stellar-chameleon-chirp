@@ -32,6 +32,11 @@ export class Player {
   private currentDashDuration: number = 0;
   private dashTrail: { x: number; y: number; alpha: number; size: number }[] = []; // For dash visual effect
 
+  // New player properties for upgrades
+  baseMagnetRadius: number; // Base radius for pulling experience gems
+  experienceMultiplier: number; // Multiplier for experience gain
+  goldMultiplier: number; // Multiplier for gold gain
+
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, onLevelUp: () => void, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.x = x;
     this.y = y;
@@ -47,6 +52,9 @@ export class Player {
     this.onLevelUpCallback = onLevelUp;
     this.sprite = sprite;
     this.soundManager = soundManager; // Assign SoundManager
+    this.baseMagnetRadius = 50; // Initial base magnet radius
+    this.experienceMultiplier = 1; // Initial experience multiplier
+    this.goldMultiplier = 1; // Initial gold multiplier
   }
 
   setSprite(sprite: HTMLImageElement | undefined) {
@@ -209,7 +217,7 @@ export class Player {
   }
 
   gainExperience(amount: number) {
-    this.experience += amount;
+    this.experience += amount * this.experienceMultiplier; // Apply multiplier
     if (this.experience >= this.experienceToNextLevel) {
       this.levelUp();
     }
@@ -223,7 +231,7 @@ export class Player {
   }
 
   gainGold(amount: number) {
-    this.gold += amount;
+    this.gold += amount * this.goldMultiplier; // Apply multiplier
     console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
   }
 
@@ -252,6 +260,21 @@ export class Player {
     this.dashCooldown = Math.max(0.5, this.dashCooldown - amount);
     this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown); // Adjust current cooldown if it's higher
     console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
+  }
+
+  increaseMagnetRadius(amount: number) {
+    this.baseMagnetRadius += amount;
+    console.log(`Player base magnet radius increased to ${this.baseMagnetRadius}`);
+  }
+
+  increaseExperienceGain(amount: number) {
+    this.experienceMultiplier += amount;
+    console.log(`Player experience multiplier increased to ${this.experienceMultiplier}`);
+  }
+
+  increaseGoldGain(amount: number) {
+    this.goldMultiplier += amount;
+    console.log(`Player gold multiplier increased to ${this.goldMultiplier}`);
   }
 
   // Getters for HUD
