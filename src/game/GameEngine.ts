@@ -3,7 +3,7 @@ import { InputHandler } from './InputHandler';
 import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ExperienceGem } from './ExperienceGem';
-import { ProjectileWeapon } from './ProjectileWeapon'; // Import new weapon
+import { ProjectileWeapon } from './ProjectileWeapon';
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -15,12 +15,17 @@ export class GameEngine {
   private enemies: Enemy[];
   private experienceGems: ExperienceGem[];
   private enemySpawnTimer: number;
-  private enemySpawnInterval: number = 2;
+  private enemySpawnInterval: number = 2; // Initial spawn interval
   private auraWeapon: AuraWeapon;
-  private projectileWeapon: ProjectileWeapon; // New projectile weapon instance
+  private projectileWeapon: ProjectileWeapon;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
+
+  // Wave system properties
+  private waveNumber: number = 1;
+  private waveDuration: number = 60; // seconds per wave
+  private waveTimeElapsed: number = 0;
 
   // World dimensions
   private worldWidth: number = 2000;
@@ -40,7 +45,7 @@ export class GameEngine {
     this.experienceGems = [];
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
-    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3); // Initial projectile weapon stats
+    this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3);
     this.onLevelUpCallback = onLevelUp;
   }
 
@@ -77,7 +82,7 @@ export class GameEngine {
         this.projectileWeapon.increaseDamage(10);
         break;
       case 'projectile_fire_rate':
-        this.projectileWeapon.decreaseFireRate(0.2); // Decrease interval, so increase fire rate
+        this.projectileWeapon.decreaseFireRate(0.2);
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -115,7 +120,16 @@ export class GameEngine {
     spawnX = clamp(spawnX, 0, this.worldWidth);
     spawnY = clamp(spawnY, 0, this.worldHeight);
 
-    this.enemies.push(new Enemy(spawnX, spawnY, 20, 100, 'red', 30));
+    // Scale enemy stats with wave number
+    const enemyBaseHealth = 30;
+    const enemyBaseSpeed = 100;
+    const healthMultiplier = 1 + (this.waveNumber - 1) * 0.2; // +20% health per wave
+    const speedMultiplier = 1 + (this.waveNumber - 1) * 0.05; // +5% speed per wave
+
+    const enemyHealth = Math.floor(enemyBaseHealth * healthMultiplier);
+    const enemySpeed = enemyBaseSpeed * speedMultiplier;
+
+    this.enemies.push(new Enemy(spawnX, spawnY, 20, enemySpeed, 'red', enemyHealth));
   }
 
   private update(deltaTime: number) {
@@ -131,6 +145,15 @@ export class GameEngine {
 
     this.enemies.forEach(enemy => enemy.update(deltaTime, this.player));
 
+    // Update wave timer and advance wave if needed
+    this.waveTimeElapsed += deltaTime;
+    if (this.waveTimeElapsed >= this.waveDuration) {
+      this.waveNumber++;
+      this.waveTimeElapsed = 0;
+      this.enemySpawnInterval = Math.max(0.5, this.enemySpawnInterval * 0.9); // Decrease spawn interval by 10% each wave, min 0.5s
+      console.log(`Advancing to Wave ${this.waveNumber}! New spawn interval: ${this.enemySpawnInterval.toFixed(2)}s`);
+    }
+
     this.enemySpawnTimer += deltaTime;
     if (this.enemySpawnTimer >= this.enemySpawnInterval) {
       this.spawnEnemy();
@@ -144,7 +167,7 @@ export class GameEngine {
     });
 
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
-    this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies); // Update projectile weapon
+    this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -182,7 +205,7 @@ export class GameEngine {
     );
 
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
-    this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY); // Draw projectiles
+    this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
 
@@ -196,6 +219,11 @@ export class GameEngine {
     this.ctx.fillText(`Health: ${this.player.currentHealth}/${this.player.maxHealth}`, 10, 30);
     this.ctx.fillText(`Level: ${this.player.level}`, 10, 60);
     this.ctx.fillText(`XP: ${this.player.experience}/${this.player.experienceToNextLevel}`, 10, 90);
+
+    // Display wave information
+    this.ctx.textAlign = 'right';
+    this.ctx.fillText(`Wave: ${this.waveNumber}`, this.ctx.canvas.width - 10, 30);
+    this.ctx.fillText(`Time: ${Math.floor(this.waveDuration - this.waveTimeElapsed)}s`, this.ctx.canvas.width - 10, 60);
 
 
     if (this.gameOver) {
