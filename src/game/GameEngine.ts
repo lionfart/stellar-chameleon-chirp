@@ -16,6 +16,7 @@ import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
+import { GameWinScreen } from './GameWinScreen'; // Import GameWinScreen
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss'; // Import Boss
@@ -65,6 +66,10 @@ export interface GameDataProps {
   bossMaxHealth: number;
   bossName: string;
 
+  // New properties for Princess Simge rescue
+  collectedLetters: string[];
+  gameWon: boolean;
+
   // Minimap specific data
   playerX: number;
   playerY: number;
@@ -94,6 +99,7 @@ export class GameEngine {
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
   private gameOverSoundPlayed: boolean = false;
+  private gameWinSoundPlayed: boolean = false; // New: Track if win sound played
   private backgroundMusicInstance: HTMLAudioElement | null = null;
 
   // Add these properties to the class
@@ -101,6 +107,7 @@ export class GameEngine {
   private waveManager: WaveManager;
   private powerUpManager: PowerUpManager;
   private gameOverScreen: GameOverScreen;
+  private gameWinScreen: GameWinScreen; // New: GameWinScreen instance
 
   // World dimensions
   private worldWidth: number = 2000;
@@ -149,6 +156,7 @@ export class GameEngine {
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
+    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Initialize GameWinScreen
 
     this.lastTime = 0;
     this.animationFrameId = null;
@@ -188,6 +196,7 @@ export class GameEngine {
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
+    this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound()); // Re-using level up sound for win for now
     this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
   }
 
@@ -332,6 +341,21 @@ export class GameEngine {
     }
   }
 
+  private handleBossDefeat() {
+    if (this.gameState.nextLetterIndex < this.gameState.princessNameLetters.length) {
+      const nextLetter = this.gameState.princessNameLetters[this.gameState.nextLetterIndex];
+      this.gameState.collectedLetters.push(nextLetter);
+      showSuccess(`Collected letter: ${nextLetter}!`);
+      this.gameState.nextLetterIndex++;
+
+      if (this.gameState.nextLetterIndex === this.gameState.princessNameLetters.length) {
+        this.gameState.gameWon = true;
+        console.log("All letters collected! Princess Simge rescued!");
+      }
+    }
+    this.gameState.currentBoss = undefined; // Clear boss reference
+  }
+
   restartGame = () => {
     console.log("GameEngine: Restarting game...");
     this.soundManager.stopSound(this.backgroundMusicInstance);
@@ -353,6 +377,7 @@ export class GameEngine {
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
+    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas); // Re-initialize GameWinScreen
 
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
     if (this.gameState.projectileWeapon) {
@@ -367,7 +392,9 @@ export class GameEngine {
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
     this.gameOverScreen.clearClickListener();
+    this.gameWinScreen.clearClickListener(); // Clear win screen listener
     this.gameOverSoundPlayed = false;
+    this.gameWinSoundPlayed = false; // Reset win sound flag
     this.lastTime = performance.now();
     this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
     this.gameLoop(this.lastTime);
@@ -447,11 +474,16 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
-    if (this.gameState.isPaused || !this.assetsLoaded) {
+    if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
       if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
         this.soundManager.playSound('game_over');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameOverSoundPlayed = true;
+      }
+      if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
+        this.soundManager.playSound('game_win');
+        this.soundManager.stopSound(this.backgroundMusicInstance);
+        this.gameWinSoundPlayed = true;
       }
       return;
     }
@@ -557,10 +589,10 @@ export class GameEngine {
     });
     this.gameState.enemies = this.gameState.enemies.filter(enemy => enemy.isAlive());
 
-    // If boss was defeated, clear currentBoss reference
+    // If boss was defeated, clear currentBoss reference and handle letter collection
     if (this.gameState.currentBoss && !this.gameState.currentBoss.isAlive()) {
       console.log(`Boss ${this.gameState.currentBoss.getBossName()} defeated!`);
-      this.gameState.currentBoss = undefined;
+      this.handleBossDefeat();
     }
 
     this.powerUpManager.update(deltaTime);
@@ -598,6 +630,10 @@ export class GameEngine {
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,
       bossMaxHealth: this.gameState.currentBoss?.maxHealth || 0,
       bossName: this.gameState.currentBoss?.getBossName() || '',
+
+      // New properties for Princess Simge rescue
+      collectedLetters: this.gameState.collectedLetters,
+      gameWon: this.gameState.gameWon,
 
       // Minimap specific data
       playerX: this.gameState.player.x,
@@ -695,10 +731,16 @@ export class GameEngine {
     } else {
       this.gameOverScreen.clearClickListener();
     }
+
+    if (this.gameState.gameWon) {
+      this.gameWinScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
+    } else {
+      this.gameWinScreen.clearClickListener();
+    }
   }
 
   private gameLoop = (currentTime: number) => {
-    if (this.gameState.isPaused || !this.assetsLoaded) {
+    if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }
@@ -721,6 +763,7 @@ export class GameEngine {
     }
     this.inputHandler.destroy();
     this.gameOverScreen.clearClickListener();
+    this.gameWinScreen.clearClickListener(); // Clear win screen listener
     this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 

@@ -12,7 +12,7 @@ export class WaveManager {
   private soundManager: SoundManager;
   private enemySpawnTimer: number;
   private waveDuration: number = 60; // seconds per wave
-  private bossWaveInterval: number = 5; // Spawn a boss every 5 waves
+  private bossWaveInterval: number = 3; // Spawn a boss every 3 waves
 
   constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager) {
     this.gameState = gameState;

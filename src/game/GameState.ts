@@ -43,6 +43,13 @@ export class GameState {
   activeMagnetRadius: number;
   activeMagnetDuration: number;
 
+  // New properties for Princess Simge rescue
+  princessNameLetters: string[] = ['S', 'I', 'M', 'G', 'E'];
+  collectedLetters: string[] = [];
+  nextLetterIndex: number = 0;
+  gameWon: boolean = false;
+
+
   constructor(
     player: Player,
     vendor: Vendor,
@@ -120,5 +127,10 @@ export class GameState {
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined;
+
+    // Reset new properties
+    this.collectedLetters = [];
+    this.nextLetterIndex = 0;
+    this.gameWon = false;
   }
 }

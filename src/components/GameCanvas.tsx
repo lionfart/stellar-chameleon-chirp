@@ -93,6 +93,9 @@ const GameCanvas: React.FC = () => {
     bossHealth: 0,
     bossMaxHealth: 0,
     bossName: '',
+    // New properties for Princess Simge rescue
+    collectedLetters: [],
+    gameWon: false,
     // Minimap specific initial data
     playerX: 0,
     playerY: 0,

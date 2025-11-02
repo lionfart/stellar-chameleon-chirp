@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle } from 'lucide-react';
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown } from 'lucide-react'; // Crown icon for collected letters
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -32,6 +32,10 @@ export interface HUDProps {
   bossHealth: number;
   bossMaxHealth: number;
   bossName: string;
+
+  // New properties for Princess Simge rescue
+  collectedLetters: string[];
+  gameWon: boolean;
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -60,11 +64,16 @@ const HUD: React.FC<HUDProps> = ({
   bossHealth,
   bossMaxHealth,
   bossName,
+  // New properties for Princess Simge rescue
+  collectedLetters,
+  gameWon,
 }) => {
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
   const shieldPercentage = shieldMaxHealth > 0 ? (shieldCurrentHealth / shieldMaxHealth) * 100 : 0;
   const bossHealthPercentage = bossMaxHealth > 0 ? (bossHealth / bossMaxHealth) * 100 : 0;
+
+  const princessName = ['S', 'I', 'M', 'G', 'E'];
 
   return (
     <>
@@ -155,7 +164,7 @@ const HUD: React.FC<HUDProps> = ({
         </Card>
       </div>
 
-      {/* Top-Center HUD - Wave Info */}
+      {/* Top-Center HUD - Wave Info and Collected Letters */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none z-40">
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[180px] text-center">
           <CardContent className="p-0 space-y-2">
@@ -166,6 +175,20 @@ const HUD: React.FC<HUDProps> = ({
             <div className="flex items-center justify-center space-x-2">
               <Clock className="h-6 w-6 text-gray-500 drop-shadow-sm" />
               <span className="text-base font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
+            </div>
+            {/* Collected Letters Display */}
+            <div className="flex items-center justify-center space-x-1 mt-2">
+              <Crown className="h-5 w-5 text-yellow-400 drop-shadow-sm" />
+              <span className="text-sm font-medium text-white">Simge:</span>
+              {princessName.map((letter, index) => (
+                <Badge
+                  key={index}
+                  variant={collectedLetters.includes(letter) ? 'default' : 'outline'}
+                  className={`text-sm font-bold ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
+                >
+                  {letter}
+                </Badge>
+              ))}
             </div>
           </CardContent>
         </Card>
