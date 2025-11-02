@@ -1,5 +1,6 @@
 import { Player } from './Player';
-import { SoundManager } from './SoundManager'; // Import SoundManager
+import { SoundManager } from './SoundManager';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class MagnetPowerUp {
   x: number;
@@ -10,7 +11,7 @@ export class MagnetPowerUp {
   color: string;
   private currentDuration: number;
   private sprite: HTMLImageElement | undefined;
-  private soundManager: SoundManager; // New: SoundManager instance
+  private soundManager: SoundManager;
 
   constructor(x: number, y: number, duration: number = 5, radius: number = 300, sprite: HTMLImageElement | undefined, soundManager: SoundManager) {
     this.x = x;
@@ -21,7 +22,7 @@ export class MagnetPowerUp {
     this.color = 'lightblue';
     this.currentDuration = duration;
     this.sprite = sprite;
-    this.soundManager = soundManager; // Assign SoundManager
+    this.soundManager = soundManager;
   }
 
   update(deltaTime: number): boolean {
@@ -29,15 +30,31 @@ export class MagnetPowerUp {
     return this.currentDuration > 0;
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+    const { drawX, drawY, scale, scaledSize, shadowOffset, shadowRadius, shadowAlpha } = gameEngine.getDrawProperties(this);
+
+    // Draw shadow
+    ctx.save();
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.ellipse(drawX - cameraX + shadowOffset, drawY - cameraY + scaledSize / 2 + shadowOffset, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(drawX - cameraX, drawY - cameraY);
+    ctx.scale(scale, scale);
+
     if (this.sprite) {
-      ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
+      ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
+      ctx.arc(0, 0, this.size / 2, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
   }
 
   collidesWith(other: { x: number; y: number; size: number }): boolean {

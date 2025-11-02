@@ -1,9 +1,11 @@
 import { Enemy } from './Enemy';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class SpinningBlade {
   x: number;
   y: number;
   radius: number;
+  size: number; // Added size property
   damage: number;
   angle: number;
   orbitDistance: number;
@@ -16,6 +18,7 @@ export class SpinningBlade {
     this.rotationSpeed = rotationSpeed;
     this.damage = damage;
     this.radius = radius;
+    this.size = radius * 2; // Initialize size based on radius
     this.angle = initialAngle;
     this.color = 'gray';
     this.x = 0;
@@ -30,19 +33,23 @@ export class SpinningBlade {
     this.y = playerY + this.orbitDistance * Math.sin(this.angle);
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+    const { drawX, drawY, scale } = gameEngine.getDrawProperties(this);
+
+    ctx.save();
+    ctx.translate(drawX - cameraX, drawY - cameraY);
+    ctx.scale(scale, scale);
+    ctx.rotate(this.angle); // Rotate the sprite with its orbit
+
     if (this.sprite) {
-      ctx.save();
-      ctx.translate(this.x - cameraX, this.y - cameraY);
-      ctx.rotate(this.angle); // Rotate the sprite with its orbit
-      ctx.drawImage(this.sprite, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
-      ctx.restore();
+      ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, this.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore();
   }
 
   collidesWith(enemy: Enemy): boolean {

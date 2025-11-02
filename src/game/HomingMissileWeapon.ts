@@ -1,6 +1,7 @@
 import { HomingMissile } from './HomingMissile';
 import { Enemy } from './Enemy';
 import { SoundManager } from './SoundManager';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class HomingMissileWeapon {
   missiles: HomingMissile[];
@@ -12,7 +13,7 @@ export class HomingMissileWeapon {
   private missileLifetime: number;
   private missileSprite: HTMLImageElement | undefined;
   private soundManager: SoundManager;
-  private numMissilesPerShot: number; // New: Number of missiles fired per shot
+  private numMissilesPerShot: number;
 
   constructor(baseDamage: number, missileSpeed: number, fireRate: number, missileRadius: number, missileLifetime: number, missileSprite: HTMLImageElement | undefined, soundManager: SoundManager, numMissilesPerShot: number = 1) {
     this.missiles = [];
@@ -34,7 +35,6 @@ export class HomingMissileWeapon {
       this.lastFireTime = 0;
 
       for (let i = 0; i < this.numMissilesPerShot; i++) {
-        // Find a target for each missile
         let closestEnemy: Enemy | null = null;
         let minDistance = Infinity;
 
@@ -59,7 +59,7 @@ export class HomingMissileWeapon {
               this.missileRadius,
               this.missileSpeed,
               this.baseDamage,
-              closestEnemy, // Pass the target enemy
+              closestEnemy,
               this.missileLifetime,
               this.missileSprite
             )
@@ -70,23 +70,23 @@ export class HomingMissileWeapon {
     }
 
     this.missiles = this.missiles.filter(missile => {
-      const isAlive = missile.update(deltaTime, enemies); // Pass enemies for target re-acquisition
+      const isAlive = missile.update(deltaTime, enemies);
       if (!isAlive) return false;
 
       for (let i = 0; i < enemies.length; i++) {
         const enemy = enemies[i];
         if (enemy.isAlive() && missile.collidesWith(enemy)) {
           enemy.takeDamage(missile.damage);
-          return false; // Remove missile after hitting enemy
+          return false;
         }
       }
       return true;
     });
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
     for (const missile of this.missiles) {
-      missile.draw(ctx, cameraX, cameraY);
+      missile.draw(ctx, cameraX, cameraY, gameEngine);
     }
   }
 

@@ -1,4 +1,5 @@
 import { Player } from './Player';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class Vendor {
   x: number;
@@ -17,9 +18,21 @@ export class Vendor {
     this.sprite = sprite;
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+    const { drawX, drawY, scale, scaledSize, shadowOffset, shadowRadius, shadowAlpha } = gameEngine.getDrawProperties(this);
+
+    // Draw shadow
     ctx.save();
-    ctx.translate(this.x - cameraX, this.y - cameraY);
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.ellipse(drawX - cameraX + shadowOffset, drawY - cameraY + scaledSize / 2 + shadowOffset, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(drawX - cameraX, drawY - cameraY);
+    ctx.scale(scale, scale);
 
     if (this.sprite) {
       ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);

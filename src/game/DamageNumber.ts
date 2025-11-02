@@ -1,3 +1,5 @@
+import { GameEngine } from './GameEngine'; // Import GameEngine
+
 export class DamageNumber {
   x: number;
   y: number;
@@ -27,16 +29,18 @@ export class DamageNumber {
     return this.currentLifetime < this.lifetime;
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+    const { drawX, drawY, scale } = gameEngine.getDrawProperties({ x: this.x, y: this.y, size: 1 }); // Use a minimal size for scaling reference
+
     ctx.save();
-    ctx.globalAlpha = Math.max(0, this.alpha); // Ensure alpha doesn't go below 0
+    ctx.globalAlpha = Math.max(0, this.alpha);
     ctx.fillStyle = this.color;
-    ctx.font = `bold ${20 + Math.sin(this.currentLifetime * 10) * 2}px Arial`; // Subtle pulse effect
+    ctx.font = `bold ${20 * scale + Math.sin(this.currentLifetime * 10) * 2}px Arial`; // Scale font size
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = 'black';
     ctx.shadowBlur = 5;
-    ctx.fillText(this.value.toString(), this.x - cameraX, this.y - cameraY);
+    ctx.fillText(this.value.toString(), drawX - cameraX, drawY - cameraY); // Use scaled drawY
     ctx.restore();
   }
 }

@@ -1,6 +1,7 @@
 import { Player } from './Player';
-import { SoundManager } from './SoundManager'; // Import SoundManager
-import { DamageNumber } from './DamageNumber'; // Import DamageNumber
+import { SoundManager } from './SoundManager';
+import { DamageNumber } from './DamageNumber';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class Enemy {
   x: number;
@@ -11,10 +12,10 @@ export class Enemy {
   maxHealth: number;
   currentHealth: number;
   private sprite: HTMLImageElement | undefined;
-  protected soundManager: SoundManager; // Changed from private to protected
+  protected soundManager: SoundManager;
   private hitTimer: number = 0; // For hit animation
-  private goldDrop: number; // New: Gold amount this enemy drops
-  private onTakeDamageCallback: (x: number, y: number, damage: number) => void; // Callback for damage numbers
+  private goldDrop: number;
+  private onTakeDamageCallback: (x: number, y: number, damage: number) => void;
 
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0, onTakeDamage: (x: number, y: number, damage: number) => void) {
     this.x = x;
@@ -25,9 +26,9 @@ export class Enemy {
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
     this.sprite = sprite;
-    this.soundManager = soundManager; // Assign SoundManager
-    this.goldDrop = goldDrop; // Assign gold drop
-    this.onTakeDamageCallback = onTakeDamage; // Assign callback
+    this.soundManager = soundManager;
+    this.goldDrop = goldDrop;
+    this.onTakeDamageCallback = onTakeDamage;
   }
 
   update(deltaTime: number, player: Player) {
@@ -49,11 +50,23 @@ export class Enemy {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
     if (!this.isAlive()) return;
 
+    const { drawX, drawY, scale, scaledSize, shadowOffset, shadowRadius, shadowAlpha } = gameEngine.getDrawProperties(this);
+
+    // Draw shadow
     ctx.save();
-    ctx.translate(this.x - cameraX, this.y - cameraY);
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.ellipse(drawX - cameraX + shadowOffset, drawY - cameraY + scaledSize / 2 + shadowOffset, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(drawX - cameraX, drawY - cameraY);
+    ctx.scale(scale, scale);
 
     // Apply hit flash effect
     if (this.hitTimer > 0) {
@@ -69,17 +82,17 @@ export class Enemy {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter
+    ctx.restore(); // Restore context to remove filter and scale
 
     // Draw health bar (simple rectangle above enemy)
-    const healthBarWidth = this.size * 1.5;
-    const healthBarHeight = 3;
+    const healthBarWidth = scaledSize * 1.5;
+    const healthBarHeight = 3 * scale;
     const healthPercentage = this.currentHealth / this.maxHealth;
 
     ctx.fillStyle = 'gray';
-    ctx.fillRect(this.x - cameraX - healthBarWidth / 2, this.y - cameraY - this.size / 2 - 8, healthBarWidth, healthBarHeight);
+    ctx.fillRect(drawX - cameraX - healthBarWidth / 2, drawY - cameraY - scaledSize / 2 - 8 * scale, healthBarWidth, healthBarHeight);
     ctx.fillStyle = 'orange';
-    ctx.fillRect(this.x - cameraX - healthBarWidth / 2, this.y - cameraY - this.size / 2 - 8, healthBarWidth * healthPercentage, healthBarHeight);
+    ctx.fillRect(drawX - cameraX - healthBarWidth / 2, drawY - cameraY - scaledSize / 2 - 8 * scale, healthBarWidth * healthPercentage, healthBarHeight);
   }
 
   takeDamage(amount: number) {

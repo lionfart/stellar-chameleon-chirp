@@ -3,6 +3,7 @@ import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
 import { SoundManager } from './SoundManager';
+import { GameEngine } from './GameEngine'; // Import GameEngine to access getDrawProperties
 
 export class Player {
   x: number;
@@ -145,7 +146,18 @@ export class Player {
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) {
+    const { drawX, drawY, scale, scaledSize, shadowOffset, shadowRadius, shadowAlpha } = gameEngine.getDrawProperties(this);
+
+    // Draw shadow
+    ctx.save();
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = 'black';
+    ctx.beginPath();
+    ctx.ellipse(drawX - cameraX + shadowOffset, drawY - cameraY + scaledSize / 2 + shadowOffset, shadowRadius, shadowRadius * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
     // Draw dash trail
     this.dashTrail.forEach(trail => {
       ctx.save();
@@ -158,7 +170,8 @@ export class Player {
     });
 
     ctx.save();
-    ctx.translate(this.x - cameraX, this.y - cameraY);
+    ctx.translate(drawX - cameraX, drawY - cameraY);
+    ctx.scale(scale, scale);
 
     // Apply hit flash effect
     if (this.hitTimer > 0) {
@@ -175,7 +188,7 @@ export class Player {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter
+    ctx.restore(); // Restore context to remove filter and scale
 
     // NEW: Draw heal effect
     const HEAL_EFFECT_DURATION = 0.5; // seconds
@@ -184,25 +197,25 @@ export class Player {
       ctx.save();
       const progress = (currentTime - this.lastHealTime) / HEAL_EFFECT_DURATION;
       const alpha = 1 - progress;
-      const pulseRadius = this.size * (1 + progress * 0.5); // Grow and fade
+      const pulseRadius = scaledSize * (1 + progress * 0.5); // Grow and fade
 
       ctx.strokeStyle = `rgba(0, 255, 0, ${alpha})`; // Green pulse
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, pulseRadius, 0, Math.PI * 2);
+      ctx.arc(drawX - cameraX, drawY - cameraY + scaledSize / 2 - pulseRadius / 2, pulseRadius, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
 
 
-    const healthBarWidth = this.size * 1.5;
-    const healthBarHeight = 5;
+    const healthBarWidth = scaledSize * 1.5;
+    const healthBarHeight = 5 * scale; // Scale health bar height too
     const healthPercentage = this.currentHealth / this.maxHealth;
 
     ctx.fillStyle = 'gray';
-    ctx.fillRect(this.x - cameraX - healthBarWidth / 2, this.y - cameraY - this.size / 2 - 10, healthBarWidth, healthBarHeight);
+    ctx.fillRect(drawX - cameraX - healthBarWidth / 2, drawY - cameraY - scaledSize / 2 - 10 * scale, healthBarWidth, healthBarHeight);
     ctx.fillStyle = 'lime';
-    ctx.fillRect(this.x - cameraX - healthBarWidth / 2, this.y - cameraY - this.size / 2 - 10, healthBarWidth * healthPercentage, healthBarHeight);
+    ctx.fillRect(drawX - cameraX - healthBarWidth / 2, drawY - cameraY - scaledSize / 2 - 10 * scale, healthBarWidth * healthPercentage, healthBarHeight);
   }
 
   takeDamage(amount: number) {

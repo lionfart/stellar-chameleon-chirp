@@ -3,6 +3,7 @@ import { Player } from './Player';
 import { Projectile } from './Projectile';
 import { SoundManager } from './SoundManager';
 import { DamageNumber } from './DamageNumber';
+import { GameEngine } from './GameEngine'; // Import GameEngine
 
 export class ShooterEnemy extends Enemy {
   private projectiles: Projectile[];
@@ -85,12 +86,12 @@ export class ShooterEnemy extends Enemy {
     });
   }
 
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    super.draw(ctx, cameraX, cameraY); // Draw base enemy
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, gameEngine: GameEngine) { // Added gameEngine parameter
+    super.draw(ctx, cameraX, cameraY, gameEngine); // Draw base enemy, pass gameEngine
 
     // Draw projectiles
     this.projectiles.forEach(projectile => {
-      projectile.draw(ctx, cameraX, cameraY);
+      projectile.draw(ctx, cameraX, cameraY, gameEngine); // Pass gameEngine to projectile draw
     });
   }
 }
