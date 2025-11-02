@@ -15,7 +15,6 @@ import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
 import { showSuccess, showError } from '@/utils/toast'; // Import toast utilities
-import { HUDProps } from '@/components/HUD'; // Import HUDProps interface
 
 // Define shop item types
 interface ShopItem {
@@ -26,6 +25,47 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
+// Minimap için basitleştirilmiş düşman verisi
+export interface MinimapEnemyData {
+  x: number;
+  y: number;
+  size: number;
+}
+
+// HUD ve Minimap için tüm oyun verilerini içeren arayüz
+export interface GameDataProps {
+  playerHealth: number;
+  playerMaxHealth: number;
+  playerLevel: number;
+  playerExperience: number;
+  playerExperienceToNextLevel: number;
+  playerGold: number;
+  shieldActive: boolean;
+  shieldCurrentHealth: number;
+  shieldMaxHealth: number;
+  waveNumber: number;
+  waveTimeRemaining: number;
+  dashCooldownCurrent: number;
+  dashCooldownMax: number;
+  explosionCooldownCurrent: number;
+  explosionCooldownMax: number;
+  shieldCooldownCurrent: number;
+  shieldCooldownMax: number;
+
+  // Minimap specific data
+  playerX: number;
+  playerY: number;
+  worldWidth: number;
+  worldHeight: number;
+  cameraX: number;
+  cameraY: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  enemiesMinimap: MinimapEnemyData[];
+  vendorX: number;
+  vendorY: number;
+}
+
 const MAX_DELTA_TIME = 1 / 30; // Cap deltaTime at 30 FPS to prevent physics glitches after long pauses
 
 export class GameEngine {
@@ -34,19 +74,19 @@ export class GameEngine {
   private lastTime: number;
   private animationFrameId: number | null;
   private onLevelUpCallback: () => void;
-  private onOpenShopCallback: (items: ShopItem[], playerGold: number) => void; // Modified: Added playerGold
-  private onCloseShopCallback: () => void; // New callback for closing shop
-  private onUpdateHUDCallback: (hudData: HUDProps) => void; // New callback for HUD updates
+  private onOpenShopCallback: (items: ShopItem[], playerGold: number) => void;
+  private onCloseShopCallback: () => void;
+  private onUpdateGameDataCallback: (gameData: GameDataProps) => void; // Updated callback
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
-  private gameOverSoundPlayed: boolean = false; // New: To ensure game over sound plays only once
-  private backgroundMusicInstance: HTMLAudioElement | null = null; // New: To hold the background music instance
+  private gameOverSoundPlayed: boolean = false;
+  private backgroundMusicInstance: HTMLAudioElement | null = null;
 
+  // Add these properties to the class
   private gameState: GameState;
   private waveManager: WaveManager;
   private powerUpManager: PowerUpManager;
-  // private hud: HUD; // REMOVED: HUD is now a React component
   private gameOverScreen: GameOverScreen;
 
   // World dimensions
@@ -66,14 +106,14 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateHUD: (hudData: HUDProps) => void) {
-    console.log("GameEngine constructor called!"); // Debug log
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void) {
+    console.log("GameEngine constructor called!");
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
     this.onOpenShopCallback = onOpenShop;
     this.onCloseShopCallback = onCloseShop;
-    this.onUpdateHUDCallback = onUpdateHUD; // Assign new callback
+    this.onUpdateGameDataCallback = onUpdateGameData; // Assign new callback
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
     this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
@@ -92,7 +132,6 @@ export class GameEngine {
     
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    // this.hud = new HUD(this.gameState); // REMOVED: HUD is now a React component
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
 
     this.lastTime = 0;
@@ -126,9 +165,9 @@ export class GameEngine {
     this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
     this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
-    this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound()); // Load new player hit sound
-    this.soundManager.loadSound('game_over', SoundManager.getGameOverSound()); // Load new game over sound
-    this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic()); // Load background music
+    this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
+    this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
+    this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
   }
 
   private onAllAssetsLoaded = () => {
@@ -146,7 +185,7 @@ export class GameEngine {
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
-      this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3); // Play background music on loop
+      this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
       this.gameLoop(0);
     }
   };
@@ -169,28 +208,27 @@ export class GameEngine {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
-    this.soundManager.stopSound(this.backgroundMusicInstance); // Stop music when paused
+    this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 
   resume() {
     console.log("GameEngine: Resuming game.");
     this.gameState.isPaused = false;
-    this.lastTime = performance.now(); // Reset lastTime to current time to prevent large deltaTime
-    if (!this.animationFrameId) { // Only request a new frame if not already running
+    this.lastTime = performance.now();
+    if (!this.animationFrameId) {
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
     }
     if (this.backgroundMusicInstance) {
-      this.backgroundMusicInstance.play().catch(e => console.warn("Failed to resume background music:", e)); // Resume music
+      this.backgroundMusicInstance.play().catch(e => console.warn("Failed to resume background music:", e));
     }
   }
 
   openShop() {
-    if (this.gameState.showShop) return; // Prevent opening if already open
+    if (this.gameState.showShop) return;
     console.log("GameEngine: Opening shop.");
     this.gameState.showShop = true;
-    this.pause(); // This will set isPaused = true and cancel animation frame
+    this.pause();
     this.onOpenShopCallback(this.shopItems.filter(item => {
-      // Filter out items player already has
       if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
@@ -201,11 +239,11 @@ export class GameEngine {
   }
 
   closeShop = () => {
-    if (!this.gameState.showShop) return; // Prevent closing if already closed
+    if (!this.gameState.showShop) return;
     console.log("GameEngine: Closing shop.");
     this.gameState.showShop = false;
     this.onCloseShopCallback();
-    this.resume(); // This will set isPaused = false and request a new animation frame
+    this.resume();
   }
 
   purchaseItem = (itemId: string) => {
@@ -240,29 +278,27 @@ export class GameEngine {
         default:
           console.warn(`Unknown item purchased: ${itemId}`);
       }
-      this.onOpenShopCallback(this.shopItems.filter(i => { // Refresh shop items after purchase
+      this.onOpenShopCallback(this.shopItems.filter(i => {
         if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         return true;
-      }), this.gameState.player.gold); // Modified: Pass player gold
+      }), this.gameState.player.gold);
     } else {
       showError("Not enough gold!");
     }
   }
 
   restartGame = () => {
-    console.log("GameEngine: Restarting game..."); // Debug log
-    // Stop current background music before restarting
+    console.log("GameEngine: Restarting game...");
     this.soundManager.stopSound(this.backgroundMusicInstance);
-    this.backgroundMusicInstance = null; // Clear the instance
+    this.backgroundMusicInstance = null;
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    // Randomly select one starting weapon for restart
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -270,16 +306,12 @@ export class GameEngine {
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
-    // Create a new GameState instance
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
-    // Re-initialize managers with the new GameState instance
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager);
     this.powerUpManager = new PowerUpManager(this.gameState, this.spriteManager, this.soundManager);
-    // this.hud = new HUD(this.gameState); // REMOVED: HUD is now a React component
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
 
-    // Re-apply sprites to the new player and weapons
     this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
     if (this.gameState.projectileWeapon) {
       this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('projectile');
@@ -290,16 +322,16 @@ export class GameEngine {
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
     this.gameOverScreen.clearClickListener();
-    this.gameOverSoundPlayed = false; // Reset game over sound flag
+    this.gameOverSoundPlayed = false;
     this.lastTime = performance.now();
-    this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3); // Start background music again
+    this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
     this.gameLoop(this.lastTime);
   };
 
   applyUpgrade(upgradeId: string) {
     switch (upgradeId) {
       case 'aura_damage':
-        this.gameState.auraWeapon?.increaseDamage(5); // Use optional chaining
+        this.gameState.auraWeapon?.increaseDamage(5);
         break;
       case 'player_speed':
         this.gameState.player.increaseSpeed(20);
@@ -308,37 +340,37 @@ export class GameEngine {
         this.gameState.player.increaseMaxHealth(20);
         break;
       case 'projectile_damage':
-        this.gameState.projectileWeapon?.increaseDamage(10); // Use optional chaining
+        this.gameState.projectileWeapon?.increaseDamage(10);
         break;
       case 'projectile_fire_rate':
-        this.gameState.projectileWeapon?.decreaseFireRate(0.2); // Use optional chaining
+        this.gameState.projectileWeapon?.decreaseFireRate(0.2);
         break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
       case 'blade_damage':
-        this.gameState.spinningBladeWeapon?.increaseDamage(5); // Use optional chaining
+        this.gameState.spinningBladeWeapon?.increaseDamage(5);
         break;
       case 'add_blade':
-        this.gameState.spinningBladeWeapon?.addBlade(); // Use optional chaining
+        this.gameState.spinningBladeWeapon?.addBlade();
         break;
       case 'explosion_damage':
-        this.gameState.explosionAbility?.increaseDamage(20); // Use optional chaining
+        this.gameState.explosionAbility?.increaseDamage(20);
         break;
       case 'explosion_cooldown':
-        this.gameState.explosionAbility?.reduceCooldown(1); // Use optional chaining
+        this.gameState.explosionAbility?.reduceCooldown(1);
         break;
       case 'explosion_radius':
-        this.gameState.explosionAbility?.increaseRadius(20); // Use optional chaining
+        this.gameState.explosionAbility?.increaseRadius(20);
         break;
       case 'shield_health':
-        this.gameState.shieldAbility?.increaseMaxHealth(30); // Use optional chaining
+        this.gameState.shieldAbility?.increaseMaxHealth(30);
         break;
       case 'shield_regen':
-        this.gameState.shieldAbility?.increaseRegeneration(5); // Use optional chaining
+        this.gameState.shieldAbility?.increaseRegeneration(5);
         break;
       case 'shield_cooldown':
-        this.gameState.shieldAbility?.reduceCooldown(1.5); // Use optional chaining
+        this.gameState.shieldAbility?.reduceCooldown(1.5);
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -346,30 +378,25 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
-    // If the game is paused (e.g., shop is open), or assets are not loaded, do not update game logic.
     if (this.gameState.isPaused || !this.assetsLoaded) {
-      // If game is over and sound hasn't been played, play it and stop background music
       if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
         this.soundManager.playSound('game_over');
-        this.soundManager.stopSound(this.backgroundMusicInstance); // Stop background music
+        this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameOverSoundPlayed = true;
       }
       return;
     }
 
-    // Cap deltaTime to prevent physics glitches after long pauses
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
-    console.log("GameEngine: Updating with deltaTime:", deltaTime); // Debug log for deltaTime
+    console.log("GameEngine: Updating with deltaTime:", deltaTime);
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
 
-    // Trigger explosion if 'e' is pressed and ability exists
     if (this.inputHandler.isPressed('e') && this.gameState.explosionAbility) {
       this.gameState.explosionAbility.triggerExplosion(this.gameState.player.x, this.gameState.player.y);
     }
 
-    // Check for vendor interaction
     if (this.inputHandler.isPressed('f') && this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.openShop();
     }
@@ -387,15 +414,15 @@ export class GameEngine {
 
     this.gameState.enemies.forEach(enemy => {
       if (this.gameState.player.collidesWith(enemy)) {
-        this.gameState.player.takeDamage(5); // Player takes damage from enemy collision
+        this.gameState.player.takeDamage(5);
       }
     });
 
-    this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
-    this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
-    this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies); // Use optional chaining
-    this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies); // Use optional chaining
-    this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y); // Use optional chaining
+    this.gameState.auraWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
+    this.gameState.projectileWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
+    this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
+    this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
+    this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
 
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -414,8 +441,8 @@ export class GameEngine {
       console.log("Game Over!");
     }
 
-    // Update HUD state via callback
-    this.onUpdateHUDCallback({
+    // Update game data via callback for HUD and Minimap
+    this.onUpdateGameDataCallback({
       playerHealth: this.gameState.player.currentHealth,
       playerMaxHealth: this.gameState.player.maxHealth,
       playerLevel: this.gameState.player.level,
@@ -428,13 +455,25 @@ export class GameEngine {
       waveNumber: this.gameState.waveNumber,
       waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
       
-      // New cooldown data
       dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
       dashCooldownMax: this.gameState.player.getDashCooldownMax(),
       explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
       explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
       shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
       shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+
+      // Minimap specific data
+      playerX: this.gameState.player.x,
+      playerY: this.gameState.player.y,
+      worldWidth: this.gameState.worldWidth,
+      worldHeight: this.gameState.worldHeight,
+      cameraX: this.cameraX,
+      cameraY: this.cameraY,
+      canvasWidth: this.ctx.canvas.width,
+      canvasHeight: this.ctx.canvas.height,
+      enemiesMinimap: this.gameState.enemies.map(enemy => ({ x: enemy.x, y: enemy.y, size: enemy.size })),
+      vendorX: this.gameState.vendor.x,
+      vendorY: this.gameState.vendor.y,
     });
   }
 
@@ -448,8 +487,6 @@ export class GameEngine {
       this.ctx.fillText('Loading Assets...', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
       return;
     }
-
-    // console.log("GameEngine: Drawing. CameraX:", this.cameraX, "CameraY:", this.cameraY); // Debug log for camera position
 
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
@@ -479,16 +516,16 @@ export class GameEngine {
       this.gameState.worldHeight
     );
 
-    this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY); // Use optional chaining
-    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
-    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
-    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
+    this.gameState.auraWeapon?.draw(this.ctx, this.gameState.player.x, this.gameState.player.y, this.cameraX, this.cameraY);
+    this.gameState.projectileWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.spinningBladeWeapon?.draw(this.ctx, this.cameraX, this.cameraY);
+    this.gameState.explosionAbility?.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.gameState.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
     this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.gameState.player.draw(this.ctx, this.cameraX, this.cameraY);
-    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY); // Use optional chaining
+    this.gameState.shieldAbility?.draw(this.ctx, this.cameraX, this.cameraY);
 
     this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
@@ -502,7 +539,6 @@ export class GameEngine {
       this.ctx.stroke();
     }
 
-    // Display interaction prompt for vendor
     if (this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '24px Arial';
@@ -512,8 +548,6 @@ export class GameEngine {
       this.ctx.fillText('Press F to interact with Vendor', this.ctx.canvas.width / 2, this.ctx.canvas.height - 50);
       this.ctx.shadowColor = 'transparent';
     }
-
-    // this.hud.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height); // REMOVED: HUD is now a React component
 
     if (this.gameState.gameOver) {
       this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -531,7 +565,6 @@ export class GameEngine {
     let deltaTime = (currentTime - this.lastTime) / 1000;
     this.lastTime = currentTime;
 
-    // Cap deltaTime to prevent physics glitches after long pauses
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
     this.update(deltaTime);
@@ -547,6 +580,6 @@ export class GameEngine {
     }
     this.inputHandler.destroy();
     this.gameOverScreen.clearClickListener();
-    this.soundManager.stopSound(this.backgroundMusicInstance); // Ensure music stops on full game stop
+    this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 }

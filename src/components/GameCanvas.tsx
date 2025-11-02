@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { GameEngine } from '@/game/GameEngine';
+import { GameEngine, GameDataProps, MinimapEnemyData } from '@/game/GameEngine'; // Import GameDataProps and MinimapEnemyData
 import LevelUpSelection from './LevelUpSelection';
 import ShopScreen from './ShopScreen';
-import HUD, { HUDProps } from './HUD'; // Import the new HUD component and its props
+import HUD from './HUD';
+import Minimap from './Minimap'; // Import the new Minimap component
 import { showSuccess } from '@/utils/toast';
 
 // Define ShopItem interface here as well for type consistency
@@ -43,8 +44,8 @@ const GameCanvas: React.FC = () => {
   const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
 
-  // State for HUD data
-  const [hudState, setHudState] = useState<HUDProps>({
+  // State for all game data (HUD and Minimap)
+  const [gameDataState, setGameDataState] = useState<GameDataProps>({
     playerHealth: 100,
     playerMaxHealth: 100,
     playerLevel: 1,
@@ -56,13 +57,24 @@ const GameCanvas: React.FC = () => {
     shieldMaxHealth: 0,
     waveNumber: 1,
     waveTimeRemaining: 60,
-    // New cooldown data added here
     dashCooldownCurrent: 0,
     dashCooldownMax: 0,
     explosionCooldownCurrent: 0,
     explosionCooldownMax: 0,
     shieldCooldownCurrent: 0,
     shieldCooldownMax: 0,
+    // Minimap specific initial data
+    playerX: 0,
+    playerY: 0,
+    worldWidth: 2000,
+    worldHeight: 2000,
+    cameraX: 0,
+    cameraY: 0,
+    canvasWidth: window.innerWidth,
+    canvasHeight: window.innerHeight,
+    enemiesMinimap: [],
+    vendorX: 0,
+    vendorY: 0,
   });
 
   // Level Up Callbacks
@@ -79,8 +91,7 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.resume();
   }, []);
 
-  // Shop Callbacks - These are now passed to GameEngine directly
-  // and will update GameCanvas's state
+  // Shop Callbacks
   const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
     console.log("GameCanvas: handleOpenShop called.");
     setCurrentShopItems(items);
@@ -97,9 +108,9 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.purchaseItem(itemId);
   }, []);
 
-  // New callback for HUD updates
-  const handleUpdateHUD = useCallback((data: HUDProps) => {
-    setHudState(data);
+  // Callback for all game data updates (HUD and Minimap)
+  const handleUpdateGameData = useCallback((data: GameDataProps) => {
+    setGameDataState(data);
   }, []);
 
   useEffect(() => {
@@ -113,8 +124,8 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Pass the stable callback references to GameEngine, including the new HUD update callback
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateHUD);
+    // Pass the stable callback references to GameEngine
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData);
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {
@@ -129,6 +140,12 @@ const GameCanvas: React.FC = () => {
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      // Update canvas dimensions in gameDataState as well
+      setGameDataState(prevState => ({
+        ...prevState,
+        canvasWidth: window.innerWidth,
+        canvasHeight: window.innerHeight,
+      }));
     };
 
     window.addEventListener('resize', handleResize);
@@ -138,7 +155,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateHUD]); // Add handleUpdateHUD to dependencies
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData]); // Add handleUpdateGameData to dependencies
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -154,7 +171,8 @@ const GameCanvas: React.FC = () => {
           playerGold={playerGold}
         />
       )}
-      <HUD {...hudState} /> {/* Render the new HUD component */}
+      <HUD {...gameDataState} /> {/* Pass all gameDataState to HUD */}
+      <Minimap {...gameDataState} /> {/* Pass all gameDataState to Minimap */}
     </div>
   );
 };
