@@ -31,6 +31,8 @@ const ALL_LEVEL_UP_OPTIONS = [
   { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
   { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
   { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
+  { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' }, // New heal upgrade
+  { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' }, // New heal upgrade
 ];
 
 const GameCanvas: React.FC = () => {
@@ -63,6 +65,8 @@ const GameCanvas: React.FC = () => {
     explosionCooldownMax: 0,
     shieldCooldownCurrent: 0,
     shieldCooldownMax: 0,
+    healCooldownCurrent: 0, // New: Heal cooldown
+    healCooldownMax: 0, // New: Heal max cooldown
     // Minimap specific initial data
     playerX: 0,
     playerY: 0,
@@ -133,7 +137,8 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
       setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 8500);
+      setTimeout(() => showSuccess("Press R to use your heal ability."), 8500); // New heal ability notification
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 10500);
       notificationsShownRef.current = true;
     }
 

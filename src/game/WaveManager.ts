@@ -2,6 +2,7 @@ import { GameState } from './GameState';
 import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
 import { Enemy } from './Enemy';
+import { ShooterEnemy } from './ShooterEnemy'; // Import ShooterEnemy
 import { clamp } from './utils';
 
 export class WaveManager {
@@ -67,9 +68,11 @@ export class WaveManager {
 
     // Base stats for different enemy types
     const enemyTypes = [
-      { name: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red', spriteName: 'enemy_normal', baseGold: 5 },
-      { name: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green', spriteName: 'enemy_fast', baseGold: 3 },
-      { name: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple', spriteName: 'enemy_tanky', baseGold: 8 },
+      { name: 'normal', type: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red', spriteName: 'enemy_normal', baseGold: 5 },
+      { name: 'fast', type: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green', spriteName: 'enemy_fast', baseGold: 3 },
+      { name: 'tanky', type: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple', spriteName: 'enemy_tanky', baseGold: 8 },
+      { name: 'shooter', type: 'shooter', size: 22, baseHealth: 25, baseSpeed: 80, color: 'cyan', spriteName: 'enemy_shooter', baseGold: 7,
+        projectileSpeed: 200, fireRate: 2, projectileDamage: 10, projectileRadius: 6, projectileLifetime: 2 }, // Shooter specific stats
     ];
 
     const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
@@ -78,13 +81,24 @@ export class WaveManager {
     const healthMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.2; // +20% health per wave
     const speedMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.05; // +5% speed per wave
     const goldMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1; // +10% gold per wave
+    const projectileDamageMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1; // +10% projectile damage per wave
 
     const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
     const enemyGold = Math.floor(randomType.baseGold * goldMultiplier);
     const enemySprite = this.spriteManager.getSprite(randomType.spriteName);
+    const projectileSprite = this.spriteManager.getSprite('projectile'); // Re-use player projectile sprite for now
 
-    this.gameState.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite, this.soundManager, enemyGold));
+    if (randomType.type === 'shooter') {
+      this.gameState.enemies.push(new ShooterEnemy(
+        spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth,
+        enemySprite, this.soundManager, enemyGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
+        randomType.projectileSpeed, randomType.fireRate, Math.floor(randomType.projectileDamage * projectileDamageMultiplier),
+        randomType.projectileRadius, randomType.projectileLifetime, projectileSprite
+      ));
+    } else {
+      this.gameState.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite, this.soundManager, enemyGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers)));
+    }
   }
 
   reset() {

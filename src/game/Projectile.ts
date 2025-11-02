@@ -45,10 +45,11 @@ export class Projectile {
     }
   }
 
-  collidesWith(enemy: Enemy): boolean {
-    const dx = this.x - enemy.x;
-    const dy = this.y - enemy.y;
+  // Updated to accept any object with x, y, and size properties
+  collidesWith(other: { x: number; y: number; size: number }): boolean {
+    const dx = this.x - other.x;
+    const dy = this.y - other.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    return distance < (this.radius + enemy.size / 2);
+    return distance < (this.radius + other.size / 2);
   }
 }

@@ -1,5 +1,6 @@
 import { Player } from './Player';
 import { SoundManager } from './SoundManager'; // Import SoundManager
+import { DamageNumber } from './DamageNumber'; // Import DamageNumber
 
 export class Enemy {
   x: number;
@@ -10,11 +11,12 @@ export class Enemy {
   maxHealth: number;
   currentHealth: number;
   private sprite: HTMLImageElement | undefined;
-  private soundManager: SoundManager; // New: SoundManager instance
+  protected soundManager: SoundManager; // Changed from private to protected
   private hitTimer: number = 0; // For hit animation
   private goldDrop: number; // New: Gold amount this enemy drops
+  private onTakeDamageCallback: (x: number, y: number, damage: number) => void; // Callback for damage numbers
 
-  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0) {
+  constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0, onTakeDamage: (x: number, y: number, damage: number) => void) {
     this.x = x;
     this.y = y;
     this.size = size;
@@ -25,6 +27,7 @@ export class Enemy {
     this.sprite = sprite;
     this.soundManager = soundManager; // Assign SoundManager
     this.goldDrop = goldDrop; // Assign gold drop
+    this.onTakeDamageCallback = onTakeDamage; // Assign callback
   }
 
   update(deltaTime: number, player: Player) {
@@ -83,6 +86,7 @@ export class Enemy {
     this.currentHealth -= amount;
     this.hitTimer = 0.1; // Set hit flash duration
     this.soundManager.playSound('enemy_hit'); // Play hit sound
+    this.onTakeDamageCallback(this.x, this.y, amount); // Trigger damage number callback
 
     if (this.currentHealth < 0) {
       this.currentHealth = 0;

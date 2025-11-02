@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints } from 'lucide-react';
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle } from 'lucide-react'; // Import PlusCircle for heal ability
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -24,6 +24,8 @@ export interface HUDProps {
   explosionCooldownMax: number;
   shieldCooldownCurrent: number;
   shieldCooldownMax: number;
+  healCooldownCurrent: number; // New: Heal ability cooldown
+  healCooldownMax: number; // New: Heal ability max cooldown
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -45,6 +47,8 @@ const HUD: React.FC<HUDProps> = ({
   explosionCooldownMax,
   shieldCooldownCurrent,
   shieldCooldownMax,
+  healCooldownCurrent, // New: Heal cooldown
+  healCooldownMax, // New: Heal max cooldown
 }) => {
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
@@ -121,6 +125,16 @@ const HUD: React.FC<HUDProps> = ({
                 currentCooldown={shieldCooldownCurrent}
                 maxCooldown={shieldCooldownMax}
                 colorClass="text-blue-500 drop-shadow-sm"
+              />
+            )}
+
+            {healCooldownMax > 0 && ( // New: Heal ability cooldown display
+              <CooldownDisplay
+                Icon={PlusCircle}
+                name="Heal"
+                currentCooldown={healCooldownCurrent}
+                maxCooldown={healCooldownMax}
+                colorClass="text-green-500 drop-shadow-sm"
               />
             )}
           </CardContent>

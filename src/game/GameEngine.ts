@@ -6,6 +6,7 @@ import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
+import { HealAbility } from './HealAbility'; // Import HealAbility
 import { Vendor } from './Vendor';
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
@@ -14,6 +15,8 @@ import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
 import { PowerUpManager } from './PowerUpManager';
 import { GameOverScreen } from './GameOverScreen';
+import { DamageNumber } from './DamageNumber'; // Import DamageNumber
+import { ShooterEnemy } from './ShooterEnemy'; // Import ShooterEnemy
 import { showSuccess, showError } from '@/utils/toast'; // Import toast utilities
 
 // Define shop item types
@@ -51,6 +54,8 @@ export interface GameDataProps {
   explosionCooldownMax: number;
   shieldCooldownCurrent: number;
   shieldCooldownMax: number;
+  healCooldownCurrent: number; // New: Heal ability cooldown
+  healCooldownMax: number; // New: Heal ability max cooldown
 
   // Minimap specific data
   playerX: number;
@@ -103,6 +108,7 @@ export class GameEngine {
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
+    { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' }, // New heal ability in shop
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
@@ -146,6 +152,7 @@ export class GameEngine {
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
+    this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45)); // New shooter enemy sprite
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Use optional chaining
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)); // Use optional chaining
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
@@ -201,6 +208,11 @@ export class GameEngine {
     this.onLevelUpCallback();
   };
 
+  // Callback for enemies to report damage taken
+  private handleEnemyTakeDamage = (x: number, y: number, damage: number) => {
+    this.gameState.damageNumbers.push(new DamageNumber(x, y, damage));
+  };
+
   pause() {
     console.log("GameEngine: Pausing game.");
     this.gameState.isPaused = true;
@@ -234,6 +246,7 @@ export class GameEngine {
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false; // Filter if already owned
       return true;
     }), this.gameState.player.gold);
   }
@@ -272,6 +285,10 @@ export class GameEngine {
           this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
           this.gameState.player.setShieldAbility(this.gameState.shieldAbility);
           break;
+        case 'buy_heal_ability':
+          this.gameState.healAbility = new HealAbility(30, 15, this.soundManager); // Initialize heal ability
+          this.gameState.player.setHealAbility(this.gameState.healAbility);
+          break;
         case 'buy_health_potion':
           this.gameState.player.currentHealth = Math.min(this.gameState.player.maxHealth, this.gameState.player.currentHealth + 50);
           break;
@@ -284,6 +301,7 @@ export class GameEngine {
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+        if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
         return true;
       }), this.gameState.player.gold);
     } else {
@@ -372,6 +390,12 @@ export class GameEngine {
       case 'shield_cooldown':
         this.gameState.shieldAbility?.reduceCooldown(1.5);
         break;
+      case 'heal_amount':
+        this.gameState.healAbility?.increaseHealAmount(10);
+        break;
+      case 'heal_cooldown':
+        this.gameState.healAbility?.reduceCooldown(2);
+        break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
     }
@@ -409,8 +433,17 @@ export class GameEngine {
 
     this.waveManager.update(deltaTime, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    this.gameState.enemies.forEach(enemy => enemy.update(deltaTime, this.gameState.player));
+    this.gameState.enemies.forEach(enemy => {
+      if (enemy instanceof ShooterEnemy) {
+        enemy.update(deltaTime, this.gameState.player);
+      } else {
+        enemy.update(deltaTime, this.gameState.player);
+      }
+    });
     this.gameState.experienceGems.forEach(gem => gem.update(deltaTime));
+
+    // Update and filter damage numbers
+    this.gameState.damageNumbers = this.gameState.damageNumbers.filter(dn => dn.update(deltaTime));
 
     this.gameState.enemies.forEach(enemy => {
       if (this.gameState.player.collidesWith(enemy)) {
@@ -423,6 +456,7 @@ export class GameEngine {
     this.gameState.spinningBladeWeapon?.update(deltaTime, this.gameState.player.x, this.gameState.player.y, this.gameState.enemies);
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, this.gameState.player.x, this.gameState.player.y);
+    this.gameState.healAbility?.update(deltaTime); // Update heal ability cooldown
 
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -461,6 +495,8 @@ export class GameEngine {
       explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
       shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
       shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+      healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0, // New: Heal cooldown
+      healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0, // New: Heal max cooldown
 
       // Minimap specific data
       playerX: this.gameState.player.x,
@@ -530,6 +566,9 @@ export class GameEngine {
     this.gameState.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.gameState.vendor.draw(this.ctx, this.cameraX, this.cameraY);
+
+    // Draw damage numbers
+    this.gameState.damageNumbers.forEach(dn => dn.draw(this.ctx, this.cameraX, this.cameraY));
 
     if (this.gameState.activeMagnetRadius > 0) {
       this.ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';

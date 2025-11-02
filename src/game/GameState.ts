@@ -8,6 +8,8 @@ import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { Vendor } from './Vendor'; // Import Vendor
+import { DamageNumber } from './DamageNumber'; // Import DamageNumber
+import { HealAbility } from './HealAbility'; // Import HealAbility
 
 export class GameState {
   player: Player;
@@ -19,7 +21,9 @@ export class GameState {
   spinningBladeWeapon: SpinningBladeWeapon | undefined; // Made optional
   explosionAbility: ExplosionAbility | undefined; // Made optional
   shieldAbility: ShieldAbility | undefined; // Made optional
+  healAbility: HealAbility | undefined; // New: Heal ability
   vendor: Vendor; // New: Vendor NPC
+  damageNumbers: DamageNumber[]; // New: Array to hold active damage numbers
 
   worldWidth: number;
   worldHeight: number;
@@ -42,7 +46,8 @@ export class GameState {
     worldHeight: number,
     initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon, // Optional initial weapon
     initialExplosionAbility?: ExplosionAbility, // Optional initial ability
-    initialShieldAbility?: ShieldAbility // Optional initial ability
+    initialShieldAbility?: ShieldAbility, // Optional initial ability
+    initialHealAbility?: HealAbility // Optional initial heal ability
   ) {
     this.player = player;
     this.vendor = vendor; // Assign vendor
@@ -52,6 +57,7 @@ export class GameState {
     this.spinningBladeWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
+    this.healAbility = initialHealAbility; // Assign heal ability
 
     if (initialWeapon instanceof AuraWeapon) {
       this.auraWeapon = initialWeapon;
@@ -67,6 +73,7 @@ export class GameState {
     this.enemies = [];
     this.experienceGems = [];
     this.magnetPowerUps = [];
+    this.damageNumbers = []; // Initialize damage numbers array
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -87,6 +94,7 @@ export class GameState {
     this.enemies = [];
     this.experienceGems = [];
     this.magnetPowerUps = [];
+    this.damageNumbers = []; // Reset damage numbers
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
@@ -102,5 +110,6 @@ export class GameState {
     this.spinningBladeWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
+    this.healAbility = undefined; // Reset heal ability
   }
 }

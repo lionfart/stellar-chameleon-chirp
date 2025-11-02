@@ -103,6 +103,24 @@ export class SpriteManager {
     `;
   }
 
+  static getEnemyShooterSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="enemyShooterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4DD0E1" />
+            <stop offset="100%" stop-color="#00ACC1" />
+          </linearGradient>
+        </defs>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#enemyShooterGradient)" stroke="#00838F" stroke-width="2"/>
+        <rect x="${size * 0.4}" y="${size * 0.1}" width="${size * 0.2}" height="${size * 0.3}" fill="#FFFFFF"/>
+        <circle cx="${size / 2}" cy="${size * 0.25}" r="${size * 0.08}" fill="#FF5722"/>
+        <circle cx="${size * 0.3}" cy="${size * 0.6}" r="${size * 0.1}" fill="#FFFFFF"/>
+        <circle cx="${size * 0.7}" cy="${size * 0.6}" r="${size * 0.1}" fill="#FFFFFF"/>
+      </svg>
+    `;
+  }
+
   static getProjectileSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">

@@ -1,6 +1,7 @@
 import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
+import { HealAbility } from './HealAbility'; // Import HealAbility
 import { SoundManager } from './SoundManager'; // Import SoundManager
 
 export class Player {
@@ -17,6 +18,7 @@ export class Player {
   gold: number; // New: Gold currency
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
+  private healAbility: HealAbility | null = null; // New: Heal ability reference
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager; // New: SoundManager instance
   private hitTimer: number = 0; // For hit animation
@@ -55,6 +57,10 @@ export class Player {
     this.shieldAbility = shieldAbility;
   }
 
+  setHealAbility(healAbility: HealAbility) {
+    this.healAbility = healAbility;
+  }
+
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
@@ -84,6 +90,11 @@ export class Player {
       } else {
         this.shieldAbility.activateShield();
       }
+    }
+
+    // Check for heal ability input (e.g., 'r' key)
+    if (input.isPressed('r') && this.healAbility) {
+      this.healAbility.triggerHeal(this);
     }
 
     let moveAmount = this.speed * deltaTime;
