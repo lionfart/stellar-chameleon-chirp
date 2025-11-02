@@ -39,6 +39,7 @@ export class GameEngine {
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
   private assetsLoaded: boolean = false;
+  private gameOverSoundPlayed: boolean = false; // New: To ensure game over sound plays only once
 
   private gameState: GameState;
   private waveManager: WaveManager;
@@ -125,6 +126,8 @@ export class GameEngine {
     this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
     this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
+    this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound()); // Load new player hit sound
+    this.soundManager.loadSound('game_over', SoundManager.getGameOverSound()); // Load new game over sound
   }
 
   private onAllAssetsLoaded = () => {
@@ -279,6 +282,7 @@ export class GameEngine {
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
     this.gameOverScreen.clearClickListener();
+    this.gameOverSoundPlayed = false; // Reset game over sound flag
     this.lastTime = performance.now();
     this.gameLoop(this.lastTime);
   };
@@ -334,7 +338,14 @@ export class GameEngine {
 
   private update(deltaTime: number) {
     // If the game is paused (e.g., shop is open), or game is over, or assets are not loaded, do not update game logic.
-    if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) return;
+    if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) {
+      // Play game over sound once if game is over and sound hasn't been played
+      if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
+        this.soundManager.playSound('game_over');
+        this.gameOverSoundPlayed = true;
+      }
+      return;
+    }
 
     // Cap deltaTime to prevent physics glitches after long pauses
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);

@@ -176,6 +176,7 @@ export class Player {
     if (remainingDamage > 0) {
       this.currentHealth -= remainingDamage;
       this.hitTimer = 0.15; // Set hit flash duration
+      this.soundManager.playSound('player_hit'); // Play player hit sound
       if (this.currentHealth < 0) {
         this.currentHealth = 0;
       }

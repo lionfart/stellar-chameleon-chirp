@@ -117,4 +117,14 @@ export class SoundManager {
     // A slightly deeper "ding" or "whoop"
     return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
   }
+
+  static getPlayerHitSound(): string {
+    // A short "ouch" or "thump"
+    return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
+  }
+
+  static getGameOverSound(): string {
+    // A dramatic "game over" sound or a descending tone
+    return "data:audio/wav;base64,UklGRl9vWlFXQVZFZmlsZQAkAAAAABxWQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABeGFjdGEAAAAgAAAAAEJpdFNTYW1wbGUAAAAEAAAAAEZhdGEAAAAEAAAAAP//AAAAAA==";
+  }
 }
