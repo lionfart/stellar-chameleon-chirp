@@ -221,21 +221,33 @@ export class SpriteManager {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <pattern id="grid" width="${size / 5}" height="${size / 5}" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="0.5" fill="#333"/>
-          </pattern>
-          <filter id="f1" x="0" y="0" width="200%" height="200%">
-            <feOffset result="offOut" in="SourceGraphic" dx="2" dy="2" />
-            <feGaussianBlur result="blurOut" in="offOut" stdDeviation="1" />
-            <feBlend in="SourceGraphic" in2="blurOut" mode="normal" />
+          <radialGradient id="backgroundGradient" cx="50%" cy="50%" r="75%" fx="50%" fy="50%">
+            <stop offset="0%" stop-color="#2a2a2a" />
+            <stop offset="100%" stop-color="#1a1a1a" />
+          </radialGradient>
+          <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.05 0.08" numOctaves="3" seed="10" result="turbulence"/>
+            <feDiffuseLighting in="turbulence" lighting-color="#444" surfaceScale="2" result="light">
+              <fePointLight x="${size / 2}" y="${size / 2}" z="20"/>
+            </feDiffuseLighting>
+            <feComposite in="SourceGraphic" in2="light" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
+          </filter>
+          <filter id="blurOverlay">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="20" result="turbulence2"/>
+            <feGaussianBlur in="turbulence2" stdDeviation="2" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0
+                                                            0 1 0 0 0
+                                                            0 0 1 0 0
+                                                            0 0 0 3 -0.5" result="coloredBlur"/>
+            <feBlend in="SourceGraphic" in2="coloredBlur" mode="screen"/>
           </filter>
         </defs>
-        <rect width="${size}" height="${size}" fill="#222"/>
-        <rect width="${size}" height="${size}" fill="url(#grid)" opacity="0.1"/>
-        <circle cx="${size / 4}" cy="${size / 4}" r="${size / 8}" fill="#444" opacity="0.7" filter="url(#f1)"/>
-        <circle cx="${size * 3 / 4}" cy="${size / 2}" r="${size / 6}" fill="#444" opacity="0.6" filter="url(#f1)"/>
-        <rect x="${size / 2}" y="${size / 8}" width="${size / 6}" height="${size / 10}" fill="#444" opacity="0.5" transform="rotate(15 ${size / 2} ${size / 8})" filter="url(#f1)"/>
-        <path d="M${size * 0.1} ${size * 0.9} Q${size * 0.3} ${size * 0.7} ${size * 0.5} ${size * 0.9} T${size * 0.9} ${size * 0.7}" stroke="#555" stroke-width="1" fill="none" opacity="0.4"/>
+        <rect width="${size}" height="${size}" fill="url(#backgroundGradient)" />
+        <rect width="${size}" height="${size}" fill="#333" opacity="0.1" filter="url(#noiseFilter)"/>
+        <rect width="${size}" height="${size}" fill="#555" opacity="0.05" filter="url(#blurOverlay)"/>
+        <circle cx="${size * 0.1}" cy="${size * 0.9}" r="${size * 0.15}" fill="#444" opacity="0.2"/>
+        <circle cx="${size * 0.8}" cy="${size * 0.2}" r="${size * 0.1}" fill="#444" opacity="0.15"/>
+        <rect x="${size * 0.4}" y="${size * 0.6}" width="${size * 0.3}" height="${size * 0.05}" fill="#444" opacity="0.1" transform="rotate(20 ${size * 0.4} ${size * 0.6})"/>
       </svg>
     `;
   }
