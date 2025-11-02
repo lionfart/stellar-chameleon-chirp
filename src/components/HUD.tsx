@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb } from 'lucide-react';
+import CooldownDisplay from './CooldownDisplay'; // Import the new component
 
 export interface HUDProps {
   playerHealth: number;
@@ -49,14 +50,6 @@ const HUD: React.FC<HUDProps> = ({
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
   const shieldPercentage = shieldMaxHealth > 0 ? (shieldCurrentHealth / shieldMaxHealth) * 100 : 0;
 
-  // Cooldown percentages
-  const dashCooldownPercentage = dashCooldownMax > 0 ? ((dashCooldownMax - dashCooldownCurrent) / dashCooldownMax) * 100 : 100;
-  const explosionCooldownPercentage = explosionCooldownMax > 0 ? ((explosionCooldownMax - explosionCooldownCurrent) / explosionCooldownMax) * 100 : 100;
-  const shieldAbilityCooldownPercentage = shieldCooldownMax > 0 ? ((shieldCooldownMax - shieldCooldownCurrent) / shieldCooldownMax) * 100 : 100;
-
-  // Cooldown text
-  const getCooldownText = (current: number) => current > 0 ? `${current.toFixed(1)}s` : 'Ready';
-
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-40">
       {/* Left HUD - Player Stats */}
@@ -101,50 +94,32 @@ const HUD: React.FC<HUDProps> = ({
       {/* Bottom-Left HUD - Ability Cooldowns */}
       <Card className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[200px] max-h-[calc(50vh-2rem)] overflow-y-auto">
         <CardContent className="p-0 space-y-2">
-          <div className="flex items-center space-x-2">
-            <Zap className="h-5 w-5 text-purple-500" />
-            <div className="flex-1">
-              <Progress
-                value={dashCooldownPercentage}
-                className="h-5"
-                indicatorClassName="bg-purple-500"
-                showText
-                text={`Dash: ${getCooldownText(dashCooldownCurrent)}`}
-                isCooldown={dashCooldownCurrent > 0}
-              />
-            </div>
-          </div>
+          <CooldownDisplay
+            Icon={Zap}
+            name="Dash"
+            currentCooldown={dashCooldownCurrent}
+            maxCooldown={dashCooldownMax}
+            colorClass="text-purple-500"
+          />
 
           {explosionCooldownMax > 0 && (
-            <div className="flex items-center space-x-2">
-              <Bomb className="h-5 w-5 text-orange-500" />
-              <div className="flex-1">
-                <Progress
-                  value={explosionCooldownPercentage}
-                  className="h-5"
-                  indicatorClassName="bg-orange-500"
-                  showText
-                  text={`Explosion: ${getCooldownText(explosionCooldownCurrent)}`}
-                  isCooldown={explosionCooldownCurrent > 0}
-                />
-              </div>
-            </div>
+            <CooldownDisplay
+              Icon={Bomb}
+              name="Explosion"
+              currentCooldown={explosionCooldownCurrent}
+              maxCooldown={explosionCooldownMax}
+              colorClass="text-orange-500"
+            />
           )}
 
           {shieldCooldownMax > 0 && (
-            <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-blue-500" />
-              <div className="flex-1">
-                <Progress
-                  value={shieldAbilityCooldownPercentage}
-                  className="h-5"
-                  indicatorClassName="bg-blue-500"
-                  showText
-                  text={`Shield: ${getCooldownText(shieldCooldownCurrent)}`}
-                  isCooldown={shieldCooldownCurrent > 0}
-                />
-              </div>
-            </div>
+            <CooldownDisplay
+              Icon={Shield}
+              name="Shield"
+              currentCooldown={shieldCooldownCurrent}
+              maxCooldown={shieldCooldownMax}
+              colorClass="text-blue-500"
+            />
           )}
         </CardContent>
       </Card>
