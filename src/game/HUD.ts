@@ -18,7 +18,7 @@ export class HUD {
     ctx.fillText(`Level: ${this.gameState.player.level}`, 10, 60);
     ctx.fillText(`XP: ${this.gameState.player.experience}/${this.gameState.player.experienceToNextLevel}`, 10, 90);
     ctx.fillText(`Gold: ${this.gameState.player.gold}`, 10, 120); // New: Display gold
-    ctx.fillText(`Shield: ${this.gameState.shieldAbility.shield.isActive ? `${this.gameState.shieldAbility.shield.currentHealth}/${this.gameState.shieldAbility.shield.maxHealth}` : 'Inactive'}`, 10, 150);
+    ctx.fillText(`Shield: ${this.gameState.shieldAbility?.shield.isActive ? `${this.gameState.shieldAbility.shield.currentHealth}/${this.gameState.shieldAbility.shield.maxHealth}` : 'Inactive'}`, 10, 150);
 
 
     ctx.textAlign = 'right';
