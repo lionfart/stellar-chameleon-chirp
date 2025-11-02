@@ -1,12 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GameEngine } from '@/game/GameEngine';
 import LevelUpSelection from './LevelUpSelection';
+import { showSuccess } from '@/utils/toast'; // Import showSuccess
 
 const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
   const [currentLevelUpOptions, setCurrentLevelUpOptions] = useState<{ id: string; name: string; description: string }[]>([]);
+  const notificationsShownRef = useRef(false); // Ref to track if notifications have been shown
 
   const allLevelUpOptions = [
     { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
@@ -51,6 +53,15 @@ const GameCanvas: React.FC = () => {
 
     gameEngineRef.current = new GameEngine(ctx, handleLevelUp);
     gameEngineRef.current.init();
+
+    // Show initial key notifications only once
+    if (!notificationsShownRef.current) {
+      setTimeout(() => showSuccess("Use W, A, S, D or Arrow Keys to move."), 500);
+      setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
+      setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
+      setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
+      notificationsShownRef.current = true;
+    }
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
