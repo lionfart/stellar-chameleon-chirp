@@ -1,7 +1,8 @@
 import { Player } from './Player';
 import { InputHandler } from './InputHandler';
 import { Enemy } from './Enemy';
-import { clamp } from './utils'; // Ensure clamp is imported
+import { AuraWeapon } from './AuraWeapon'; // Import the new weapon
+import { clamp } from './utils';
 
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
@@ -12,8 +13,10 @@ export class GameEngine {
   private enemies: Enemy[];
   private enemySpawnTimer: number;
   private enemySpawnInterval: number = 2; // Spawn an enemy every 2 seconds
+  private auraWeapon: AuraWeapon; // Player's primary weapon
+  private gameOver: boolean = false;
 
-  // World dimensions (can be expanded later)
+  // World dimensions
   private worldWidth: number = 2000;
   private worldHeight: number = 2000;
 
@@ -24,11 +27,12 @@ export class GameEngine {
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
-    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue'); // Player starts in center
+    this.player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100); // Player starts in center with 100 health
     this.lastTime = 0;
     this.animationFrameId = null;
     this.enemies = [];
     this.enemySpawnTimer = 0;
+    this.auraWeapon = new AuraWeapon(10, 100, 0.5); // Damage 10, Radius 100, Attack every 0.5 seconds
   }
 
   init() {
@@ -69,10 +73,12 @@ export class GameEngine {
     spawnX = clamp(spawnX, 0, this.worldWidth);
     spawnY = clamp(spawnY, 0, this.worldHeight);
 
-    this.enemies.push(new Enemy(spawnX, spawnY, 20, 100, 'red', 1));
+    this.enemies.push(new Enemy(spawnX, spawnY, 20, 100, 'red', 30)); // Enemies have 30 health
   }
 
   private update(deltaTime: number) {
+    if (this.gameOver) return;
+
     this.player.update(this.inputHandler, deltaTime, this.worldWidth, this.worldHeight);
 
     // Update camera to follow the player
@@ -93,13 +99,24 @@ export class GameEngine {
       this.enemySpawnTimer = 0;
     }
 
-    // Basic collision detection (Player vs. Enemies)
+    // Player takes damage from enemies
     this.enemies.forEach(enemy => {
       if (this.player.collidesWith(enemy)) {
-        console.log('Player hit by enemy!');
-        // In a real game, this would reduce player health or trigger other effects
+        this.player.takeDamage(5); // Player takes 5 damage per collision (can be refined to per-second)
       }
     });
+
+    // Update player's weapon
+    this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
+
+    // Remove defeated enemies
+    this.enemies = this.enemies.filter(enemy => enemy.isAlive());
+
+    // Check for game over
+    if (!this.player.isAlive()) {
+      this.gameOver = true;
+      console.log("Game Over!");
+    }
   }
 
   private draw() {
@@ -120,10 +137,29 @@ export class GameEngine {
       this.worldHeight
     );
 
+    // Draw player's weapon aura
+    this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
+
     this.player.draw(this.ctx, this.cameraX, this.cameraY);
 
     // Draw enemies
     this.enemies.forEach(enemy => enemy.draw(this.ctx, this.cameraX, this.cameraY));
+
+    // Draw UI elements
+    this.ctx.fillStyle = 'white';
+    this.ctx.font = '20px Arial';
+    this.ctx.fillText(`Health: ${this.player.currentHealth}/${this.player.maxHealth}`, 10, 30);
+
+    if (this.gameOver) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = '48px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('GAME OVER', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
+      this.ctx.font = '24px Arial';
+      this.ctx.fillText('Refresh to restart', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2 + 50);
+    }
   }
 
   private gameLoop = (currentTime: number) => {
