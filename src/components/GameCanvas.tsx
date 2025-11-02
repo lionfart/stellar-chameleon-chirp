@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { GameEngine } from '@/game/GameEngine';
 import LevelUpSelection from './LevelUpSelection';
-import ShopScreen from './ShopScreen'; // Import the new ShopScreen component
+import ShopScreen from './ShopScreen';
 import { showSuccess } from '@/utils/toast';
 
 // Define ShopItem interface here as well for type consistency
@@ -13,39 +13,40 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
+// Move allLevelUpOptions outside the component to ensure it's stable
+const ALL_LEVEL_UP_OPTIONS = [
+  { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
+  { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
+  { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
+  { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
+  { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
+  { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
+  { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
+  { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
+  { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
+  { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
+  { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
+  { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
+  { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
+  { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
+];
+
 const GameCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
   const [currentLevelUpOptions, setCurrentLevelUpOptions] = useState<{ id: string; name: string; description: string }[]>([]);
-  const [showShopScreen, setShowShopScreen] = useState(false); // New state for shop visibility
-  const [currentShopItems, setCurrentShopItems] = useState<ShopItem[]>([]); // New state for shop items
-  const [playerGold, setPlayerGold] = useState(0); // New state for player gold
+  const [showShopScreen, setShowShopScreen] = useState(false);
+  const [currentShopItems, setCurrentShopItems] = useState<ShopItem[]>([]);
+  const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
 
-  const allLevelUpOptions = [
-    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
-    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
-    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
-    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
-    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
-    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
-    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
-    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
-    { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
-    { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
-    { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
-    { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
-    { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
-    { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
-  ];
-
   const handleLevelUp = useCallback(() => {
-    const shuffled = [...allLevelUpOptions].sort(() => 0.5 - Math.random());
+    const shuffled = [...ALL_LEVEL_UP_OPTIONS].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
     gameEngineRef.current?.pause();
-  }, [allLevelUpOptions]);
+  }, []); // ALL_LEVEL_UP_OPTIONS is now stable, so no need to list it here
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
     gameEngineRef.current?.applyUpgrade(upgradeId);
@@ -53,10 +54,9 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.resume();
   }, []);
 
-  // New callbacks for shop interaction
-  const handleOpenShop = useCallback((items: ShopItem[], gold: number) => { // Modified: Added gold parameter
+  const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
     setCurrentShopItems(items);
-    setPlayerGold(gold); // Update player gold state
+    setPlayerGold(gold);
     setShowShopScreen(true);
   }, []);
 
@@ -69,7 +69,7 @@ const GameCanvas: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("GameCanvas useEffect running!"); // Debug log
+    console.log("GameCanvas useEffect: Initializing GameEngine...");
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -79,7 +79,6 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Pass shop callbacks to GameEngine
     gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop);
     gameEngineRef.current.init();
 
@@ -88,7 +87,7 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
       setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 8500); // New notification
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 8500);
       notificationsShownRef.current = true;
     }
 
@@ -100,10 +99,11 @@ const GameCanvas: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      console.log("GameCanvas useEffect cleanup: Stopping GameEngine.");
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Add shop callbacks to dependencies
+  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Dependencies are now stable
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -116,7 +116,7 @@ const GameCanvas: React.FC = () => {
           items={currentShopItems}
           onPurchase={handlePurchaseItem}
           onClose={handleCloseShop}
-          playerGold={playerGold} // Pass player gold from state
+          playerGold={playerGold}
         />
       )}
     </div>
