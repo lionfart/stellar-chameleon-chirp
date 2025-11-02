@@ -4,6 +4,7 @@ import { Enemy } from './Enemy';
 import { AuraWeapon } from './AuraWeapon';
 import { ExperienceGem } from './ExperienceGem';
 import { ProjectileWeapon } from './ProjectileWeapon';
+import { SpinningBladeWeapon } from './SpinningBladeWeapon'; // Import new weapon
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -18,6 +19,7 @@ export class GameEngine {
   private enemySpawnInterval: number = 2; // Initial spawn interval
   private auraWeapon: AuraWeapon;
   private projectileWeapon: ProjectileWeapon;
+  private spinningBladeWeapon: SpinningBladeWeapon; // New weapon instance
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
@@ -46,6 +48,7 @@ export class GameEngine {
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
     this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3);
+    this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1); // Initialize spinning blade weapon
     this.onLevelUpCallback = onLevelUp;
   }
 
@@ -84,8 +87,14 @@ export class GameEngine {
       case 'projectile_fire_rate':
         this.projectileWeapon.decreaseFireRate(0.2);
         break;
-      case 'dash_cooldown': // New upgrade case
+      case 'dash_cooldown':
         this.player.reduceDashCooldown(0.3);
+        break;
+      case 'blade_damage': // New upgrade
+        this.spinningBladeWeapon.increaseDamage(5);
+        break;
+      case 'add_blade': // New upgrade
+        this.spinningBladeWeapon.addBlade();
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -178,6 +187,7 @@ export class GameEngine {
 
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
+    this.spinningBladeWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies); // Update spinning blade weapon
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -216,6 +226,7 @@ export class GameEngine {
 
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
     this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY);
+    this.spinningBladeWeapon.draw(this.ctx, this.cameraX, this.cameraY); // Draw spinning blade weapon
 
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
 
