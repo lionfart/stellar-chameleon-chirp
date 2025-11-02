@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress'; // Changed import path to custom Progress component
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords } from 'lucide-react'; // Icons
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb } from 'lucide-react'; // Icons, added Bomb
 
 export interface HUDProps {
   playerHealth: number;
@@ -16,6 +16,13 @@ export interface HUDProps {
   shieldMaxHealth: number;
   waveNumber: number;
   waveTimeRemaining: number;
+  // New cooldown props
+  dashCooldownCurrent: number;
+  dashCooldownMax: number;
+  explosionCooldownCurrent: number;
+  explosionCooldownMax: number;
+  shieldCooldownCurrent: number;
+  shieldCooldownMax: number;
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -30,10 +37,22 @@ const HUD: React.FC<HUDProps> = ({
   shieldMaxHealth,
   waveNumber,
   waveTimeRemaining,
+  // New cooldown props
+  dashCooldownCurrent,
+  dashCooldownMax,
+  explosionCooldownCurrent,
+  explosionCooldownMax,
+  shieldCooldownCurrent,
+  shieldCooldownMax,
 }) => {
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
   const shieldPercentage = shieldMaxHealth > 0 ? (shieldCurrentHealth / shieldMaxHealth) * 100 : 0;
+
+  // Cooldown percentages
+  const dashCooldownPercentage = dashCooldownMax > 0 ? ((dashCooldownMax - dashCooldownCurrent) / dashCooldownMax) * 100 : 100;
+  const explosionCooldownPercentage = explosionCooldownMax > 0 ? ((explosionCooldownMax - explosionCooldownCurrent) / explosionCooldownMax) * 100 : 100;
+  const shieldAbilityCooldownPercentage = shieldCooldownMax > 0 ? ((shieldCooldownMax - shieldCooldownCurrent) / shieldCooldownMax) * 100 : 100;
 
   return (
     <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-40">
@@ -70,6 +89,39 @@ const HUD: React.FC<HUDProps> = ({
                 <span className="text-xs text-muted-foreground">
                   {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} Shield` : 'Shield Inactive'}
                 </span>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Bottom-Left HUD - Ability Cooldowns */}
+      <Card className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm p-3 shadow-lg border-none min-w-[200px]">
+        <CardContent className="p-0 space-y-2">
+          <div className="flex items-center space-x-2">
+            <Zap className="h-5 w-5 text-purple-500" /> {/* Using Zap for Dash */}
+            <div className="flex-1">
+              <Progress value={dashCooldownPercentage} className="h-2" indicatorClassName="bg-purple-500" />
+              <span className="text-xs text-muted-foreground">Dash: {dashCooldownCurrent > 0 ? `${dashCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
+            </div>
+          </div>
+
+          {explosionCooldownMax > 0 && (
+            <div className="flex items-center space-x-2">
+              <Bomb className="h-5 w-5 text-orange-500" />
+              <div className="flex-1">
+                <Progress value={explosionCooldownPercentage} className="h-2" indicatorClassName="bg-orange-500" />
+                <span className="text-xs text-muted-foreground">Explosion: {explosionCooldownCurrent > 0 ? `${explosionCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
+              </div>
+            </div>
+          )}
+
+          {shieldCooldownMax > 0 && (
+            <div className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-blue-500" />
+              <div className="flex-1">
+                <Progress value={shieldAbilityCooldownPercentage} className="h-2" indicatorClassName="bg-blue-500" />
+                <span className="text-xs text-muted-foreground">Shield Cooldown: {shieldCooldownCurrent > 0 ? `${shieldCooldownCurrent.toFixed(1)}s` : 'Ready'}</span>
               </div>
             </div>
           )}

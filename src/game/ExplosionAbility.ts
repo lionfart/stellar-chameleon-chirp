@@ -61,4 +61,13 @@ export class ExplosionAbility {
     this.radius += amount;
     console.log(`Explosion radius increased to ${this.radius}`);
   }
+
+  // Getters for HUD
+  getCooldownCurrent(): number {
+    return this.currentCooldown;
+  }
+
+  getCooldownMax(): number {
+    return this.cooldown;
+  }
 }

@@ -56,6 +56,13 @@ const GameCanvas: React.FC = () => {
     shieldMaxHealth: 0,
     waveNumber: 1,
     waveTimeRemaining: 60,
+    // New cooldown data added here
+    dashCooldownCurrent: 0,
+    dashCooldownMax: 0,
+    explosionCooldownCurrent: 0,
+    explosionCooldownMax: 0,
+    shieldCooldownCurrent: 0,
+    shieldCooldownMax: 0,
   });
 
   // Level Up Callbacks

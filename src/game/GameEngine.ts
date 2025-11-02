@@ -427,6 +427,14 @@ export class GameEngine {
       shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
       waveNumber: this.gameState.waveNumber,
       waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
+      
+      // New cooldown data
+      dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
+      dashCooldownMax: this.gameState.player.getDashCooldownMax(),
+      explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
+      explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
+      shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
+      shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
     });
   }
 

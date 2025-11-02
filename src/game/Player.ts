@@ -242,4 +242,13 @@ export class Player {
     this.currentDashCooldown = Math.min(this.currentDashCooldown, this.dashCooldown); // Adjust current cooldown if it's higher
     console.log(`Dash cooldown reduced to ${this.dashCooldown} seconds`);
   }
+
+  // Getters for HUD
+  getDashCooldownCurrent(): number {
+    return this.currentDashCooldown;
+  }
+
+  getDashCooldownMax(): number {
+    return this.dashCooldown;
+  }
 }

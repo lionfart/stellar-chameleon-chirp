@@ -70,4 +70,13 @@ export class ShieldAbility {
     this.cooldown = Math.max(0.5, this.cooldown - amount); // Minimum cooldown of 0.5 seconds
     console.log(`Shield cooldown reduced to ${this.cooldown} seconds`);
   }
+
+  // Getters for HUD
+  getCooldownCurrent(): number {
+    return this.currentCooldown;
+  }
+
+  getCooldownMax(): number {
+    return this.cooldown;
+  }
 }
