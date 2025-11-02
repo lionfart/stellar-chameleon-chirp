@@ -13,7 +13,7 @@ export class GameState {
   player: Player;
   enemies: Enemy[];
   experienceGems: ExperienceGem[];
-  magnetPowerUps: MagnetPowerUp[];
+  magnetPowerUps: MagnetPowerUp[]; // Düzeltildi: MagnetPowerPowerUp -> MagnetPowerUp
   auraWeapon: AuraWeapon | undefined; // Made optional
   projectileWeapon: ProjectileWeapon | undefined; // Made optional
   spinningBladeWeapon: SpinningBladeWeapon | undefined; // Made optional
@@ -96,5 +96,11 @@ export class GameState {
     this.showShop = false; // Reset shop visibility
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
+    // Explicitly clear weapon and ability references on reset
+    this.auraWeapon = undefined;
+    this.projectileWeapon = undefined;
+    this.spinningBladeWeapon = undefined;
+    this.explosionAbility = undefined;
+    this.shieldAbility = undefined;
   }
 }

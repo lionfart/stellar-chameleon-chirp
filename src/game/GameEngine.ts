@@ -62,6 +62,7 @@ export class GameEngine {
   ];
 
   constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void) {
+    console.log("GameEngine constructor called!"); // Debug log
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
@@ -102,7 +103,7 @@ export class GameEngine {
     this.spriteManager.loadSprite('player', SpriteManager.getPlayerSpriteSVG(this.gameState.player.size * 2));
     this.spriteManager.loadSprite('enemy_normal', SpriteManager.getEnemyNormalSpriteSVG(40));
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
-    this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50)); // Fixed: Corrected method name
+    this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
     this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)); // Use optional chaining
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)); // Use optional chaining
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
@@ -165,6 +166,7 @@ export class GameEngine {
   }
 
   openShop() {
+    console.log("Opening shop..."); // Debug log
     // The game is paused when the shop is opened, preventing game logic from running.
     this.gameState.isPaused = true;
     this.gameState.showShop = true;
@@ -180,6 +182,7 @@ export class GameEngine {
   }
 
   closeShop = () => {
+    console.log("Closing shop..."); // Debug log
     // The game resumes when the shop is closed.
     this.gameState.showShop = false;
     this.onCloseShopCallback();
@@ -232,6 +235,7 @@ export class GameEngine {
   }
 
   restartGame = () => {
+    console.log("Restarting game..."); // Debug log
     this.gameState.reset();
     this.waveManager.reset();
     this.powerUpManager.reset();

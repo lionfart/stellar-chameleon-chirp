@@ -69,6 +69,7 @@ const GameCanvas: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    console.log("GameCanvas useEffect running!"); // Debug log
     const canvas = canvasRef.current;
     if (!canvas) return;
 
