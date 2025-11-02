@@ -106,6 +106,8 @@ const HUD: React.FC<HUDProps> = ({
               currentCooldown={dashCooldownCurrent}
               maxCooldown={dashCooldownMax}
               colorClass="text-purple-500 drop-shadow-sm"
+              iconSizeClass="h-4 w-4" // Dash ikonu küçültüldü
+              progressBarHeightClass="h-4" // Dash ilerleme çubuğu küçültüldü
             />
 
             {explosionCooldownMax > 0 && (
@@ -145,11 +147,11 @@ const HUD: React.FC<HUDProps> = ({
       <div className="absolute top-4 left-1/2 -translate-x-1/2 pointer-events-none z-40">
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[180px] text-center">
           <CardContent className="p-0 space-y-2">
-            <div className="flex items-center justify-center space-x-2"> {/* Changed justify-end to justify-center */}
+            <div className="flex items-center justify-center space-x-2">
               <Swords className="h-6 w-6 text-purple-500 drop-shadow-sm" />
               <span className="text-base font-medium">Wave {waveNumber}</span>
             </div>
-            <div className="flex items-center justify-center space-x-2"> {/* Changed justify-end to justify-center */}
+            <div className="flex items-center justify-center space-x-2">
               <Clock className="h-6 w-6 text-gray-500 drop-shadow-sm" />
               <span className="text-base font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
             </div>
