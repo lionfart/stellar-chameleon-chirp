@@ -156,17 +156,19 @@ export class GameEngine {
   };
 
   pause() {
+    console.log("GameEngine: Pausing game."); // Debug log
     this.gameState.isPaused = true;
   }
 
   resume() {
+    console.log("GameEngine: Resuming game. Last time before resume:", this.lastTime); // Debug log
     this.gameState.isPaused = false;
-    this.lastTime = performance.now();
-    this.gameLoop(this.lastTime);
+    this.lastTime = performance.now(); // Reset lastTime to current time to prevent large deltaTime
+    this.gameLoop(this.lastTime); // Ensure game loop continues
   }
 
   openShop() {
-    console.log("Opening shop..."); // Debug log
+    console.log("GameEngine: Opening shop. Current isPaused:", this.gameState.isPaused); // Debug log
     // The game is paused when the shop is opened, preventing game logic from running.
     this.gameState.isPaused = true;
     this.gameState.showShop = true;
@@ -182,7 +184,7 @@ export class GameEngine {
   }
 
   closeShop = () => {
-    console.log("Closing shop..."); // Debug log
+    console.log("GameEngine: Closing shop. Current isPaused:", this.gameState.isPaused); // Debug log
     // The game resumes when the shop is closed.
     this.gameState.showShop = false;
     this.onCloseShopCallback();
@@ -235,7 +237,7 @@ export class GameEngine {
   }
 
   restartGame = () => {
-    console.log("Restarting game..."); // Debug log
+    console.log("GameEngine: Restarting game..."); // Debug log
     this.gameState.reset();
     this.waveManager.reset();
     this.powerUpManager.reset();
@@ -314,6 +316,8 @@ export class GameEngine {
     // If the game is paused (e.g., shop is open), or game is over, or assets are not loaded, do not update game logic.
     if (this.gameState.gameOver || this.gameState.isPaused || !this.assetsLoaded) return;
 
+    console.log("GameEngine: Updating with deltaTime:", deltaTime); // Debug log for deltaTime
+
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
 
     // Trigger explosion if 'e' is pressed and ability exists
@@ -377,6 +381,8 @@ export class GameEngine {
       this.ctx.fillText('Loading Assets...', this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
       return;
     }
+
+    // console.log("GameEngine: Drawing. CameraX:", this.cameraX, "CameraY:", this.cameraY); // Debug log for camera position
 
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 

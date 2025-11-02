@@ -32,6 +32,7 @@ const ALL_LEVEL_UP_OPTIONS = [
 ];
 
 const GameCanvas: React.FC = () => {
+  console.log("GameCanvas component rendering..."); // Debug log for component renders
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
   const [showLevelUpScreen, setShowLevelUpScreen] = useState(false);
@@ -46,7 +47,7 @@ const GameCanvas: React.FC = () => {
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
     gameEngineRef.current?.pause();
-  }, []); // ALL_LEVEL_UP_OPTIONS is now stable, so no need to list it here
+  }, []);
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
     gameEngineRef.current?.applyUpgrade(upgradeId);
@@ -103,7 +104,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop]); // Dependencies are now stable
+  }, [handleLevelUp, handleOpenShop, handleCloseShop]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
