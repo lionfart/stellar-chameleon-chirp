@@ -21,6 +21,12 @@ export class Vendor {
     ctx.save();
     ctx.translate(this.x - cameraX, this.y - cameraY);
 
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 15;
+    ctx.shadowOffsetX = 7;
+    ctx.shadowOffsetY = 7;
+
     if (this.sprite) {
       ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
@@ -35,7 +41,7 @@ export class Vendor {
       ctx.fillText('$', 0, 0);
     }
 
-    ctx.restore();
+    ctx.restore(); // Restore context to remove shadow
   }
 
   isPlayerInRange(player: Player): boolean {

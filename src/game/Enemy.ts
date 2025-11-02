@@ -60,6 +60,12 @@ export class Enemy {
       ctx.filter = 'brightness(200%)'; // Make it brighter
     }
 
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 5;
+
     if (this.sprite) {
       ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
@@ -69,7 +75,7 @@ export class Enemy {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter
+    ctx.restore(); // Restore context to remove filter and shadow
 
     // Draw health bar (simple rectangle above enemy)
     const healthBarWidth = this.size * 1.5;

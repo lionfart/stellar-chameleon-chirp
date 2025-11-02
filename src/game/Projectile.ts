@@ -58,6 +58,13 @@ export class Projectile {
       ctx.restore();
     });
 
+    ctx.save();
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+
     // Draw the main projectile
     if (this.sprite) {
       ctx.drawImage(this.sprite, this.x - cameraX - this.radius, this.y - cameraY - this.radius, this.radius * 2, this.radius * 2);
@@ -75,6 +82,7 @@ export class Projectile {
       ctx.arc(this.x - cameraX, this.y - cameraY, this.radius, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore(); // Restore context to remove shadow
   }
 
   // Updated to accept any object with x, y, and size properties

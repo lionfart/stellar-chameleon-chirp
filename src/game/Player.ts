@@ -166,6 +166,12 @@ export class Player {
       ctx.filter = `brightness(${100 + hitAlpha * 100}%) hue-rotate(${hitAlpha * 180}deg)`; // More dynamic filter
     }
 
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 5;
+
     if (this.sprite) {
       ctx.drawImage(this.sprite, -this.size / 2, -this.size / 2, this.size, this.size);
     } else {
@@ -175,7 +181,7 @@ export class Player {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter
+    ctx.restore(); // Restore context to remove filter and shadow
 
     // NEW: Draw heal effect
     const HEAL_EFFECT_DURATION = 0.5; // seconds

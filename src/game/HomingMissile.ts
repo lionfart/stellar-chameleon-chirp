@@ -99,11 +99,16 @@ export class HomingMissile {
       ctx.restore();
     });
 
-    // Draw the main missile
     ctx.save();
     ctx.translate(this.x - cameraX, this.y - cameraY);
     const angle = Math.atan2(this.directionY, this.directionX);
     ctx.rotate(angle + Math.PI / 2); // Rotate to point upwards by default
+
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
 
     if (this.sprite) {
       ctx.drawImage(this.sprite, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
@@ -121,7 +126,7 @@ export class HomingMissile {
       ctx.closePath();
       ctx.fill();
     }
-    ctx.restore();
+    ctx.restore(); // Restore context to remove shadow
   }
 
   collidesWith(other: { x: number; y: number; size: number }): boolean {

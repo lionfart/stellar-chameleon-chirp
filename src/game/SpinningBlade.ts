@@ -31,18 +31,25 @@ export class SpinningBlade {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+    ctx.save();
+    ctx.translate(this.x - cameraX, this.y - cameraY);
+    ctx.rotate(this.angle); // Rotate the sprite with its orbit
+
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+
     if (this.sprite) {
-      ctx.save();
-      ctx.translate(this.x - cameraX, this.y - cameraY);
-      ctx.rotate(this.angle); // Rotate the sprite with its orbit
       ctx.drawImage(this.sprite, -this.radius, -this.radius, this.radius * 2, this.radius * 2);
-      ctx.restore();
     } else {
       ctx.fillStyle = this.color;
       ctx.beginPath();
-      ctx.arc(this.x - cameraX, this.y - cameraY, this.radius, 0, Math.PI * 2);
+      ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore(); // Restore context to remove shadow
   }
 
   collidesWith(enemy: Enemy): boolean {

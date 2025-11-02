@@ -30,6 +30,13 @@ export class MagnetPowerUp {
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+    ctx.save();
+    // Apply shadow effect
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+
     if (this.sprite) {
       ctx.drawImage(this.sprite, this.x - cameraX - this.size / 2, this.y - cameraY - this.size / 2, this.size, this.size);
     } else {
@@ -38,6 +45,7 @@ export class MagnetPowerUp {
       ctx.arc(this.x - cameraX, this.y - cameraY, this.size / 2, 0, Math.PI * 2);
       ctx.fill();
     }
+    ctx.restore(); // Restore context to remove shadow
   }
 
   collidesWith(other: { x: number; y: number; size: number }): boolean {
