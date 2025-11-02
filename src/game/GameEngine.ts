@@ -5,7 +5,8 @@ import { AuraWeapon } from './AuraWeapon';
 import { ExperienceGem } from './ExperienceGem';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
-import { MagnetPowerUp } from './MagnetPowerUp'; // Import new power-up
+import { MagnetPowerUp } from './MagnetPowerUp';
+import { ExplosionAbility } from './ExplosionAbility'; // Import new ability
 import { clamp } from './utils';
 
 export class GameEngine {
@@ -16,14 +17,15 @@ export class GameEngine {
   private animationFrameId: number | null;
   private enemies: Enemy[];
   private experienceGems: ExperienceGem[];
-  private magnetPowerUps: MagnetPowerUp[]; // New: list of magnet power-ups
-  private activeMagnetRadius: number = 0; // Current active magnet radius
-  private activeMagnetDuration: number = 0; // Current active magnet duration
+  private magnetPowerUps: MagnetPowerUp[];
+  private activeMagnetRadius: number = 0;
+  private activeMagnetDuration: number = 0;
   private enemySpawnTimer: number;
-  private enemySpawnInterval: number = 2; // Initial spawn interval
+  private enemySpawnInterval: number = 2;
   private auraWeapon: AuraWeapon;
   private projectileWeapon: ProjectileWeapon;
   private spinningBladeWeapon: SpinningBladeWeapon;
+  private explosionAbility: ExplosionAbility; // New ability instance
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private onLevelUpCallback: () => void;
@@ -49,11 +51,12 @@ export class GameEngine {
     this.animationFrameId = null;
     this.enemies = [];
     this.experienceGems = [];
-    this.magnetPowerUps = []; // Initialize magnet power-ups
+    this.magnetPowerUps = [];
     this.enemySpawnTimer = 0;
     this.auraWeapon = new AuraWeapon(10, 100, 0.5);
     this.projectileWeapon = new ProjectileWeapon(15, 300, 1.5, 8, 3);
     this.spinningBladeWeapon = new SpinningBladeWeapon(10, 60, 3, 10, 1);
+    this.explosionAbility = new ExplosionAbility(50, 150, 5); // Initialize explosion ability
     this.onLevelUpCallback = onLevelUp;
   }
 
@@ -100,6 +103,15 @@ export class GameEngine {
         break;
       case 'add_blade':
         this.spinningBladeWeapon.addBlade();
+        break;
+      case 'explosion_damage': // New upgrade
+        this.explosionAbility.increaseDamage(20);
+        break;
+      case 'explosion_cooldown': // New upgrade
+        this.explosionAbility.reduceCooldown(1);
+        break;
+      case 'explosion_radius': // New upgrade
+        this.explosionAbility.increaseRadius(20);
         break;
       default:
         console.warn(`Unknown upgrade ID: ${upgradeId}`);
@@ -161,6 +173,11 @@ export class GameEngine {
 
     this.player.update(this.inputHandler, deltaTime, this.worldWidth, this.worldHeight);
 
+    // Trigger explosion if 'e' is pressed
+    if (this.inputHandler.isPressed('e')) {
+      this.explosionAbility.triggerExplosion(this.player.x, this.player.y);
+    }
+
     this.cameraX = this.player.x - this.ctx.canvas.width / 2;
     this.cameraY = this.player.y - this.ctx.canvas.height / 2;
 
@@ -193,6 +210,7 @@ export class GameEngine {
     this.auraWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.projectileWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
     this.spinningBladeWeapon.update(deltaTime, this.player.x, this.player.y, this.enemies);
+    this.explosionAbility.update(deltaTime, this.enemies); // Update explosion ability
 
     const defeatedEnemies = this.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -266,9 +284,10 @@ export class GameEngine {
     this.auraWeapon.draw(this.ctx, this.player.x, this.player.y, this.cameraX, this.cameraY);
     this.projectileWeapon.draw(this.ctx, this.cameraX, this.cameraY);
     this.spinningBladeWeapon.draw(this.ctx, this.cameraX, this.cameraY);
+    this.explosionAbility.draw(this.ctx, this.cameraX, this.cameraY); // Draw explosions
 
     this.experienceGems.forEach(gem => gem.draw(this.ctx, this.cameraX, this.cameraY));
-    this.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY)); // Draw magnet power-ups
+    this.magnetPowerUps.forEach(magnet => magnet.draw(this.ctx, this.cameraX, this.cameraY));
 
     this.player.draw(this.ctx, this.cameraX, this.cameraY);
 
