@@ -3,12 +3,14 @@ export class SoundManager {
   private loadedCount: number;
   private totalCount: number;
   private onAllLoadedCallback: () => void;
+  private globalVolume: number;
 
-  constructor(onAllLoaded: () => void) {
+  constructor(onAllLoaded: () => void, initialVolume: number = 0.5) {
     this.sounds = new Map();
     this.loadedCount = 0;
     this.totalCount = 0;
     this.onAllLoadedCallback = onAllLoaded;
+    this.globalVolume = initialVolume;
   }
 
   loadSound(name: string, base64Audio: string) {
@@ -37,7 +39,7 @@ export class SoundManager {
     if (audio) {
       // Create a clone to allow multiple simultaneous plays
       const clonedAudio = audio.cloneNode() as HTMLAudioElement;
-      clonedAudio.volume = volume;
+      clonedAudio.volume = volume * this.globalVolume; // Apply global volume
       clonedAudio.loop = loop;
       clonedAudio.play().catch(e => console.warn(`Failed to play sound ${name}:`, e));
       return clonedAudio; // Return for potential stopping if looped
@@ -57,8 +59,15 @@ export class SoundManager {
   setVolume(name: string, volume: number) {
     const audio = this.sounds.get(name);
     if (audio) {
-      audio.volume = volume;
+      audio.volume = volume * this.globalVolume; // Apply global volume
     }
+  }
+
+  setGlobalVolume(volume: number) {
+    this.globalVolume = volume;
+    // Update volume of any currently playing looped sounds, if necessary
+    // For simplicity, we'll assume short sounds or manage background music separately.
+    // Background music instance is managed in GameEngine.
   }
 
   // Placeholder Base64 Audio Data (very short, simple sounds)

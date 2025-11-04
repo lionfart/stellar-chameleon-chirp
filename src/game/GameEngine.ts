@@ -25,6 +25,7 @@ import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
 import { EntityManager } from './EntityManager';
 import { showSuccess, showError } from '@/utils/toast';
+import { LeaderboardEntry } from '@/components/LeaderboardDialog'; // Import LeaderboardEntry interface
 
 interface ShopItem {
   id: string;
@@ -41,6 +42,7 @@ export interface MinimapEnemyData {
 }
 
 export interface GameDataProps {
+  playerName: string; // NEW
   playerHealth: number;
   playerMaxHealth: number;
   playerLevel: number;
@@ -62,9 +64,6 @@ export interface GameDataProps {
   healCooldownMax: number;
   timeSlowCooldownCurrent: number;
   timeSlowCooldownMax: number;
-  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
-  // laserBeamCooldownCurrent: number;
-  // laserBeamCooldownMax: number;
 
   bossActive: boolean;
   bossHealth: number;
@@ -133,7 +132,7 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void) {
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number) {
     console.log("GameEngine constructor called!");
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
@@ -141,13 +140,13 @@ export class GameEngine {
     this.onOpenShopCallback = onOpenShop;
     this.onCloseShopCallback = onCloseShop;
     this.onUpdateGameDataCallback = onUpdateGameData;
+    this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume); // Pass initial volume
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
-    this.soundManager = new SoundManager(this.onAllAssetsLoaded);
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight);
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, playerName, initialSoundVolume); // Pass playerName and initialSoundVolume
     
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
@@ -168,8 +167,6 @@ export class GameEngine {
       this.gameState.homingMissileWeapon = initialWeapon;
     } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
-      // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
-      // this.gameState.player.setLaserBeamWeapon(initialWeapon);
     }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
@@ -356,8 +353,6 @@ export class GameEngine {
           break;
         case 'buy_laser_beam_weapon':
           this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Corrected constructor call
-          // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
-          // this.gameState.player.setLaserBeamWeapon(initialWeapon);
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
@@ -398,6 +393,27 @@ export class GameEngine {
     }
   }
 
+  private saveScoreToLeaderboard() {
+    const savedLeaderboard = localStorage.getItem('leaderboard');
+    let leaderboard: LeaderboardEntry[] = savedLeaderboard ? JSON.parse(savedLeaderboard) : [];
+
+    const newEntry: LeaderboardEntry = {
+      playerName: this.gameState.playerName,
+      score: this.gameState.player.level * 100 + this.gameState.waveNumber * 50 + this.gameState.player.gold, // Example scoring
+      wave: this.gameState.waveNumber,
+      collectedLetters: this.gameState.collectedLetters.join(''),
+      timestamp: Date.now(),
+    };
+
+    leaderboard.push(newEntry);
+    // Keep only top 10 scores, sorted by score then wave
+    leaderboard.sort((a, b) => b.score - a.score || b.wave - a.wave);
+    leaderboard = leaderboard.slice(0, 10); // Keep only top 10
+
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    console.log("Score saved to leaderboard:", newEntry);
+  }
+
   restartGame = () => {
     console.log("GameEngine: Restarting game...");
     this.soundManager.stopSound(this.backgroundMusicInstance);
@@ -408,60 +424,8 @@ export class GameEngine {
     this.wasGameOver = false;
     this.wasGameWon = false;
 
-    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
-    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
-
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight);
-    
-    const startingWeapons = [
-      new AuraWeapon(10, 100, 0.5),
-      new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
-      new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
-      new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Corrected constructor call
-    ];
-    const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
-
-    if (initialWeapon instanceof AuraWeapon) {
-      this.gameState.auraWeapon = initialWeapon;
-    } else if (initialWeapon instanceof ProjectileWeapon) {
-      this.gameState.projectileWeapon = initialWeapon;
-    } else if (initialWeapon instanceof SpinningBladeWeapon) {
-      this.gameState.spinningBladeWeapon = initialWeapon;
-    } else if (initialWeapon instanceof HomingMissileWeapon) {
-      this.gameState.homingMissileWeapon = initialWeapon;
-    } else if (initialWeapon instanceof LaserBeamWeapon) {
-      this.gameState.laserBeamWeapon = initialWeapon;
-      // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
-      // this.gameState.player.setLaserBeamWeapon(initialWeapon);
-    }
-    
-    this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat);
-    
-    this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
-    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
-
-    this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
-    if (this.gameState.projectileWeapon) {
-      this.gameState.projectileWeapon['projectileSprite'] = this.spriteManager.getSprite('player_projectile');
-    }
-    if (this.gameState.spinningBladeWeapon) {
-      this.gameState.spinningBladeWeapon['bladeSprite'] = this.spriteManager.getSprite('spinning_blade');
-    }
-    if (this.gameState.homingMissileWeapon) {
-      this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
-    }
-    if (this.gameState.laserBeamWeapon) {
-      this.gameState.laserBeamWeapon['beamSprite'] = this.spriteManager.getSprite('laser_beam');
-    }
-    this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
-
-    this.gameOverSoundPlayed = false;
-    this.gameWinSoundPlayed = false;
-    this.lastTime = performance.now();
-    this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
-    this.gameLoop(this.lastTime);
+    // Navigate back to the entry screen to allow new player name/settings
+    window.location.href = '/';
   };
 
   applyUpgrade(upgradeId: string) {
@@ -496,13 +460,6 @@ export class GameEngine {
       case 'laser_beam_range':
         this.gameState.laserBeamWeapon?.increaseRange(50);
         break;
-      // REMOVED: Cooldown/Duration upgrades for Laser Beam as it's now automatic
-      // case 'laser_beam_cooldown':
-      //   this.gameState.laserBeamWeapon?.reduceCooldown(1);
-      //   break;
-      // case 'laser_beam_duration':
-      //   this.gameState.laserBeamWeapon?.increaseDuration(1);
-      //   break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
@@ -566,11 +523,13 @@ export class GameEngine {
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameOverSoundPlayed = true;
         this.gameOverScreen.activate();
+        this.saveScoreToLeaderboard(); // Save score on game over
       } else if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
         this.soundManager.playSound('game_win');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameWinSoundPlayed = true;
         this.gameWinScreen.activate();
+        this.saveScoreToLeaderboard(); // Save score on game win
       }
       return;
     }
@@ -625,6 +584,7 @@ export class GameEngine {
     this.gameState.isTimeSlowActive = this.gameState.timeSlowAbility?.getIsActive() || false;
 
     this.onUpdateGameDataCallback({
+      playerName: this.gameState.playerName, // NEW
       playerHealth: this.gameState.player.currentHealth,
       playerMaxHealth: this.gameState.player.maxHealth,
       playerLevel: this.gameState.player.level,
@@ -647,9 +607,6 @@ export class GameEngine {
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
       timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
       timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0,
-      // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
-      // laserBeamCooldownCurrent: this.gameState.laserBeamWeapon ? Math.max(0, this.gameState.laserBeamWeapon.getCooldownCurrent()) : 0,
-      // laserBeamCooldownMax: this.gameState.laserBeamWeapon ? this.gameState.laserBeamWeapon.getCooldownMax() : 0,
 
       bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,

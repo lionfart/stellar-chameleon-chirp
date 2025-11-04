@@ -14,6 +14,11 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
+interface GameCanvasProps {
+  playerName: string;
+  initialSoundVolume: number;
+}
+
 const getLevelUpOptions = (gameState: any) => {
   const options = [
     { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
@@ -26,9 +31,6 @@ const getLevelUpOptions = (gameState: any) => {
     { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' },
     { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' },
     { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' },
-    // REMOVED: Laser Beam Cooldown/Duration upgrades as it's now an automatic weapon
-    // { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' },
-    // { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' },
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
     { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
     { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
@@ -62,7 +64,7 @@ const getLevelUpOptions = (gameState: any) => {
   });
 };
 
-const GameCanvas: React.FC = () => {
+const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume }) => {
   console.log("GameCanvas component rendering...");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);
@@ -74,6 +76,7 @@ const GameCanvas: React.FC = () => {
   const notificationsShownRef = useRef(false);
 
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
+    playerName: playerName, // NEW
     playerHealth: 100,
     playerMaxHealth: 100,
     playerLevel: 1,
@@ -95,9 +98,6 @@ const GameCanvas: React.FC = () => {
     healCooldownMax: 0,
     timeSlowCooldownCurrent: 0,
     timeSlowCooldownMax: 0,
-    // REMOVED: Laser Beam Cooldown from initial state as it's no longer a player ability
-    // laserBeamCooldownCurrent: 0,
-    // laserBeamCooldownMax: 0,
     bossActive: false,
     bossHealth: 0,
     bossMaxHealth: 0,
@@ -163,7 +163,7 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData);
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume);
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {
@@ -173,8 +173,6 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
       setTimeout(() => showSuccess("Press R to use your heal ability."), 8500);
       setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500);
-      // REMOVED: Laser Beam notification as it's now an automatic weapon
-      // setTimeout(() => showSuccess("Press X to fire your Laser Beam!"), 12500);
       setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500); // Adjusted timing
       notificationsShownRef.current = true;
     }
@@ -196,7 +194,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData]);
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">

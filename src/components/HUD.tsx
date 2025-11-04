@@ -2,10 +2,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass } from 'lucide-react'; // Sparkles icon for Laser Beam removed
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react'; // Sparkles icon for Laser Beam removed
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
+  playerName: string; // NEW
   playerHealth: number;
   playerMaxHealth: number;
   playerLevel: number;
@@ -28,9 +29,6 @@ export interface HUDProps {
   healCooldownMax: number;
   timeSlowCooldownCurrent: number;
   timeSlowCooldownMax: number;
-  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
-  // laserBeamCooldownCurrent: number;
-  // laserBeamCooldownMax: number;
 
   bossActive: boolean;
   bossHealth: number;
@@ -42,6 +40,7 @@ export interface HUDProps {
 }
 
 const HUD: React.FC<HUDProps> = ({
+  playerName, // NEW
   playerHealth,
   playerMaxHealth,
   playerLevel,
@@ -64,9 +63,6 @@ const HUD: React.FC<HUDProps> = ({
   healCooldownMax,
   timeSlowCooldownCurrent,
   timeSlowCooldownMax,
-  // REMOVED: Laser Beam Cooldown from HUDProps as it's no longer a player ability
-  // laserBeamCooldownCurrent,
-  // laserBeamCooldownMax,
   // Boss specific data
   bossActive,
   bossHealth,
@@ -90,6 +86,10 @@ const HUD: React.FC<HUDProps> = ({
         {/* Player Stats */}
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
           <CardContent className="p-0 space-y-2">
+            <div className="flex items-center space-x-2">
+              <User className="h-6 w-6 text-gray-400" />
+              <span className="text-base font-medium text-white">{playerName}</span>
+            </div>
             <div className="flex items-center space-x-2">
               <Heart className="h-6 w-6 text-red-500" />
               <div className="flex-1">
@@ -178,17 +178,6 @@ const HUD: React.FC<HUDProps> = ({
                 colorClass="text-indigo-400"
               />
             )}
-
-            {/* REMOVED: Laser Beam Cooldown Display as it's no longer a player ability */}
-            {/* {laserBeamCooldownMax > 0 && (
-              <CooldownDisplay
-                Icon={Sparkles}
-                name="Laser Beam"
-                currentCooldown={laserBeamCooldownCurrent}
-                maxCooldown={laserBeamCooldownMax}
-                colorClass="text-cyan-400"
-              />
-            )} */}
           </CardContent>
         </Card>
       </div>

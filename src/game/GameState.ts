@@ -17,6 +17,7 @@ import { BossAttackVisual } from './BossAttackVisual';
 import { LaserBeamWeapon } from './LaserBeamWeapon';
 import { TimeSlowAbility } from './TimeSlowAbility';
 import { Projectile } from './Projectile'; // NEW: Import Projectile
+import { LeaderboardEntry } from '@/components/LeaderboardDialog'; // Import LeaderboardEntry interface
 
 export class GameState {
   player: Player;
@@ -61,12 +62,17 @@ export class GameState {
 
   isTimeSlowActive: boolean; // NEW: Track if time slow is active for global visual effects
 
+  playerName: string; // NEW: Player name
+  soundVolume: number; // NEW: Sound volume
+  leaderboard: LeaderboardEntry[]; // NEW: Leaderboard data
 
   constructor(
     player: Player,
     vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
+    playerName: string, // NEW
+    initialSoundVolume: number, // NEW
   ) {
     this.player = player;
     this.vendor = vendor;
@@ -106,6 +112,10 @@ export class GameState {
     this.activeMagnetDuration = 0;
 
     this.isTimeSlowActive = false; // NEW: Initialize
+
+    this.playerName = playerName; // NEW
+    this.soundVolume = initialSoundVolume; // NEW
+    this.leaderboard = []; // NEW
   }
 
   reset() {
@@ -142,5 +152,7 @@ export class GameState {
     this.gameWon = false;
 
     this.isTimeSlowActive = false; // NEW: Reset
+    // Player name and sound volume are not reset here, they come from EntryScreen
+    // Leaderboard is managed by GameEngine
   }
 }
