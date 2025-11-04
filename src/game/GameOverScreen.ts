@@ -37,7 +37,7 @@ export class GameOverScreen {
         if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
             mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
           this.restartGameCallback();
-          this.canvas.onclick = null; // Remove listener after click
+          // this.canvas.onclick = null; // Bu satır kaldırıldı
         }
       };
     }
