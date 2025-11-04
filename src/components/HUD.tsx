@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass } from 'lucide-react'; // Crown icon for collected letters, Hourglass for Time Slow
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, Sparkles } from 'lucide-react'; // Sparkles icon for Laser Beam
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -26,8 +26,10 @@ export interface HUDProps {
   shieldCooldownMax: number;
   healCooldownCurrent: number;
   healCooldownMax: number;
-  timeSlowCooldownCurrent: number; // NEW
-  timeSlowCooldownMax: number; // NEW
+  timeSlowCooldownCurrent: number;
+  timeSlowCooldownMax: number;
+  laserBeamCooldownCurrent: number; // NEW
+  laserBeamCooldownMax: number; // NEW
 
   // Boss specific data
   bossActive: boolean;
@@ -61,8 +63,10 @@ const HUD: React.FC<HUDProps> = ({
   shieldCooldownMax,
   healCooldownCurrent,
   healCooldownMax,
-  timeSlowCooldownCurrent, // NEW
-  timeSlowCooldownMax, // NEW
+  timeSlowCooldownCurrent,
+  timeSlowCooldownMax,
+  laserBeamCooldownCurrent, // NEW
+  laserBeamCooldownMax, // NEW
   // Boss specific data
   bossActive,
   bossHealth,
@@ -165,13 +169,23 @@ const HUD: React.FC<HUDProps> = ({
               />
             )}
 
-            {timeSlowCooldownMax > 0 && ( // NEW: Time Slow Cooldown Display
+            {timeSlowCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={Hourglass}
                 name="Time Slow"
                 currentCooldown={timeSlowCooldownCurrent}
                 maxCooldown={timeSlowCooldownMax}
                 colorClass="text-indigo-400 drop-shadow-sm"
+              />
+            )}
+
+            {laserBeamCooldownMax > 0 && ( // NEW: Laser Beam Cooldown Display
+              <CooldownDisplay
+                Icon={Sparkles}
+                name="Laser Beam"
+                currentCooldown={laserBeamCooldownCurrent}
+                maxCooldown={laserBeamCooldownMax}
+                colorClass="text-cyan-400 drop-shadow-sm"
               />
             )}
           </CardContent>

@@ -1,12 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { GameEngine, GameDataProps, MinimapEnemyData } from '@/game/GameEngine'; // Import GameDataProps and MinimapEnemyData
+import { GameEngine, GameDataProps, MinimapEnemyData } from '@/game/GameEngine';
 import LevelUpSelection from './LevelUpSelection';
 import ShopScreen from './ShopScreen';
 import HUD from './HUD';
-import Minimap from './Minimap'; // Import the new Minimap component
+import Minimap from './Minimap';
 import { showSuccess } from '@/utils/toast';
 
-// Define ShopItem interface here as well for type consistency
 interface ShopItem {
   id: string;
   name: string;
@@ -15,21 +14,20 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
-// ALL_LEVEL_UP_OPTIONS'ı bir fonksiyon olarak tanımlayalım, böylece mevcut oyun durumuna göre filtreleyebiliriz.
-const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçici olarak kullanıyoruz
+const getLevelUpOptions = (gameState: any) => {
   const options = [
     { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
     { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
     { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
     { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
     { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
-    { id: 'homing_missile_damage', name: 'Increase Missile Damage', description: 'Your homing missiles deal more damage.' }, // New upgrade
-    { id: 'homing_missile_fire_rate', name: 'Increase Missile Fire Rate', description: 'Your homing missiles fire more frequently.' }, // New upgrade
-    { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' }, // New upgrade
-    { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' }, // NEW
-    { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' }, // NEW
-    { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' }, // NEW
-    { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' }, // NEW
+    { id: 'homing_missile_damage', name: 'Increase Missile Damage', description: 'Your homing missiles deal more damage.' },
+    { id: 'homing_missile_fire_rate', name: 'Increase Missile Fire Rate', description: 'Your homing missiles fire more frequently.' },
+    { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' },
+    { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' },
+    { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' },
+    { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' },
+    { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' },
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
     { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
     { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
@@ -41,26 +39,24 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
     { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' },
     { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' },
-    { id: 'time_slow_factor', name: 'Increase Time Slow Effect', description: 'Enemies are slowed down even more.' }, // NEW
-    { id: 'time_slow_duration', name: 'Increase Time Slow Duration', description: 'Time slow lasts longer.' }, // NEW
-    { id: 'time_slow_cooldown', name: 'Reduce Time Slow Cooldown', description: 'Use time slow more often.' }, // NEW
-    // New general upgrades
+    { id: 'time_slow_factor', name: 'Increase Time Slow Effect', description: 'Enemies are slowed down even more.' },
+    { id: 'time_slow_duration', name: 'Increase Time Slow Duration', description: 'Time slow lasts longer.' },
+    { id: 'time_slow_cooldown', name: 'Reduce Time Slow Cooldown', description: 'Use time slow more often.' },
     { id: 'player_magnet_radius', name: 'Increase Magnet Radius', description: 'Increase the radius for collecting experience gems.' },
     { id: 'experience_boost', name: 'Increase XP Gain', description: 'Gain more experience from defeated enemies.' },
     { id: 'gold_boost', name: 'Increase Gold Gain', description: 'Gain more gold from defeated enemies.' },
   ];
 
-  // Filter options based on whether the player has the corresponding weapon/ability
   return options.filter(option => {
     if (option.id.startsWith('aura_') && !gameState.auraWeapon) return false;
     if (option.id.startsWith('projectile_') && !gameState.projectileWeapon) return false;
     if (option.id.startsWith('blade_') && !gameState.spinningBladeWeapon) return false;
-    if (option.id.startsWith('homing_missile_') && !gameState.homingMissileWeapon) return false; // Filter for new weapon
-    if (option.id.startsWith('laser_beam_') && !gameState.laserBeamWeapon) return false; // NEW
+    if (option.id.startsWith('homing_missile_') && !gameState.homingMissileWeapon) return false;
+    if (option.id.startsWith('laser_beam_') && !gameState.laserBeamWeapon) return false;
     if (option.id.startsWith('explosion_') && !gameState.explosionAbility) return false;
     if (option.id.startsWith('shield_') && !gameState.shieldAbility) return false;
     if (option.id.startsWith('heal_') && !gameState.healAbility) return false;
-    if (option.id.startsWith('time_slow_') && !gameState.timeSlowAbility) return false; // NEW
+    if (option.id.startsWith('time_slow_') && !gameState.timeSlowAbility) return false;
     return true;
   });
 };
@@ -76,7 +72,6 @@ const GameCanvas: React.FC = () => {
   const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
 
-  // State for all game data (HUD and Minimap)
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
     playerHealth: 100,
     playerMaxHealth: 100,
@@ -97,17 +92,16 @@ const GameCanvas: React.FC = () => {
     shieldCooldownMax: 0,
     healCooldownCurrent: 0,
     healCooldownMax: 0,
-    timeSlowCooldownCurrent: 0, // NEW
-    timeSlowCooldownMax: 0, // NEW
-    // Boss specific data
+    timeSlowCooldownCurrent: 0,
+    timeSlowCooldownMax: 0,
+    laserBeamCooldownCurrent: 0, // NEW
+    laserBeamCooldownMax: 0, // NEW
     bossActive: false,
     bossHealth: 0,
     bossMaxHealth: 0,
     bossName: '',
-    // New properties for Princess Simge rescue
     collectedLetters: [],
     gameWon: false,
-    // Minimap specific initial data
     playerX: 0,
     playerY: 0,
     worldWidth: 2000,
@@ -121,10 +115,9 @@ const GameCanvas: React.FC = () => {
     vendorY: 0,
   });
 
-  // Level Up Callbacks
   const handleLevelUp = useCallback(() => {
     if (!gameEngineRef.current) return;
-    const availableOptions = getLevelUpOptions(gameEngineRef.current.getGameState()); // Düzeltildi: gameState'e getter ile erişim
+    const availableOptions = getLevelUpOptions(gameEngineRef.current.getGameState());
     const shuffled = [...availableOptions].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
@@ -137,7 +130,6 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.resume();
   }, []);
 
-  // Shop Callbacks
   const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
     console.log("GameCanvas: handleOpenShop called.");
     setCurrentShopItems(items);
@@ -154,7 +146,6 @@ const GameCanvas: React.FC = () => {
     gameEngineRef.current?.purchaseItem(itemId);
   }, []);
 
-  // Callback for all game data updates (HUD and Minimap)
   const handleUpdateGameData = useCallback((data: GameDataProps) => {
     setGameDataState(data);
   }, []);
@@ -170,7 +161,6 @@ const GameCanvas: React.FC = () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // Pass the stable callback references to GameEngine
     gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData);
     gameEngineRef.current.init();
 
@@ -179,16 +169,16 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
       setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
-      setTimeout(() => showSuccess("Press R to use your heal ability."), 8500); // New heal ability notification
-      setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500); // NEW: Time Slow notification
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500);
+      setTimeout(() => showSuccess("Press R to use your heal ability."), 8500);
+      setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500);
+      setTimeout(() => showSuccess("Press X to fire your Laser Beam!"), 12500); // NEW: Laser Beam notification
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 14500);
       notificationsShownRef.current = true;
     }
 
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Update canvas dimensions in gameDataState as well
       setGameDataState(prevState => ({
         ...prevState,
         canvasWidth: window.innerWidth,
@@ -203,7 +193,7 @@ const GameCanvas: React.FC = () => {
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData]); // Add handleUpdateGameData to dependencies
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData]);
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -219,8 +209,8 @@ const GameCanvas: React.FC = () => {
           playerGold={playerGold}
         />
       )}
-      <HUD {...gameDataState} /> {/* Pass all gameDataState to HUD */}
-      <Minimap {...gameDataState} /> {/* Pass all gameDataState to Minimap */}
+      <HUD {...gameDataState} />
+      <Minimap {...gameDataState} />
     </div>
   );
 };

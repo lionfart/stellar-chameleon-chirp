@@ -5,11 +5,11 @@ import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { HomingMissileWeapon } from './HomingMissileWeapon';
-import { LaserBeamWeapon } from './LaserBeamWeapon'; // NEW
+import { LaserBeamWeapon } from './LaserBeamWeapon';
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
-import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
+import { TimeSlowAbility } from './TimeSlowAbility';
 import { Vendor } from './Vendor';
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
@@ -23,10 +23,9 @@ import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss';
 import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
-import { EntityManager } from './EntityManager'; // Import EntityManager
+import { EntityManager } from './EntityManager';
 import { showSuccess, showError } from '@/utils/toast';
 
-// Define shop item types
 interface ShopItem {
   id: string;
   name: string;
@@ -35,14 +34,12 @@ interface ShopItem {
   type: 'weapon' | 'ability' | 'consumable';
 }
 
-// Minimap için basitleştirilmiş düşman verisi
 export interface MinimapEnemyData {
   x: number;
   y: number;
   size: number;
 }
 
-// HUD ve Minimap için tüm oyun verilerini içeren arayüz
 export interface GameDataProps {
   playerHealth: number;
   playerMaxHealth: number;
@@ -63,20 +60,19 @@ export interface GameDataProps {
   shieldCooldownMax: number;
   healCooldownCurrent: number;
   healCooldownMax: number;
-  timeSlowCooldownCurrent: number; // NEW
-  timeSlowCooldownMax: number; // NEW
+  timeSlowCooldownCurrent: number;
+  timeSlowCooldownMax: number;
+  laserBeamCooldownCurrent: number; // NEW
+  laserBeamCooldownMax: number; // NEW
 
-  // Boss specific data
   bossActive: boolean;
   bossHealth: number;
   bossMaxHealth: number;
   bossName: string;
 
-  // New properties for Princess Simge rescue
   collectedLetters: string[];
   gameWon: boolean;
 
-  // Minimap specific data
   playerX: number;
   playerY: number;
   worldWidth: number;
@@ -90,7 +86,7 @@ export interface GameDataProps {
   vendorY: number;
 }
 
-const MAX_DELTA_TIME = 1 / 30; // Cap deltaTime at 30 FPS to prevent physics glitches after long pauses
+const MAX_DELTA_TIME = 1 / 30;
 
 export class GameEngine {
   private ctx: CanvasRenderingContext2D;
@@ -110,7 +106,7 @@ export class GameEngine {
 
   private gameState: GameState;
   private waveManager: WaveManager;
-  private entityManager: EntityManager; // New: EntityManager instance
+  private entityManager: EntityManager;
   private gameOverScreen: GameOverScreen;
   private gameWinScreen: GameWinScreen;
 
@@ -128,11 +124,11 @@ export class GameEngine {
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
-    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' }, // NEW
+    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' },
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
-    { id: 'buy_time_slow_ability', name: 'Time Slow Ability', description: 'Slows all enemies for a short duration (T key).', cost: 180, type: 'ability' }, // NEW
+    { id: 'buy_time_slow_ability', name: 'Time Slow Ability', description: 'Slows all enemies for a short duration (T key).', cost: 180, type: 'ability' },
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
@@ -157,7 +153,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager), // NEW
+      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -169,13 +165,13 @@ export class GameEngine {
       this.gameState.spinningBladeWeapon = initialWeapon;
     } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.gameState.homingMissileWeapon = initialWeapon;
-    } else if (initialWeapon instanceof LaserBeamWeapon) { // NEW
+    } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
+      this.gameState.player.setLaserBeamWeapon(initialWeapon); // NEW: Set laser beam weapon on player
     }
     
-    // Initialize EntityManager before WaveManager
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat); // Pass EntityManager directly
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat);
     
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
@@ -196,12 +192,12 @@ export class GameEngine {
     this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
     this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24));
-    this.spriteManager.loadSprite('laser_beam', SpriteManager.getLaserBeamSpriteSVG(20)); // NEW
+    this.spriteManager.loadSprite('laser_beam', SpriteManager.getLaserBeamSpriteSVG(20));
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
-    this.spriteManager.loadSprite('time_slow_ability', SpriteManager.getTimeSlowAbilitySpriteSVG(40)); // NEW
+    this.spriteManager.loadSprite('time_slow_ability', SpriteManager.getTimeSlowAbilitySpriteSVG(40));
     
     this.spriteManager.loadSprite('boss_s', SpriteManager.getBossSSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_i', SpriteManager.getBossISpriteSVG(80 * 2));
@@ -216,14 +212,14 @@ export class GameEngine {
     this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
     this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
     this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound());
-    this.soundManager.loadSound('laser_beam_fire', SoundManager.getLaserBeamFireSound()); // NEW
-    this.soundManager.loadSound('laser_beam_loop', SoundManager.getLaserBeamLoopSound()); // NEW
+    this.soundManager.loadSound('laser_beam_fire', SoundManager.getLaserBeamFireSound());
+    this.soundManager.loadSound('laser_beam_loop', SoundManager.getLaserBeamLoopSound());
     this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
     this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
     this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
     this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
-    this.soundManager.loadSound('time_slow_activate', SoundManager.getTimeSlowActivateSound()); // NEW
-    this.soundManager.loadSound('time_slow_deactivate', SoundManager.getTimeSlowDeactivateSound()); // NEW
+    this.soundManager.loadSound('time_slow_activate', SoundManager.getTimeSlowActivateSound());
+    this.soundManager.loadSound('time_slow_deactivate', SoundManager.getTimeSlowDeactivateSound());
     this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
@@ -249,7 +245,7 @@ export class GameEngine {
       if (this.gameState.homingMissileWeapon) {
         this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
       }
-      if (this.gameState.laserBeamWeapon) { // NEW
+      if (this.gameState.laserBeamWeapon) {
         this.gameState.laserBeamWeapon['beamSprite'] = this.spriteManager.getSprite('laser_beam');
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
@@ -282,7 +278,7 @@ export class GameEngine {
         console.log("All letters collected! Princess Simge rescued!");
       }
     }
-    this.gameState.currentBoss = undefined; // Clear boss reference
+    this.gameState.currentBoss = undefined;
   }
 
   pause() {
@@ -317,11 +313,11 @@ export class GameEngine {
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // NEW
+      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-      if (item.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false; // NEW
+      if (item.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
       return true;
     }), this.gameState.player.gold);
   }
@@ -356,12 +352,13 @@ export class GameEngine {
         case 'buy_homing_missile_weapon':
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
-        case 'buy_laser_beam_weapon': // NEW
+        case 'buy_laser_beam_weapon':
           this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, this.spriteManager.getSprite('laser_beam'), this.soundManager);
+          this.gameState.player.setLaserBeamWeapon(this.gameState.laserBeamWeapon); // NEW: Set laser beam weapon on player
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
-          this.gameState.player.setExplosionAbility(this.gameState.explosionAbility); // Set ability on player
+          this.gameState.player.setExplosionAbility(this.gameState.explosionAbility);
           break;
         case 'buy_shield_ability':
           this.gameState.shieldAbility = new ShieldAbility(40, 100, 10, 10, this.soundManager);
@@ -371,8 +368,8 @@ export class GameEngine {
           this.gameState.healAbility = new HealAbility(30, 15, this.soundManager);
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
-        case 'buy_time_slow_ability': // NEW
-          this.gameState.timeSlowAbility = new TimeSlowAbility(0.5, 5, 20, this.soundManager); // 50% slow, 5s duration, 20s cooldown
+        case 'buy_time_slow_ability':
+          this.gameState.timeSlowAbility = new TimeSlowAbility(0.5, 5, 20, this.soundManager);
           this.gameState.player.setTimeSlowAbility(this.gameState.timeSlowAbility);
           break;
         case 'buy_health_potion':
@@ -386,11 +383,11 @@ export class GameEngine {
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // NEW
+        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-        if (i.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false; // NEW
+        if (i.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
         return true;
       }), this.gameState.player.gold);
     } else {
@@ -418,7 +415,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager), // NEW
+      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -430,12 +427,13 @@ export class GameEngine {
       this.gameState.spinningBladeWeapon = initialWeapon;
     } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.gameState.homingMissileWeapon = initialWeapon;
-    } else if (initialWeapon instanceof LaserBeamWeapon) { // NEW
+    } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
+      this.gameState.player.setLaserBeamWeapon(initialWeapon); // NEW: Set laser beam weapon on player
     }
     
-    this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager); // Re-initialize EntityManager
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat); // Pass EntityManager directly
+    this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat);
     
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
@@ -450,7 +448,7 @@ export class GameEngine {
     if (this.gameState.homingMissileWeapon) {
       this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
     }
-    if (this.gameState.laserBeamWeapon) { // NEW
+    if (this.gameState.laserBeamWeapon) {
       this.gameState.laserBeamWeapon['beamSprite'] = this.spriteManager.getSprite('laser_beam');
     }
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
@@ -488,16 +486,16 @@ export class GameEngine {
       case 'homing_missile_count':
         this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
         break;
-      case 'laser_beam_damage': // NEW
+      case 'laser_beam_damage':
         this.gameState.laserBeamWeapon?.increaseDamage(10);
         break;
-      case 'laser_beam_range': // NEW
+      case 'laser_beam_range':
         this.gameState.laserBeamWeapon?.increaseRange(50);
         break;
-      case 'laser_beam_cooldown': // NEW
+      case 'laser_beam_cooldown':
         this.gameState.laserBeamWeapon?.reduceCooldown(1);
         break;
-      case 'laser_beam_duration': // NEW
+      case 'laser_beam_duration':
         this.gameState.laserBeamWeapon?.increaseDuration(1);
         break;
       case 'dash_cooldown':
@@ -533,13 +531,13 @@ export class GameEngine {
       case 'heal_cooldown':
         this.gameState.healAbility?.reduceCooldown(2);
         break;
-      case 'time_slow_factor': // NEW
+      case 'time_slow_factor':
         this.gameState.timeSlowAbility?.increaseSlowFactor(0.1);
         break;
-      case 'time_slow_duration': // NEW
+      case 'time_slow_duration':
         this.gameState.timeSlowAbility?.increaseDuration(1);
         break;
-      case 'time_slow_cooldown': // NEW
+      case 'time_slow_cooldown':
         this.gameState.timeSlowAbility?.reduceCooldown(2);
         break;
       case 'player_magnet_radius':
@@ -597,12 +595,7 @@ export class GameEngine {
     console.log("GameEngine: Updating with deltaTime:", deltaTime);
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
-    this.gameState.player.handleAbilityInput(this.inputHandler, this.gameState.enemies); // Pass enemies to player's ability handler
-
-    // Handle Time Slow ability activation from player input
-    if (this.inputHandler.isPressed('t') && this.gameState.timeSlowAbility) {
-      this.gameState.timeSlowAbility.triggerSlow(this.gameState.enemies);
-    }
+    this.gameState.player.handleAbilityInput(this.inputHandler, this.gameState.enemies);
 
     if (this.inputHandler.isPressed('f') && this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.openShop();
@@ -616,7 +609,6 @@ export class GameEngine {
 
     this.waveManager.update(deltaTime, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    // Delegate entity updates to EntityManager
     this.entityManager.update(deltaTime, this.gameState.player, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
     if (!this.gameState.player.isAlive()) {
@@ -645,8 +637,10 @@ export class GameEngine {
       shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
       healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
-      timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0, // NEW
-      timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0, // NEW
+      timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
+      timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0,
+      laserBeamCooldownCurrent: this.gameState.laserBeamWeapon ? Math.max(0, this.gameState.laserBeamWeapon.getCooldownCurrent()) : 0, // NEW
+      laserBeamCooldownMax: this.gameState.laserBeamWeapon ? this.gameState.laserBeamWeapon.getCooldownMax() : 0, // NEW
 
       bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,
@@ -709,7 +703,6 @@ export class GameEngine {
       this.gameState.worldHeight
     );
 
-    // Delegate entity drawing to EntityManager
     this.entityManager.draw(this.ctx, this.cameraX, this.cameraY);
 
     if (this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {

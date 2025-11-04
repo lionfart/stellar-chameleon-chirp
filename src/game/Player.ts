@@ -2,10 +2,11 @@ import { InputHandler } from './InputHandler';
 import { clamp } from './utils';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
-import { ExplosionAbility } from './ExplosionAbility'; // Import ExplosionAbility
+import { ExplosionAbility } from './ExplosionAbility';
 import { SoundManager } from './SoundManager';
-import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
-import { Enemy } from './Enemy'; // Import Enemy for the handleAbilityInput method
+import { TimeSlowAbility } from './TimeSlowAbility';
+import { Enemy } from './Enemy';
+import { LaserBeamWeapon } from './LaserBeamWeapon'; // Import LaserBeamWeapon
 
 export class Player {
   x: number;
@@ -22,12 +23,13 @@ export class Player {
   private onLevelUpCallback: () => void;
   private shieldAbility: ShieldAbility | null = null;
   private healAbility: HealAbility | null = null;
-  private explosionAbility: ExplosionAbility | null = null; // Add explosion ability
-  private timeSlowAbility: TimeSlowAbility | null = null; // NEW
+  private explosionAbility: ExplosionAbility | null = null;
+  private timeSlowAbility: TimeSlowAbility | null = null;
+  private laserBeamWeapon: LaserBeamWeapon | null = null; // NEW: Laser Beam Weapon reference
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager;
-  private hitTimer: number = 0; // For hit animation
-  lastHealTime: number = 0; // NEW: Track last heal time for visual effect
+  private hitTimer: number = 0;
+  lastHealTime: number = 0;
 
   // Dash properties
   private dashSpeedMultiplier: number = 2.5;
@@ -75,28 +77,29 @@ export class Player {
     this.healAbility = healAbility;
   }
 
-  setExplosionAbility(explosionAbility: ExplosionAbility) { // New setter for explosion ability
+  setExplosionAbility(explosionAbility: ExplosionAbility) {
     this.explosionAbility = explosionAbility;
   }
 
-  setTimeSlowAbility(timeSlowAbility: TimeSlowAbility) { // NEW
+  setTimeSlowAbility(timeSlowAbility: TimeSlowAbility) {
     this.timeSlowAbility = timeSlowAbility;
+  }
+
+  setLaserBeamWeapon(laserBeamWeapon: LaserBeamWeapon) { // NEW: Setter for Laser Beam Weapon
+    this.laserBeamWeapon = laserBeamWeapon;
   }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
     if (!this.isAlive()) return;
 
-    // Update dash cooldown
     if (this.currentDashCooldown > 0) {
       this.currentDashCooldown -= deltaTime;
     }
 
-    // Update hit animation timer
     if (this.hitTimer > 0) {
       this.hitTimer -= deltaTime;
     }
 
-    // Check for dash input
     if (input.isPressed('shift') && !this.isDashing && this.currentDashCooldown <= 0) {
       this.isDashing = true;
       this.currentDashDuration = this.dashDuration;
@@ -107,11 +110,9 @@ export class Player {
 
     let moveAmount = this.speed * deltaTime;
 
-    // Apply dash speed multiplier if dashing
     if (this.isDashing) {
       moveAmount *= this.dashSpeedMultiplier;
       this.currentDashDuration -= deltaTime;
-      // Add to dash trail
       this.dashTrail.push({ x: this.x, y: this.y, alpha: 1, size: this.size });
       if (this.currentDashDuration <= 0) {
         this.isDashing = false;
@@ -119,7 +120,6 @@ export class Player {
       }
     }
 
-    // Update dash trail
     this.dashTrail = this.dashTrail.filter(trail => {
       trail.alpha -= deltaTime * 3;
       trail.size -= deltaTime * 50;
@@ -144,8 +144,7 @@ export class Player {
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
   }
 
-  handleAbilityInput(input: InputHandler, enemies: Enemy[]) { // Added enemies parameter
-    // Check for shield activation input (e.g., 'q' key)
+  handleAbilityInput(input: InputHandler, enemies: Enemy[]) {
     if (input.isPressed('q') && this.shieldAbility) {
       if (this.shieldAbility.shield.isActive) {
         this.shieldAbility.deactivateShield();
@@ -154,24 +153,25 @@ export class Player {
       }
     }
 
-    // Check for heal ability input (e.g., 'r' key)
     if (input.isPressed('r') && this.healAbility) {
-      this.healAbility.triggerHeal(this); // Pass 'this' (player) to heal ability
+      this.healAbility.triggerHeal(this);
     }
 
-    // Check for explosion ability input (e.g., 'e' key)
     if (input.isPressed('e') && this.explosionAbility) {
       this.explosionAbility.triggerExplosion(this.x, this.y);
     }
 
-    // Check for time slow ability input (e.g., 't' key)
     if (input.isPressed('t') && this.timeSlowAbility) {
-      this.timeSlowAbility.triggerSlow(enemies); // Now correctly passes the enemies array
+      this.timeSlowAbility.triggerSlow(enemies);
+    }
+
+    // NEW: Check for Laser Beam Weapon activation input (e.g., 'x' key)
+    if (input.isPressed('x') && this.laserBeamWeapon) {
+      this.laserBeamWeapon.triggerBeam(this.x, this.y, enemies);
     }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    // Draw dash trail
     this.dashTrail.forEach(trail => {
       ctx.save();
       ctx.globalAlpha = trail.alpha;
@@ -185,13 +185,11 @@ export class Player {
     ctx.save();
     ctx.translate(this.x - cameraX, this.y - cameraY);
 
-    // Apply hit flash effect
     if (this.hitTimer > 0) {
-      const hitAlpha = this.hitTimer / 0.15; // Fade out effect
-      ctx.filter = `brightness(${100 + hitAlpha * 100}%) hue-rotate(${hitAlpha * 180}deg)`; // More dynamic filter
+      const hitAlpha = this.hitTimer / 0.15;
+      ctx.filter = `brightness(${100 + hitAlpha * 100}%) hue-rotate(${hitAlpha * 180}deg)`;
     }
 
-    // Apply shadow effect
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 5;
@@ -206,18 +204,17 @@ export class Player {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter and shadow
+    ctx.restore();
 
-    // NEW: Draw heal effect
-    const HEAL_EFFECT_DURATION = 0.5; // seconds
+    const HEAL_EFFECT_DURATION = 0.5;
     const currentTime = performance.now() / 1000;
     if (this.lastHealTime > 0 && (currentTime - this.lastHealTime < HEAL_EFFECT_DURATION)) {
       ctx.save();
       const progress = (currentTime - this.lastHealTime) / HEAL_EFFECT_DURATION;
       const alpha = 1 - progress;
-      const pulseRadius = this.size * (1 + progress * 0.5); // Grow and fade
+      const pulseRadius = this.size * (1 + progress * 0.5);
 
-      ctx.strokeStyle = `rgba(0, 255, 0, ${alpha})`; // Green pulse
+      ctx.strokeStyle = `rgba(0, 255, 0, ${alpha})`;
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(this.x - cameraX, this.y - cameraY, pulseRadius, 0, Math.PI * 2);
@@ -283,7 +280,7 @@ export class Player {
 
   gainGold(amount: number) {
     this.gold += amount * this.goldMultiplier;
-    this.soundManager.playSound('gold_collect'); // NEW: Play sound when gold is collected
+    this.soundManager.playSound('gold_collect');
     console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
   }
 
@@ -329,7 +326,6 @@ export class Player {
     console.log(`Player gold multiplier increased to ${this.goldMultiplier}`);
   }
 
-  // Getters for HUD
   getDashCooldownCurrent(): number {
     return this.currentDashCooldown;
   }
@@ -338,12 +334,20 @@ export class Player {
     return this.dashCooldown;
   }
 
-  // NEW: Getters for Time Slow Ability Cooldown
   getTimeSlowCooldownCurrent(): number {
     return this.timeSlowAbility?.getCooldownCurrent() || 0;
   }
 
   getTimeSlowCooldownMax(): number {
     return this.timeSlowAbility?.getCooldownMax() || 0;
+  }
+
+  // NEW: Getters for Laser Beam Weapon Cooldown
+  getLaserBeamCooldownCurrent(): number {
+    return this.laserBeamWeapon?.getCooldownCurrent() || 0;
+  }
+
+  getLaserBeamCooldownMax(): number {
+    return this.laserBeamWeapon?.getCooldownMax() || 0;
   }
 }
