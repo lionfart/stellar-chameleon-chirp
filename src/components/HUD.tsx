@@ -2,11 +2,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react'; // Sparkles icon for Laser Beam removed
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react';
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
-  playerName: string; // NEW
+  playerName: string;
   playerHealth: number;
   playerMaxHealth: number;
   playerLevel: number;
@@ -18,7 +18,6 @@ export interface HUDProps {
   shieldMaxHealth: number;
   waveNumber: number;
   waveTimeRemaining: number;
-  // New cooldown props
   dashCooldownCurrent: number;
   dashCooldownMax: number;
   explosionCooldownCurrent: number;
@@ -37,10 +36,11 @@ export interface HUDProps {
 
   collectedLetters: string[];
   gameWon: boolean;
+  gameOver: boolean; // NEW: Add gameOver to HUDProps
 }
 
 const HUD: React.FC<HUDProps> = ({
-  playerName, // NEW
+  playerName,
   playerHealth,
   playerMaxHealth,
   playerLevel,
@@ -52,7 +52,6 @@ const HUD: React.FC<HUDProps> = ({
   shieldMaxHealth,
   waveNumber,
   waveTimeRemaining,
-  // New cooldown props
   dashCooldownCurrent,
   dashCooldownMax,
   explosionCooldownCurrent,
@@ -63,14 +62,13 @@ const HUD: React.FC<HUDProps> = ({
   healCooldownMax,
   timeSlowCooldownCurrent,
   timeSlowCooldownMax,
-  // Boss specific data
   bossActive,
   bossHealth,
   bossMaxHealth,
   bossName,
-  // New properties for Princess Simge rescue
   collectedLetters,
   gameWon,
+  gameOver, // NEW
 }) => {
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;

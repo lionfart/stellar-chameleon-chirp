@@ -16,14 +16,14 @@ import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
 import { LaserBeamWeapon } from './LaserBeamWeapon';
 import { TimeSlowAbility } from './TimeSlowAbility';
-import { Projectile } from './Projectile'; // NEW: Import Projectile
-import { LeaderboardEntry } from '@/components/LeaderboardDialog'; // Import LeaderboardEntry interface
+import { Projectile } from './Projectile';
+import { LeaderboardEntry } from '@/components/LeaderboardDialog';
 
 export class GameState {
   player: Player;
-  enemies: Enemy[]; // Still needed for iteration and collision checks, but EntityManager populates it
-  experienceGems: ExperienceGem[]; // Still needed for iteration and collision checks
-  magnetPowerUps: MagnetPowerUp[]; // Still needed for iteration and collision checks
+  enemies: Enemy[];
+  experienceGems: ExperienceGem[];
+  magnetPowerUps: MagnetPowerUp[];
   auraWeapon: AuraWeapon | undefined;
   projectileWeapon: ProjectileWeapon | undefined;
   spinningBladeWeapon: SpinningBladeWeapon | undefined;
@@ -34,12 +34,12 @@ export class GameState {
   healAbility: HealAbility | undefined;
   timeSlowAbility: TimeSlowAbility | undefined;
   vendor: Vendor;
-  damageNumbers: DamageNumber[]; // Still needed for iteration and collision checks
+  damageNumbers: DamageNumber[];
   currentBoss: Boss | undefined;
   bossWarning: BossWarning | undefined;
   isBossWarningActive: boolean;
-  activeBossAttackVisuals: BossAttackVisual[]; // Still needed for iteration and collision checks
-  bossProjectiles: Projectile[]; // NEW: Array to hold projectiles fired by bosses
+  activeBossAttackVisuals: BossAttackVisual[];
+  bossProjectiles: Projectile[];
 
   worldWidth: number;
   worldHeight: number;
@@ -60,19 +60,20 @@ export class GameState {
   nextLetterIndex: number = 0;
   gameWon: boolean = false;
 
-  isTimeSlowActive: boolean; // NEW: Track if time slow is active for global visual effects
+  isTimeSlowActive: boolean;
 
-  playerName: string; // NEW: Player name
-  soundVolume: number; // NEW: Sound volume
-  leaderboard: LeaderboardEntry[]; // NEW: Leaderboard data
+  playerName: string;
+  soundVolume: number;
+  leaderboard: LeaderboardEntry[];
+  lastGameScoreEntry: LeaderboardEntry | null; // NEW: Son oyunun skorunu tutar
 
   constructor(
     player: Player,
     vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
-    playerName: string, // NEW
-    initialSoundVolume: number, // NEW
+    playerName: string,
+    initialSoundVolume: number,
   ) {
     this.player = player;
     this.vendor = vendor;
@@ -95,7 +96,7 @@ export class GameState {
     this.bossWarning = undefined;
     this.isBossWarningActive = false;
     this.activeBossAttackVisuals = [];
-    this.bossProjectiles = []; // NEW: Initialize boss projectiles
+    this.bossProjectiles = [];
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -111,11 +112,12 @@ export class GameState {
     this.activeMagnetRadius = 0;
     this.activeMagnetDuration = 0;
 
-    this.isTimeSlowActive = false; // NEW: Initialize
+    this.isTimeSlowActive = false;
 
-    this.playerName = playerName; // NEW
-    this.soundVolume = initialSoundVolume; // NEW
-    this.leaderboard = []; // NEW
+    this.playerName = playerName;
+    this.soundVolume = initialSoundVolume;
+    this.leaderboard = [];
+    this.lastGameScoreEntry = null; // NEW: Initialize
   }
 
   reset() {
@@ -127,7 +129,7 @@ export class GameState {
     this.bossWarning = undefined;
     this.isBossWarningActive = false;
     this.activeBossAttackVisuals = [];
-    this.bossProjectiles = []; // NEW: Reset boss projectiles
+    this.bossProjectiles = [];
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
@@ -151,7 +153,8 @@ export class GameState {
     this.nextLetterIndex = 0;
     this.gameWon = false;
 
-    this.isTimeSlowActive = false; // NEW: Reset
+    this.isTimeSlowActive = false;
+    this.lastGameScoreEntry = null; // NEW: Reset last game score
     // Player name and sound volume are not reset here, they come from EntryScreen
     // Leaderboard is managed by GameEngine
   }

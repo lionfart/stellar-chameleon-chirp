@@ -16,8 +16,6 @@ import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
 import { GameState } from './GameState';
 import { WaveManager } from './WaveManager';
-import { GameOverScreen } from './GameOverScreen';
-import { GameWinScreen } from './GameWinScreen';
 import { DamageNumber } from './DamageNumber';
 import { ShooterEnemy } from './ShooterEnemy';
 import { Boss } from './Boss';
@@ -25,7 +23,7 @@ import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
 import { EntityManager } from './EntityManager';
 import { showSuccess, showError } from '@/utils/toast';
-import { LeaderboardEntry } from '@/components/LeaderboardDialog'; // Import LeaderboardEntry interface
+import { LeaderboardEntry } from '@/components/LeaderboardDialog';
 
 interface ShopItem {
   id: string;
@@ -42,7 +40,7 @@ export interface MinimapEnemyData {
 }
 
 export interface GameDataProps {
-  playerName: string; // NEW
+  playerName: string;
   playerHealth: number;
   playerMaxHealth: number;
   playerLevel: number;
@@ -72,6 +70,7 @@ export interface GameDataProps {
 
   collectedLetters: string[];
   gameWon: boolean;
+  gameOver: boolean; // NEW: Add gameOver to GameDataProps
 
   playerX: number;
   playerY: number;
@@ -84,6 +83,7 @@ export interface GameDataProps {
   enemiesMinimap: MinimapEnemyData[];
   vendorX: number;
   vendorY: number;
+  lastGameScoreEntry: LeaderboardEntry | null; // NEW: Add lastGameScoreEntry
 }
 
 const MAX_DELTA_TIME = 1 / 30;
@@ -107,11 +107,6 @@ export class GameEngine {
   private gameState: GameState;
   private waveManager: WaveManager;
   private entityManager: EntityManager;
-  private gameOverScreen: GameOverScreen;
-  private gameWinScreen: GameWinScreen;
-
-  private wasGameOver: boolean = false;
-  private wasGameWon: boolean = false;
 
   private worldWidth: number = 2000;
   private worldHeight: number = 2000;
@@ -124,7 +119,7 @@ export class GameEngine {
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
-    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' }, // Changed type to 'weapon'
+    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' },
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
@@ -140,20 +135,20 @@ export class GameEngine {
     this.onOpenShopCallback = onOpenShop;
     this.onCloseShopCallback = onCloseShop;
     this.onUpdateGameDataCallback = onUpdateGameData;
-    this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume); // Pass initial volume
+    this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume);
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
-    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, playerName, initialSoundVolume); // Pass playerName and initialSoundVolume
+    this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, playerName, initialSoundVolume);
     
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Corrected constructor call
+      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager),
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -172,9 +167,6 @@ export class GameEngine {
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
     this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat);
     
-    this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
-    this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
-
     this.lastTime = 0;
     this.animationFrameId = null;
 
@@ -312,7 +304,7 @@ export class GameEngine {
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // Check if already owned
+      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -352,7 +344,7 @@ export class GameEngine {
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_laser_beam_weapon':
-          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Corrected constructor call
+          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager);
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
@@ -367,7 +359,7 @@ export class GameEngine {
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
         case 'buy_time_slow_ability':
-          this.gameState.timeSlowAbility = new TimeSlowAbility(0.3, 5, 20, this.soundManager); // Updated slowFactor to 0.3
+          this.gameState.timeSlowAbility = new TimeSlowAbility(0.3, 5, 20, this.soundManager);
           this.gameState.player.setTimeSlowAbility(this.gameState.timeSlowAbility);
           break;
         case 'buy_health_potion':
@@ -381,7 +373,7 @@ export class GameEngine {
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // Check if already owned
+        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
@@ -399,7 +391,7 @@ export class GameEngine {
 
     const newEntry: LeaderboardEntry = {
       playerName: this.gameState.playerName,
-      score: this.gameState.player.level * 100 + this.gameState.waveNumber * 50 + this.gameState.player.gold, // Example scoring
+      score: this.gameState.player.level * 100 + this.gameState.waveNumber * 50 + this.gameState.player.gold,
       wave: this.gameState.waveNumber,
       collectedLetters: this.gameState.collectedLetters.join(''),
       timestamp: Date.now(),
@@ -408,9 +400,10 @@ export class GameEngine {
     leaderboard.push(newEntry);
     // Keep only top 10 scores, sorted by score then wave
     leaderboard.sort((a, b) => b.score - a.score || b.wave - a.wave);
-    leaderboard = leaderboard.slice(0, 10); // Keep only top 10
+    leaderboard = leaderboard.slice(0, 10);
 
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    this.gameState.lastGameScoreEntry = newEntry; // NEW: Save the current game's score
     console.log("Score saved to leaderboard:", newEntry);
   }
 
@@ -418,11 +411,6 @@ export class GameEngine {
     console.log("GameEngine: Restarting game...");
     this.soundManager.stopSound(this.backgroundMusicInstance);
     this.backgroundMusicInstance = null;
-
-    this.gameOverScreen.clearClickListener();
-    this.gameWinScreen.clearClickListener();
-    this.wasGameOver = false;
-    this.wasGameWon = false;
 
     // Navigate back to the entry screen to allow new player name/settings
     window.location.href = '/';
@@ -494,7 +482,7 @@ export class GameEngine {
         this.gameState.healAbility?.reduceCooldown(2);
         break;
       case 'time_slow_factor':
-        this.gameState.timeSlowAbility?.increaseSlowFactor(0.05); // Make it decrease slowFactor by 0.05
+        this.gameState.timeSlowAbility?.increaseSlowFactor(0.05);
         break;
       case 'time_slow_duration':
         this.gameState.timeSlowAbility?.increaseDuration(1);
@@ -517,32 +505,70 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
+    // Check for game over/win state transitions
+    if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
+      this.soundManager.playSound('game_over');
+      this.soundManager.stopSound(this.backgroundMusicInstance);
+      this.gameOverSoundPlayed = true;
+      this.saveScoreToLeaderboard();
+    } else if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
+      this.soundManager.playSound('game_win');
+      this.soundManager.stopSound(this.backgroundMusicInstance);
+      this.gameWinSoundPlayed = true;
+      this.saveScoreToLeaderboard();
+    }
+
     if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
-      if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
-        this.soundManager.playSound('game_over');
-        this.soundManager.stopSound(this.backgroundMusicInstance);
-        this.gameOverSoundPlayed = true;
-        this.gameOverScreen.activate();
-        this.saveScoreToLeaderboard(); // Save score on game over
-      } else if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
-        this.soundManager.playSound('game_win');
-        this.soundManager.stopSound(this.backgroundMusicInstance);
-        this.gameWinSoundPlayed = true;
-        this.gameWinScreen.activate();
-        this.saveScoreToLeaderboard(); // Save score on game win
-      }
+      // If game is over/won, keep updating game data for HUD/overlays but don't run game logic
+      this.onUpdateGameDataCallback({
+        playerName: this.gameState.playerName,
+        playerHealth: this.gameState.player.currentHealth,
+        playerMaxHealth: this.gameState.player.maxHealth,
+        playerLevel: this.gameState.player.level,
+        playerExperience: this.gameState.player.experience,
+        playerExperienceToNextLevel: this.gameState.player.experienceToNextLevel,
+        playerGold: this.gameState.player.gold,
+        shieldActive: this.gameState.shieldAbility?.shield.isActive || false,
+        shieldCurrentHealth: this.gameState.shieldAbility?.shield.currentHealth || 0,
+        shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
+        waveNumber: this.gameState.waveNumber,
+        waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
+        
+        dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
+        dashCooldownMax: this.gameState.player.getDashCooldownMax(),
+        explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
+        explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
+        shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
+        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+        healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
+        healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
+        timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
+        timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0,
+
+        bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
+        bossHealth: this.gameState.currentBoss?.currentHealth || 0,
+        bossMaxHealth: this.gameState.currentBoss?.maxHealth || 0,
+        bossName: this.gameState.currentBoss?.getBossName() || '',
+
+        collectedLetters: this.gameState.collectedLetters,
+        gameWon: this.gameState.gameWon,
+        gameOver: this.gameState.gameOver, // NEW
+        lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+
+        playerX: this.gameState.player.x,
+        playerY: this.gameState.player.y,
+        worldWidth: this.gameState.worldWidth,
+        worldHeight: this.gameState.worldHeight,
+        cameraX: this.cameraX,
+        cameraY: this.cameraY,
+        canvasWidth: this.ctx.canvas.width,
+        canvasHeight: this.ctx.canvas.height,
+        enemiesMinimap: this.gameState.enemies.map(enemy => ({ x: enemy.x, y: enemy.y, size: enemy.size })),
+        vendorX: this.gameState.vendor.x,
+        vendorY: this.gameState.vendor.y,
+      });
       return;
     }
-
-    if (!this.gameState.gameOver && this.wasGameOver) {
-      this.gameOverScreen.clearClickListener();
-    }
-    if (!this.gameState.gameWon && this.wasGameWon) {
-      this.gameWinScreen.clearClickListener();
-    }
-
-    this.wasGameOver = this.gameState.gameOver;
-    this.wasGameWon = this.gameState.gameWon;
 
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
@@ -553,6 +579,54 @@ export class GameEngine {
         this.gameState.bossWarning = undefined;
         this.waveManager.spawnBossAfterWarning();
       }
+      // Still update game data during warning
+      this.onUpdateGameDataCallback({
+        playerName: this.gameState.playerName,
+        playerHealth: this.gameState.player.currentHealth,
+        playerMaxHealth: this.gameState.player.maxHealth,
+        playerLevel: this.gameState.player.level,
+        playerExperience: this.gameState.player.experience,
+        playerExperienceToNextLevel: this.gameState.player.experienceToNextLevel,
+        playerGold: this.gameState.player.gold,
+        shieldActive: this.gameState.shieldAbility?.shield.isActive || false,
+        shieldCurrentHealth: this.gameState.shieldAbility?.shield.currentHealth || 0,
+        shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
+        waveNumber: this.gameState.waveNumber,
+        waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
+        
+        dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
+        dashCooldownMax: this.gameState.player.getDashCooldownMax(),
+        explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
+        explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
+        shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
+        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+        healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
+        healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
+        timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
+        timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0,
+
+        bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
+        bossHealth: this.gameState.currentBoss?.currentHealth || 0,
+        bossMaxHealth: this.gameState.currentBoss?.maxHealth || 0,
+        bossName: this.gameState.currentBoss?.getBossName() || '',
+
+        collectedLetters: this.gameState.collectedLetters,
+        gameWon: this.gameState.gameWon,
+        gameOver: this.gameState.gameOver, // NEW
+        lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+
+        playerX: this.gameState.player.x,
+        playerY: this.gameState.player.y,
+        worldWidth: this.gameState.worldWidth,
+        worldHeight: this.gameState.worldHeight,
+        cameraX: this.cameraX,
+        cameraY: this.cameraY,
+        canvasWidth: this.ctx.canvas.width,
+        canvasHeight: this.ctx.canvas.height,
+        enemiesMinimap: this.gameState.enemies.map(enemy => ({ x: enemy.x, y: enemy.y, size: enemy.size })),
+        vendorX: this.gameState.vendor.x,
+        vendorY: this.gameState.vendor.y,
+      });
       return;
     }
 
@@ -580,11 +654,10 @@ export class GameEngine {
       console.log("Game Over!");
     }
 
-    // Update TimeSlow active state in GameState
     this.gameState.isTimeSlowActive = this.gameState.timeSlowAbility?.getIsActive() || false;
 
     this.onUpdateGameDataCallback({
-      playerName: this.gameState.playerName, // NEW
+      playerName: this.gameState.playerName,
       playerHealth: this.gameState.player.currentHealth,
       playerMaxHealth: this.gameState.player.maxHealth,
       playerLevel: this.gameState.player.level,
@@ -615,7 +688,9 @@ export class GameEngine {
 
       collectedLetters: this.gameState.collectedLetters,
       gameWon: this.gameState.gameWon,
-
+      gameOver: this.gameState.gameOver, // NEW
+      lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+      
       playerX: this.gameState.player.x,
       playerY: this.gameState.player.y,
       worldWidth: this.gameState.worldWidth,
@@ -681,29 +756,20 @@ export class GameEngine {
       this.ctx.shadowColor = 'transparent';
     }
 
-    if (this.gameState.gameOver) {
-      this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
-    if (this.gameState.gameWon) {
-      this.gameWinScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
-
     if (this.gameState.isBossWarningActive && this.gameState.bossWarning) {
       this.gameState.bossWarning.draw(this.ctx);
     }
 
-    // Draw Time Slow overlay if active
     if (this.gameState.isTimeSlowActive) {
       this.ctx.save();
-      this.ctx.fillStyle = 'rgba(75, 0, 130, 0.2)'; // Dark purple overlay
+      this.ctx.fillStyle = 'rgba(75, 0, 130, 0.2)';
       this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
       this.ctx.restore();
     }
   }
 
   private gameLoop = (currentTime: number) => {
-    if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
+    if (!this.assetsLoaded) {
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
       return;
     }
@@ -725,10 +791,6 @@ export class GameEngine {
       this.animationFrameId = null;
     }
     this.inputHandler.destroy();
-    this.gameOverScreen.clearClickListener();
-    this.gameWinScreen.clearClickListener();
-    this.wasGameOver = false;
-    this.wasGameWon = false;
     this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 

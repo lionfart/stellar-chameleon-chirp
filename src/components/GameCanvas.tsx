@@ -5,6 +5,8 @@ import ShopScreen from './ShopScreen';
 import HUD from './HUD';
 import Minimap from './Minimap';
 import { showSuccess } from '@/utils/toast';
+import LeaderboardWidget from './LeaderboardWidget'; // NEW
+import RestartButton from './RestartButton'; // NEW
 
 interface ShopItem {
   id: string;
@@ -76,7 +78,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
   const notificationsShownRef = useRef(false);
 
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
-    playerName: playerName, // NEW
+    playerName: playerName,
     playerHealth: 100,
     playerMaxHealth: 100,
     playerLevel: 1,
@@ -104,6 +106,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     bossName: '',
     collectedLetters: [],
     gameWon: false,
+    gameOver: false, // NEW
+    lastGameScoreEntry: null, // NEW
     playerX: 0,
     playerY: 0,
     worldWidth: 2000,
@@ -173,7 +177,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
       setTimeout(() => showSuccess("Press R to use your heal ability."), 8500);
       setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500);
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500); // Adjusted timing
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500);
       notificationsShownRef.current = true;
     }
 
@@ -196,6 +200,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     };
   }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume]);
 
+  const isGameOverOrWon = gameDataState.gameOver || gameDataState.gameWon;
+
   return (
     <div className="relative w-full h-full overflow-hidden">
       <canvas ref={canvasRef} className="block bg-black" style={{ width: '100vw', height: '100vh' }} />
@@ -212,6 +218,18 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       )}
       <HUD {...gameDataState} />
       <Minimap {...gameDataState} />
+
+      {isGameOverOrWon && (
+        <div className="absolute inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-50 p-4">
+          <h1 className="text-6xl font-bold text-white drop-shadow-lg mb-8">
+            {gameDataState.gameWon ? 'YOU WIN!' : 'GAME OVER'}
+          </h1>
+          <div className="space-y-4 w-full max-w-md">
+            <LeaderboardWidget currentScoreEntry={gameDataState.lastGameScoreEntry} />
+            <RestartButton onClick={() => gameEngineRef.current?.restartGame()} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
