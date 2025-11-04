@@ -23,26 +23,33 @@ export class BossAttackVisual {
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
     const progress = this.currentDuration / this.duration;
     const currentRadius = this.radius * (0.2 + progress * 0.8); // Start smaller, grow to full size
-    const alpha = 1 - progress; // Fade out
 
-    const gradient = ctx.createRadialGradient(
-      this.x - cameraX, this.y - cameraY, currentRadius * 0.1,
-      this.x - cameraX, this.y - cameraY, currentRadius
-    );
-    gradient.addColorStop(0, `rgba(255, 0, 0, ${alpha})`); // Red center
-    gradient.addColorStop(0.7, `rgba(255, 100, 0, ${alpha * 0.7})`); // Orange middle
-    gradient.addColorStop(1, `rgba(255, 200, 0, ${alpha * 0.3})`); // Yellow outer, more transparent
-
-    ctx.fillStyle = gradient;
+    // Main fill: Use the provided color, but make it more opaque as it grows
+    // and ensure it doesn't fade out completely.
+    const fillColor = this.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/, (match, r, g, b, a) => {
+      const baseAlpha = parseFloat(a);
+      const newAlpha = Math.min(0.7, baseAlpha + progress * 0.4); // Increase opacity as it grows, max 0.7
+      return `rgba(${r}, ${g}, ${b}, ${newAlpha})`;
+    });
+    ctx.fillStyle = fillColor;
     ctx.beginPath();
     ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius, 0, Math.PI * 2);
     ctx.fill();
 
-    // Add a pulsing outline
-    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
-    ctx.lineWidth = 2 + (Math.sin(this.currentDuration * 10) * 1); // Subtle pulse on line width
+    // Clear, pulsing outline
+    const outlineAlpha = 0.8 + Math.sin(this.currentDuration * 15) * 0.2; // Faster pulse for urgency
+    const outlineWidth = 3 + Math.sin(this.currentDuration * 10) * 1.5; // Thicker, pulsing line
+    ctx.strokeStyle = `rgba(255, 255, 255, ${outlineAlpha})`; // Bright white outline
+    ctx.lineWidth = outlineWidth;
     ctx.beginPath();
-    ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius * 0.9, 0, Math.PI * 2);
+    ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Add a secondary, slightly larger red glow for more emphasis
+    ctx.strokeStyle = `rgba(255, 0, 0, ${outlineAlpha * 0.5})`; // Red glow
+    ctx.lineWidth = outlineWidth * 1.5;
+    ctx.beginPath();
+    ctx.arc(this.x - cameraX, this.y - cameraY, currentRadius + outlineWidth / 2, 0, Math.PI * 2);
     ctx.stroke();
   }
 }
