@@ -1,6 +1,6 @@
 import { Player } from './Player';
-import { SoundManager } from './SoundManager'; // Import SoundManager
-import { DamageNumber } from './DamageNumber'; // Import DamageNumber
+import { SoundManager } from './SoundManager';
+import { DamageNumber } from './DamageNumber';
 
 export class Enemy {
   x: number;
@@ -11,10 +11,10 @@ export class Enemy {
   maxHealth: number;
   currentHealth: number;
   private sprite: HTMLImageElement | undefined;
-  protected soundManager: SoundManager; // Changed from private to protected
-  private hitTimer: number = 0; // For hit animation
-  private goldDrop: number; // New: Gold amount this enemy drops
-  private onTakeDamageCallback: (x: number, y: number, damage: number) => void; // Callback for damage numbers
+  protected soundManager: SoundManager;
+  private hitTimer: number = 0;
+  private goldDrop: number;
+  private onTakeDamageCallback: (x: number, y: number, damage: number) => void;
 
   constructor(x: number, y: number, size: number, speed: number, color: string, maxHealth: number, sprite: HTMLImageElement | undefined, soundManager: SoundManager, goldDrop: number = 0, onTakeDamage: (x: number, y: number, damage: number) => void) {
     this.x = x;
@@ -25,20 +25,18 @@ export class Enemy {
     this.maxHealth = maxHealth;
     this.currentHealth = maxHealth;
     this.sprite = sprite;
-    this.soundManager = soundManager; // Assign SoundManager
-    this.goldDrop = goldDrop; // Assign gold drop
-    this.onTakeDamageCallback = onTakeDamage; // Assign callback
+    this.soundManager = soundManager;
+    this.goldDrop = goldDrop;
+    this.onTakeDamageCallback = onTakeDamage;
   }
 
   update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
     if (!this.isAlive()) return;
 
-    // Update hit animation timer
     if (this.hitTimer > 0) {
       this.hitTimer -= deltaTime;
     }
 
-    // Calculate movement towards the player
     let moveX = 0;
     let moveY = 0;
     const dx = player.x - this.x;
@@ -50,7 +48,6 @@ export class Enemy {
       moveY = (dy / distance) * this.speed * deltaTime;
     }
 
-    // Apply combined movement (player-seeking + separation)
     this.x += moveX + separationVector.x * deltaTime;
     this.y += moveY + separationVector.y * deltaTime;
   }
@@ -61,12 +58,10 @@ export class Enemy {
     ctx.save();
     ctx.translate(this.x - cameraX, this.y - cameraY);
 
-    // Apply hit flash effect
     if (this.hitTimer > 0) {
-      ctx.filter = 'brightness(200%)'; // Make it brighter
+      ctx.filter = 'brightness(200%)';
     }
 
-    // Apply shadow effect
     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
     ctx.shadowBlur = 10;
     ctx.shadowOffsetX = 5;
@@ -81,9 +76,8 @@ export class Enemy {
       ctx.fill();
     }
 
-    ctx.restore(); // Restore context to remove filter and shadow
+    ctx.restore();
 
-    // Draw health bar (simple rectangle above enemy)
     const healthBarWidth = this.size * 1.5;
     const healthBarHeight = 3;
     const healthPercentage = this.currentHealth / this.maxHealth;
@@ -96,9 +90,9 @@ export class Enemy {
 
   takeDamage(amount: number) {
     this.currentHealth -= amount;
-    this.hitTimer = 0.1; // Set hit flash duration
-    this.soundManager.playSound('enemy_hit'); // Play hit sound
-    this.onTakeDamageCallback(this.x, this.y, amount); // Trigger damage number callback
+    this.hitTimer = 0.1;
+    this.soundManager.playSound('enemy_hit');
+    this.onTakeDamageCallback(this.x, this.y, amount);
 
     if (this.currentHealth < 0) {
       this.currentHealth = 0;
@@ -106,7 +100,7 @@ export class Enemy {
     console.log(`Enemy took ${amount} damage. Health: ${this.currentHealth}`);
 
     if (!this.isAlive()) {
-      this.soundManager.playSound('enemy_defeat'); // Play defeat sound
+      this.soundManager.playSound('enemy_defeat');
     }
   }
 

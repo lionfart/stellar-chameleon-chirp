@@ -33,16 +33,15 @@ export class ShooterEnemy extends Enemy {
   }
 
   update(deltaTime: number, player: Player, separationVector: { x: number, y: number } = { x: 0, y: 0 }) {
-    super.update(deltaTime, player, separationVector); // Update base enemy movement and hit timer, passing separationVector
+    super.update(deltaTime, player, separationVector);
 
     if (!this.isAlive()) {
-      this.projectiles = []; // Clear projectiles if defeated
+      this.projectiles = [];
       return;
     }
 
     this.lastFireTime += deltaTime;
 
-    // Fire projectile if cooldown is ready and player is alive
     if (this.lastFireTime >= this.fireRate && player.isAlive()) {
       this.lastFireTime = 0;
 
@@ -63,32 +62,30 @@ export class ShooterEnemy extends Enemy {
             this.projectileDamage,
             directionX,
             directionY,
-            'red', // Shooter enemy projectiles are red
+            'red',
             this.projectileLifetime,
             this.projectileSprite
           )
         );
-        this.soundManager.playSound('projectile_fire', false, 0.3); // Play a quieter projectile sound
+        this.soundManager.playSound('projectile_fire', false, 0.3);
       }
     }
 
-    // Update and check collisions for projectiles
     this.projectiles = this.projectiles.filter(projectile => {
       const isAlive = projectile.update(deltaTime);
       if (!isAlive) return false;
 
       if (projectile.collidesWith(player)) {
         player.takeDamage(projectile.damage);
-        return false; // Remove projectile after hitting player
+        return false;
       }
       return true;
     });
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
-    super.draw(ctx, cameraX, cameraY); // Draw base enemy
+    super.draw(ctx, cameraX, cameraY);
 
-    // Draw projectiles
     this.projectiles.forEach(projectile => {
       projectile.draw(ctx, cameraX, cameraY);
     });

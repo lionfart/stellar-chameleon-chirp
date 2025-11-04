@@ -11,15 +11,15 @@ import { ShieldAbility } from './ShieldAbility';
 import { Vendor } from './Vendor';
 import { DamageNumber } from './DamageNumber';
 import { HealAbility } from './HealAbility';
-import { Boss } from './Boss'; // Import Boss
-import { BossWarning } from './BossWarning'; // Import BossWarning
-import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
+import { Boss } from './Boss';
+import { BossWarning } from './BossWarning';
+import { BossAttackVisual } from './BossAttackVisual';
 
 export class GameState {
   player: Player;
-  enemies: Enemy[];
-  experienceGems: ExperienceGem[];
-  magnetPowerUps: MagnetPowerUp[];
+  enemies: Enemy[]; // Still needed for iteration and collision checks, but EntityManager populates it
+  experienceGems: ExperienceGem[]; // Still needed for iteration and collision checks
+  magnetPowerUps: MagnetPowerUp[]; // Still needed for iteration and collision checks
   auraWeapon: AuraWeapon | undefined;
   projectileWeapon: ProjectileWeapon | undefined;
   spinningBladeWeapon: SpinningBladeWeapon | undefined;
@@ -28,11 +28,11 @@ export class GameState {
   shieldAbility: ShieldAbility | undefined;
   healAbility: HealAbility | undefined;
   vendor: Vendor;
-  damageNumbers: DamageNumber[];
-  currentBoss: Boss | undefined; // New: Current active boss
-  bossWarning: BossWarning | undefined; // New: Boss warning instance
-  isBossWarningActive: boolean; // New: Flag to indicate if boss warning is active
-  activeBossAttackVisuals: BossAttackVisual[]; // New: For boss attack visualizations
+  damageNumbers: DamageNumber[]; // Still needed for iteration and collision checks
+  currentBoss: Boss | undefined;
+  bossWarning: BossWarning | undefined;
+  isBossWarningActive: boolean;
+  activeBossAttackVisuals: BossAttackVisual[]; // Still needed for iteration and collision checks
 
   worldWidth: number;
   worldHeight: number;
@@ -48,7 +48,6 @@ export class GameState {
   activeMagnetRadius: number;
   activeMagnetDuration: number;
 
-  // New properties for Princess Simge rescue
   princessNameLetters: string[] = ['S', 'I', 'M', 'G', 'E'];
   collectedLetters: string[] = [];
   nextLetterIndex: number = 0;
@@ -93,10 +92,10 @@ export class GameState {
     this.experienceGems = [];
     this.magnetPowerUps = [];
     this.damageNumbers = [];
-    this.currentBoss = undefined; // Initialize currentBoss
-    this.bossWarning = undefined; // Initialize boss warning
-    this.isBossWarningActive = false; // Initialize boss warning flag
-    this.activeBossAttackVisuals = []; // Initialize activeBossAttackVisuals
+    this.currentBoss = undefined;
+    this.bossWarning = undefined;
+    this.isBossWarningActive = false;
+    this.activeBossAttackVisuals = [];
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -118,10 +117,10 @@ export class GameState {
     this.experienceGems = [];
     this.magnetPowerUps = [];
     this.damageNumbers = [];
-    this.currentBoss = undefined; // Reset currentBoss
-    this.bossWarning = undefined; // Reset boss warning
-    this.isBossWarningActive = false; // Reset boss warning flag
-    this.activeBossAttackVisuals = []; // Reset activeBossAttackVisuals
+    this.currentBoss = undefined;
+    this.bossWarning = undefined;
+    this.isBossWarningActive = false;
+    this.activeBossAttackVisuals = [];
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
@@ -139,7 +138,6 @@ export class GameState {
     this.shieldAbility = undefined;
     this.healAbility = undefined;
 
-    // Reset new properties
     this.collectedLetters = [];
     this.nextLetterIndex = 0;
     this.gameWon = false;

@@ -3,32 +3,49 @@ import { SpriteManager } from './SpriteManager';
 import { SoundManager } from './SoundManager';
 import { Enemy } from './Enemy';
 import { ShooterEnemy } from './ShooterEnemy';
-import { Boss } from './Boss'; // Import Boss
-import { BossWarning } from './BossWarning'; // Import BossWarning
+import { Boss } from './Boss';
+import { BossWarning } from './BossWarning';
 import { clamp } from './utils';
-import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
+import { BossAttackVisual } from './BossAttackVisual';
+import { EntityManager } from './EntityManager'; // Import EntityManager
+
+type EnemyTypeKey = 'normal' | 'fast' | 'tanky' | 'shooter';
 
 export class WaveManager {
   private gameState: GameState;
   private spriteManager: SpriteManager;
   private soundManager: SoundManager;
+  private entityManager: EntityManager; // New: EntityManager instance
   private enemySpawnTimer: number;
   private waveDuration: number = 60; // seconds per wave
   private bossWaveInterval: number = 3; // Spawn a boss every 3 waves
   private bossSpawnLocation: { x: number, y: number } | null = null;
   private bossSpawnCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null = null;
-  private onAddBossAttackVisual: (visual: BossAttackVisual) => void; // New property
+  private onAddBossAttackVisual: (visual: BossAttackVisual) => void;
+  private spawnEnemyCallback: (x: number, y: number, type: EnemyTypeKey, size: number, speed: number, health: number, goldDrop: number, projectileStats?: { speed: number, fireRate: number, damage: number, radius: number, lifetime: number }) => void;
+  private spawnBossCallback: (x: number, y: number, size: number, speed: number, health: number, goldDrop: number, bossName: string, onBossDefeat: () => void) => void;
+  private onBossDefeatCallback: () => void; // New: Callback for when a boss is defeated
 
-  constructor(gameState: GameState, spriteManager: SpriteManager, soundManager: SoundManager, onAddBossAttackVisual: (visual: BossAttackVisual) => void) {
+  constructor(
+    gameState: GameState,
+    spriteManager: SpriteManager,
+    soundManager: SoundManager,
+    onAddBossAttackVisual: (visual: BossAttackVisual) => void,
+    spawnEnemyCallback: (x: number, y: number, type: EnemyTypeKey, size: number, speed: number, health: number, goldDrop: number, projectileStats?: { speed: number, fireRate: number, damage: number, radius: number, lifetime: number }) => void,
+    spawnBossCallback: (x: number, y: number, size: number, speed: number, health: number, goldDrop: number, bossName: string, onBossDefeat: () => void) => void,
+    onBossDefeat: () => void // New parameter
+  ) {
     this.gameState = gameState;
     this.spriteManager = spriteManager;
     this.soundManager = soundManager;
+    this.onAddBossAttackVisual = onAddBossAttackVisual;
+    this.spawnEnemyCallback = spawnEnemyCallback;
+    this.spawnBossCallback = spawnBossCallback;
+    this.onBossDefeatCallback = onBossDefeat; // Assign the new callback
     this.enemySpawnTimer = 0;
-    this.onAddBossAttackVisual = onAddBossAttackVisual; // Assign new parameter
   }
 
   update(deltaTime: number, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
-    // If a boss is active OR a boss warning is active, don't spawn regular enemies
     if ((this.gameState.currentBoss && this.gameState.currentBoss.isAlive()) || this.gameState.isBossWarningActive) {
       return;
     }
@@ -37,27 +54,24 @@ export class WaveManager {
     if (this.gameState.waveTimeElapsed >= this.waveDuration) {
       this.gameState.waveNumber++;
       this.gameState.waveTimeElapsed = 0;
-      this.gameState.enemySpawnInterval = Math.max(0.5, this.gameState.enemySpawnInterval * 0.9); // Decrease spawn interval by 10% each wave, min 0.5s
+      this.gameState.enemySpawnInterval = Math.max(0.5, this.gameState.enemySpawnInterval * 0.9);
       console.log(`Advancing to Wave ${this.gameState.waveNumber}! New spawn interval: ${this.gameState.enemySpawnInterval.toFixed(2)}s`);
 
-      // Check if it's a boss wave
       if (this.gameState.waveNumber % this.bossWaveInterval === 0) {
-        this.triggerBossWarning(canvasWidth, canvasHeight); // Trigger warning instead of direct spawn
+        this.triggerBossWarning(canvasWidth, canvasHeight);
       }
     }
 
     this.enemySpawnTimer += deltaTime;
     if (this.enemySpawnTimer >= this.gameState.enemySpawnInterval) {
-      this.spawnEnemy(cameraX, cameraY, canvasWidth, canvasHeight);
+      this.spawnRegularEnemy(cameraX, cameraY, canvasWidth, canvasHeight);
       this.enemySpawnTimer = 0;
     }
   }
 
   private triggerBossWarning(canvasWidth: number, canvasHeight: number) {
-    // Clear existing enemies before spawning boss
     this.gameState.enemies = [];
 
-    // Determine a random corner for the boss to spawn in the world
     const corners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
     const selectedCorner = corners[Math.floor(Math.random() * corners.length)];
     this.bossSpawnCorner = selectedCorner;
@@ -65,8 +79,6 @@ export class WaveManager {
     const bossSize = 80;
     let spawnX, spawnY;
 
-    // Calculate world coordinates for the chosen corner
-    // Offset from the very edge to ensure boss is fully visible
     const offset = bossSize / 2 + 50; 
     switch (selectedCorner) {
       case 'top-left':
@@ -88,8 +100,7 @@ export class WaveManager {
     }
     this.bossSpawnLocation = { x: spawnX, y: spawnY };
 
-    // Initialize BossWarning for the canvas (screen coordinates)
-    this.gameState.bossWarning = new BossWarning(canvasWidth, canvasHeight, selectedCorner, 3); // Warning lasts 3 seconds
+    this.gameState.bossWarning = new BossWarning(canvasWidth, canvasHeight, selectedCorner, 3);
     this.gameState.isBossWarningActive = true;
     console.log(`BOSS WARNING: Boss will spawn in ${selectedCorner} corner!`);
   }
@@ -105,55 +116,30 @@ export class WaveManager {
     const bossSpeed = 80;
     const bossGold = 100;
     
-    // Determine which letter boss to spawn
     const nextLetter = this.gameState.princessNameLetters[this.gameState.nextLetterIndex];
-    let bossSprite: HTMLImageElement | undefined;
     let bossName: string;
 
     switch (nextLetter) {
-      case 'S':
-        bossSprite = this.spriteManager.getSprite('boss_s');
-        bossName = `Boss S`;
-        break;
-      case 'I':
-        bossSprite = this.spriteManager.getSprite('boss_i');
-        bossName = `Boss I`;
-        break;
-      case 'M':
-        bossSprite = this.spriteManager.getSprite('boss_m');
-        bossName = `Boss M`;
-        break;
-      case 'G':
-        bossSprite = this.spriteManager.getSprite('boss_g');
-        bossName = `Boss G`;
-        break;
-      case 'E':
-        bossSprite = this.spriteManager.getSprite('boss_e');
-        bossName = `Boss E`;
-        break;
-      default:
-        bossSprite = this.spriteManager.getSprite('boss'); // Fallback generic boss
-        bossName = `Wave ${this.gameState.waveNumber} Boss`;
-        break;
+      case 'S': bossName = `Boss S`; break;
+      case 'I': bossName = `Boss I`; break;
+      case 'M': bossName = `Boss M`; break;
+      case 'G': bossName = `Boss G`; break;
+      case 'E': bossName = `Boss E`; break;
+      default: bossName = `Wave ${this.gameState.waveNumber} Boss`; break;
     }
 
-    this.gameState.currentBoss = new Boss(
-      this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, 'red', bossHealth,
-      bossSprite, this.soundManager, bossGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
-      bossName, // Existing 11th argument
-      undefined, // phaseThresholds (using default)
-      undefined, // specialAttackCooldown (using default)
-      this.onAddBossAttackVisual // Pass the new callback
+    this.spawnBossCallback(
+      this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, bossHealth,
+      bossGold, bossName, this.onBossDefeatCallback // Pass the boss defeat callback
     );
-    this.gameState.enemies.push(this.gameState.currentBoss);
+    
     console.log(`BOSS SPAWNED: ${bossName} at (${this.bossSpawnLocation.x.toFixed(0)}, ${this.bossSpawnLocation.y.toFixed(0)})!`);
 
-    // Clear spawn info after boss is spawned
     this.bossSpawnLocation = null;
     this.bossSpawnCorner = null;
   }
 
-  private spawnEnemy(cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
+  private spawnRegularEnemy(cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
     const spawnPadding = 100;
     let spawnX, spawnY;
 
@@ -184,46 +170,60 @@ export class WaveManager {
     spawnX = clamp(spawnX, 0, this.gameState.worldWidth);
     spawnY = clamp(spawnY, 0, this.gameState.worldHeight);
 
-    // Base stats for different enemy types
-    const enemyTypes = [
+    const enemyTypes: {
+      name: string;
+      type: EnemyTypeKey;
+      size: number;
+      baseHealth: number;
+      baseSpeed: number;
+      color: string;
+      spriteName: string;
+      baseGold: number;
+      projectileSpeed?: number;
+      fireRate?: number;
+      projectileDamage?: number;
+      projectileRadius?: number;
+      projectileLifetime?: number;
+    }[] = [
       { name: 'normal', type: 'normal', size: 20, baseHealth: 30, baseSpeed: 100, color: 'red', spriteName: 'enemy_normal', baseGold: 5 },
       { name: 'fast', type: 'fast', size: 15, baseHealth: 20, baseSpeed: 150, color: 'green', spriteName: 'enemy_fast', baseGold: 3 },
       { name: 'tanky', type: 'tanky', size: 25, baseHealth: 50, baseSpeed: 70, color: 'purple', spriteName: 'enemy_tanky', baseGold: 8 },
       { name: 'shooter', type: 'shooter', size: 22, baseHealth: 25, baseSpeed: 80, color: 'cyan', spriteName: 'enemy_shooter', baseGold: 7,
-        projectileSpeed: 200, fireRate: 2, projectileDamage: 10, projectileRadius: 6, projectileLifetime: 2 }, // Shooter specific stats
+        projectileSpeed: 200, fireRate: 2, projectileDamage: 10, projectileRadius: 6, projectileLifetime: 2 },
     ];
 
     const randomType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
 
-    // Scale enemy stats with wave number
-    const healthMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.2; // +20% health per wave
-    const speedMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.05; // +5% speed per wave
-    const goldMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1; // +10% gold per wave
-    const projectileDamageMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1; // +10% projectile damage per wave
+    const healthMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.2;
+    const speedMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.05;
+    const goldMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1;
+    const projectileDamageMultiplier = 1 + (this.gameState.waveNumber - 1) * 0.1;
 
     const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
     const enemyGold = Math.floor(randomType.baseGold * goldMultiplier);
-    const enemySprite = this.spriteManager.getSprite(randomType.spriteName);
-    const projectileSprite = this.spriteManager.getSprite('projectile'); // Re-use player projectile sprite for now
 
-    if (randomType.type === 'shooter') {
-      this.gameState.enemies.push(new ShooterEnemy(
-        spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth,
-        enemySprite, this.soundManager, enemyGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers),
-        randomType.projectileSpeed, randomType.fireRate, Math.floor(randomType.projectileDamage * projectileDamageMultiplier),
-        randomType.projectileRadius, randomType.projectileLifetime, projectileSprite
-      ));
+    if (randomType.type === 'shooter' && randomType.projectileSpeed) {
+      this.spawnEnemyCallback(
+        spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold,
+        {
+          speed: randomType.projectileSpeed,
+          fireRate: randomType.fireRate,
+          damage: Math.floor(randomType.projectileDamage * projectileDamageMultiplier),
+          radius: randomType.projectileRadius,
+          lifetime: randomType.projectileLifetime
+        }
+      );
     } else {
-      this.gameState.enemies.push(new Enemy(spawnX, spawnY, randomType.size, enemySpeed, randomType.color, enemyHealth, enemySprite, this.soundManager, enemyGold, this.gameState.damageNumbers.push.bind(this.gameState.damageNumbers)));
+      this.spawnEnemyCallback(spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold);
     }
   }
 
   reset() {
     this.enemySpawnTimer = 0;
-    this.gameState.currentBoss = undefined; // Clear boss on reset
-    this.gameState.isBossWarningActive = false; // Reset warning state
-    this.gameState.bossWarning = undefined; // Clear warning instance
+    this.gameState.currentBoss = undefined;
+    this.gameState.isBossWarningActive = false;
+    this.gameState.bossWarning = undefined;
     this.bossSpawnLocation = null;
     this.bossSpawnCorner = null;
   }
