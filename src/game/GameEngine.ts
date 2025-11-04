@@ -357,7 +357,7 @@ export class GameEngine {
         case 'buy_laser_beam_weapon':
           this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Corrected constructor call
           // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
-          // this.gameState.player.setLaserBeamWeapon(this.gameState.laserBeamWeapon);
+          // this.gameState.player.setLaserBeamWeapon(initialWeapon);
           break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
@@ -372,7 +372,7 @@ export class GameEngine {
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
         case 'buy_time_slow_ability':
-          this.gameState.timeSlowAbility = new TimeSlowAbility(0.3, 5, 20, this.soundManager); // Updated slowFactor
+          this.gameState.timeSlowAbility = new TimeSlowAbility(0.3, 5, 20, this.soundManager); // Updated slowFactor to 0.3
           this.gameState.player.setTimeSlowAbility(this.gameState.timeSlowAbility);
           break;
         case 'buy_health_potion':
