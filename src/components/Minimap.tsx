@@ -71,8 +71,7 @@ const Minimap: React.FC<MinimapProps> = ({
   }, [playerX, playerY, worldWidth, worldHeight, cameraX, cameraY, canvasWidth, canvasHeight, enemiesMinimap, vendorX, vendorY]);
 
   return (
-    <div className="absolute top-4 right-4 z-50 bg-gray-900/70 backdrop-blur-sm p-2 rounded-lg shadow-xl border border-solid border-gray-700"> {/* Arka plan ve kenarlık güncellendi */}
-      <h3 className="text-sm font-semibold text-white mb-1">Minimap</h3>
+    <div className="absolute top-0 right-0 z-50 bg-gray-900/70 backdrop-blur-sm rounded-lg shadow-xl border border-solid border-gray-700"> {/* Arka plan ve kenarlık güncellendi */}
       <canvas
         ref={minimapCanvasRef}
         width={minimapSize}
