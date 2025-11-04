@@ -169,6 +169,23 @@ export class SpriteManager {
     `;
   }
 
+  static getLaserBeamSpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="laserBeamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#00FFFF" />
+            <stop offset="100%" stop-color="#00BFFF" />
+          </linearGradient>
+        </defs>
+        <rect x="${size * 0.4}" y="0" width="${size * 0.2}" height="${size}" fill="url(#laserBeamGradient)" />
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.15}" fill="#FFFFFF" opacity="0.8"/>
+        <path d="M${size * 0.4},${size * 0.1} L${size * 0.6},${size * 0.1} L${size * 0.55},${size * 0.2} L${size * 0.45},${size * 0.2} Z" fill="#FFD700"/>
+        <path d="M${size * 0.4},${size * 0.9} L${size * 0.6},${size * 0.9} L${size * 0.55},${size * 0.8} L${size * 0.45},${size * 0.8} Z" fill="#FFD700"/>
+      </svg>
+    `;
+  }
+
   static getExperienceGemSpriteSVG(size: number): string {
     return `
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
@@ -365,6 +382,22 @@ export class SpriteManager {
         <rect x="${size * 0.1}" y="${size * 0.425}" width="${size * 0.6}" height="${size * 0.15}" fill="url(#eBossGradient)" stroke="#006064" stroke-width="2"/>
         <rect x="${size * 0.1}" y="${size * 0.75}" width="${size * 0.8}" height="${size * 0.15}" fill="url(#eBossGradient)" stroke="#006064" stroke-width="2"/>
         <circle cx="${size * 0.2}" cy="${size * 0.5}" r="${size * 0.05}" fill="#FFFFFF" opacity="0.7"/>
+      </svg>
+    `;
+  }
+
+  static getTimeSlowAbilitySpriteSVG(size: number): string {
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="timeSlowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#673AB7" />
+            <stop offset="100%" stop-color="#512DA8" />
+          </linearGradient>
+        </defs>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="url(#timeSlowGradient)" stroke="#311B92" stroke-width="2"/>
+        <path d="M${size * 0.5},${size * 0.2} L${size * 0.5},${size * 0.5} L${size * 0.7},${size * 0.7} M${size * 0.5},${size * 0.5} L${size * 0.3},${size * 0.7}" stroke="#FFFFFF" stroke-width="2" fill="none"/>
+        <circle cx="${size * 0.5}" cy="${size * 0.2}" r="${size * 0.05}" fill="#FFFFFF"/>
       </svg>
     `;
   }

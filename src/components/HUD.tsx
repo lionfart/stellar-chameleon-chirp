@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown } from 'lucide-react'; // Crown icon for collected letters
+import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass } from 'lucide-react'; // Crown icon for collected letters, Hourglass for Time Slow
 import CooldownDisplay from './CooldownDisplay';
 
 export interface HUDProps {
@@ -26,6 +26,8 @@ export interface HUDProps {
   shieldCooldownMax: number;
   healCooldownCurrent: number;
   healCooldownMax: number;
+  timeSlowCooldownCurrent: number; // NEW
+  timeSlowCooldownMax: number; // NEW
 
   // Boss specific data
   bossActive: boolean;
@@ -59,6 +61,8 @@ const HUD: React.FC<HUDProps> = ({
   shieldCooldownMax,
   healCooldownCurrent,
   healCooldownMax,
+  timeSlowCooldownCurrent, // NEW
+  timeSlowCooldownMax, // NEW
   // Boss specific data
   bossActive,
   bossHealth,
@@ -158,6 +162,16 @@ const HUD: React.FC<HUDProps> = ({
                 currentCooldown={healCooldownCurrent}
                 maxCooldown={healCooldownMax}
                 colorClass="text-green-500 drop-shadow-sm"
+              />
+            )}
+
+            {timeSlowCooldownMax > 0 && ( // NEW: Time Slow Cooldown Display
+              <CooldownDisplay
+                Icon={Hourglass}
+                name="Time Slow"
+                currentCooldown={timeSlowCooldownCurrent}
+                maxCooldown={timeSlowCooldownMax}
+                colorClass="text-indigo-400 drop-shadow-sm"
               />
             )}
           </CardContent>

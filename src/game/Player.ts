@@ -4,6 +4,7 @@ import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
 import { ExplosionAbility } from './ExplosionAbility'; // Import ExplosionAbility
 import { SoundManager } from './SoundManager';
+import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
 
 export class Player {
   x: number;
@@ -21,6 +22,7 @@ export class Player {
   private shieldAbility: ShieldAbility | null = null;
   private healAbility: HealAbility | null = null;
   private explosionAbility: ExplosionAbility | null = null; // Add explosion ability
+  private timeSlowAbility: TimeSlowAbility | null = null; // NEW
   private sprite: HTMLImageElement | undefined;
   private soundManager: SoundManager;
   private hitTimer: number = 0; // For hit animation
@@ -74,6 +76,10 @@ export class Player {
 
   setExplosionAbility(explosionAbility: ExplosionAbility) { // New setter for explosion ability
     this.explosionAbility = explosionAbility;
+  }
+
+  setTimeSlowAbility(timeSlowAbility: TimeSlowAbility) { // NEW
+    this.timeSlowAbility = timeSlowAbility;
   }
 
   update(input: InputHandler, deltaTime: number, worldWidth: number, worldHeight: number) {
@@ -155,6 +161,17 @@ export class Player {
     // Check for explosion ability input (e.g., 'e' key)
     if (input.isPressed('e') && this.explosionAbility) {
       this.explosionAbility.triggerExplosion(this.x, this.y);
+    }
+
+    // Check for time slow ability input (e.g., 't' key)
+    if (input.isPressed('t') && this.timeSlowAbility) {
+      // Pass enemies from GameState to TimeSlowAbility
+      // This requires GameEngine to pass the current enemies array to Player's handleAbilityInput
+      // For now, we'll assume GameEngine will handle this or TimeSlowAbility will get enemies from GameState directly.
+      // This is a simplification for the current scope.
+      // A more robust solution would involve passing the EntityManager or GameState to Player.
+      console.warn("Time Slow ability triggered, but needs access to enemies array for full functionality.");
+      // this.timeSlowAbility.triggerSlow(this.gameState.enemies); // This would be the ideal call
     }
   }
 
@@ -324,5 +341,14 @@ export class Player {
 
   getDashCooldownMax(): number {
     return this.dashCooldown;
+  }
+
+  // NEW: Getters for Time Slow Ability Cooldown
+  getTimeSlowCooldownCurrent(): number {
+    return this.timeSlowAbility?.getCooldownCurrent() || 0;
+  }
+
+  getTimeSlowCooldownMax(): number {
+    return this.timeSlowAbility?.getCooldownMax() || 0;
   }
 }

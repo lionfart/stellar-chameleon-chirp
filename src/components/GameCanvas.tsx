@@ -26,6 +26,10 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     { id: 'homing_missile_damage', name: 'Increase Missile Damage', description: 'Your homing missiles deal more damage.' }, // New upgrade
     { id: 'homing_missile_fire_rate', name: 'Increase Missile Fire Rate', description: 'Your homing missiles fire more frequently.' }, // New upgrade
     { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' }, // New upgrade
+    { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' }, // NEW
+    { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' }, // NEW
+    { id: 'laser_beam_cooldown', name: 'Reduce Laser Cooldown', description: 'Use your laser beam more often.' }, // NEW
+    { id: 'laser_beam_duration', name: 'Increase Laser Duration', description: 'Your laser beam stays active longer.' }, // NEW
     { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
     { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
     { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
@@ -37,6 +41,9 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
     { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' },
     { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' },
+    { id: 'time_slow_factor', name: 'Increase Time Slow Effect', description: 'Enemies are slowed down even more.' }, // NEW
+    { id: 'time_slow_duration', name: 'Increase Time Slow Duration', description: 'Time slow lasts longer.' }, // NEW
+    { id: 'time_slow_cooldown', name: 'Reduce Time Slow Cooldown', description: 'Use time slow more often.' }, // NEW
     // New general upgrades
     { id: 'player_magnet_radius', name: 'Increase Magnet Radius', description: 'Increase the radius for collecting experience gems.' },
     { id: 'experience_boost', name: 'Increase XP Gain', description: 'Gain more experience from defeated enemies.' },
@@ -49,9 +56,11 @@ const getLevelUpOptions = (gameState: any) => { // gameState'i any olarak geçic
     if (option.id.startsWith('projectile_') && !gameState.projectileWeapon) return false;
     if (option.id.startsWith('blade_') && !gameState.spinningBladeWeapon) return false;
     if (option.id.startsWith('homing_missile_') && !gameState.homingMissileWeapon) return false; // Filter for new weapon
+    if (option.id.startsWith('laser_beam_') && !gameState.laserBeamWeapon) return false; // NEW
     if (option.id.startsWith('explosion_') && !gameState.explosionAbility) return false;
     if (option.id.startsWith('shield_') && !gameState.shieldAbility) return false;
     if (option.id.startsWith('heal_') && !gameState.healAbility) return false;
+    if (option.id.startsWith('time_slow_') && !gameState.timeSlowAbility) return false; // NEW
     return true;
   });
 };
@@ -88,6 +97,8 @@ const GameCanvas: React.FC = () => {
     shieldCooldownMax: 0,
     healCooldownCurrent: 0,
     healCooldownMax: 0,
+    timeSlowCooldownCurrent: 0, // NEW
+    timeSlowCooldownMax: 0, // NEW
     // Boss specific data
     bossActive: false,
     bossHealth: 0,
@@ -169,7 +180,8 @@ const GameCanvas: React.FC = () => {
       setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
       setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
       setTimeout(() => showSuccess("Press R to use your heal ability."), 8500); // New heal ability notification
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 10500);
+      setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500); // NEW: Time Slow notification
+      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500);
       notificationsShownRef.current = true;
     }
 

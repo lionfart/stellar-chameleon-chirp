@@ -5,9 +5,11 @@ import { AuraWeapon } from './AuraWeapon';
 import { ProjectileWeapon } from './ProjectileWeapon';
 import { SpinningBladeWeapon } from './SpinningBladeWeapon';
 import { HomingMissileWeapon } from './HomingMissileWeapon';
+import { LaserBeamWeapon } from './LaserBeamWeapon'; // NEW
 import { ExplosionAbility } from './ExplosionAbility';
 import { ShieldAbility } from './ShieldAbility';
 import { HealAbility } from './HealAbility';
+import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
 import { Vendor } from './Vendor';
 import { clamp } from './utils';
 import { SpriteManager } from './SpriteManager';
@@ -61,6 +63,8 @@ export interface GameDataProps {
   shieldCooldownMax: number;
   healCooldownCurrent: number;
   healCooldownMax: number;
+  timeSlowCooldownCurrent: number; // NEW
+  timeSlowCooldownMax: number; // NEW
 
   // Boss specific data
   bossActive: boolean;
@@ -124,9 +128,11 @@ export class GameEngine {
     { id: 'buy_projectile_weapon', name: 'Projectile Weapon', description: 'Fires projectiles at the closest enemy.', cost: 100, type: 'weapon' },
     { id: 'buy_spinning_blade_weapon', name: 'Spinning Blade Weapon', description: 'Blades orbit you, damaging enemies on contact.', cost: 100, type: 'weapon' },
     { id: 'buy_homing_missile_weapon', name: 'Homing Missile Weapon', description: 'Fires missiles that track the closest enemy.', cost: 120, type: 'weapon' },
+    { id: 'buy_laser_beam_weapon', name: 'Laser Beam Weapon', description: 'Fires a continuous laser beam at the closest enemy.', cost: 150, type: 'weapon' }, // NEW
     { id: 'buy_explosion_ability', name: 'Explosion Ability', description: 'Trigger an explosion around you (E key).', cost: 150, type: 'ability' },
     { id: 'buy_shield_ability', name: 'Shield Ability', description: 'Activate a protective shield (Q key).', cost: 150, type: 'ability' },
     { id: 'buy_heal_ability', name: 'Heal Ability', description: 'Restore player health (R key).', cost: 120, type: 'ability' },
+    { id: 'buy_time_slow_ability', name: 'Time Slow Ability', description: 'Slows all enemies for a short duration (T key).', cost: 180, type: 'ability' }, // NEW
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
@@ -151,6 +157,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
+      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager), // NEW
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -162,6 +169,8 @@ export class GameEngine {
       this.gameState.spinningBladeWeapon = initialWeapon;
     } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.gameState.homingMissileWeapon = initialWeapon;
+    } else if (initialWeapon instanceof LaserBeamWeapon) { // NEW
+      this.gameState.laserBeamWeapon = initialWeapon;
     }
     
     // Initialize EntityManager before WaveManager
@@ -187,10 +196,12 @@ export class GameEngine {
     this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
     this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
     this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24));
+    this.spriteManager.loadSprite('laser_beam', SpriteManager.getLaserBeamSpriteSVG(20)); // NEW
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
+    this.spriteManager.loadSprite('time_slow_ability', SpriteManager.getTimeSlowAbilitySpriteSVG(40)); // NEW
     
     this.spriteManager.loadSprite('boss_s', SpriteManager.getBossSSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_i', SpriteManager.getBossISpriteSVG(80 * 2));
@@ -205,17 +216,21 @@ export class GameEngine {
     this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
     this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
     this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound());
+    this.soundManager.loadSound('laser_beam_fire', SoundManager.getLaserBeamFireSound()); // NEW
+    this.soundManager.loadSound('laser_beam_loop', SoundManager.getLaserBeamLoopSound()); // NEW
     this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
     this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
     this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
     this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
+    this.soundManager.loadSound('time_slow_activate', SoundManager.getTimeSlowActivateSound()); // NEW
+    this.soundManager.loadSound('time_slow_deactivate', SoundManager.getTimeSlowDeactivateSound()); // NEW
     this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
     this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
     this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
     this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound());
     this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
-    this.soundManager.loadSound('gold_collect', SoundManager.getGoldCollectSound()); // NEW: Load gold collect sound
+    this.soundManager.loadSound('gold_collect', SoundManager.getGoldCollectSound());
   }
 
   private onAllAssetsLoaded = () => {
@@ -233,6 +248,9 @@ export class GameEngine {
       }
       if (this.gameState.homingMissileWeapon) {
         this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
+      }
+      if (this.gameState.laserBeamWeapon) { // NEW
+        this.gameState.laserBeamWeapon['beamSprite'] = this.spriteManager.getSprite('laser_beam');
       }
       this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
@@ -299,9 +317,11 @@ export class GameEngine {
       if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
       if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // NEW
       if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
+      if (item.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false; // NEW
       return true;
     }), this.gameState.player.gold);
   }
@@ -336,6 +356,9 @@ export class GameEngine {
         case 'buy_homing_missile_weapon':
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
+        case 'buy_laser_beam_weapon': // NEW
+          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, this.spriteManager.getSprite('laser_beam'), this.soundManager);
+          break;
         case 'buy_explosion_ability':
           this.gameState.explosionAbility = new ExplosionAbility(50, 150, 5, this.soundManager);
           this.gameState.player.setExplosionAbility(this.gameState.explosionAbility); // Set ability on player
@@ -348,6 +371,10 @@ export class GameEngine {
           this.gameState.healAbility = new HealAbility(30, 15, this.soundManager);
           this.gameState.player.setHealAbility(this.gameState.healAbility);
           break;
+        case 'buy_time_slow_ability': // NEW
+          this.gameState.timeSlowAbility = new TimeSlowAbility(0.5, 5, 20, this.soundManager); // 50% slow, 5s duration, 20s cooldown
+          this.gameState.player.setTimeSlowAbility(this.gameState.timeSlowAbility);
+          break;
         case 'buy_health_potion':
           this.gameState.player.currentHealth = Math.min(this.gameState.player.maxHealth, this.gameState.player.currentHealth + 50);
           break;
@@ -359,9 +386,11 @@ export class GameEngine {
         if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
         if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
         if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false; // NEW
         if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
         if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
         if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
+        if (i.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false; // NEW
         return true;
       }), this.gameState.player.gold);
     } else {
@@ -389,6 +418,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
+      new LaserBeamWeapon(30, 300, 5, 0.1, 8, 3, undefined, this.soundManager), // NEW
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -400,6 +430,8 @@ export class GameEngine {
       this.gameState.spinningBladeWeapon = initialWeapon;
     } else if (initialWeapon instanceof HomingMissileWeapon) {
       this.gameState.homingMissileWeapon = initialWeapon;
+    } else if (initialWeapon instanceof LaserBeamWeapon) { // NEW
+      this.gameState.laserBeamWeapon = initialWeapon;
     }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager); // Re-initialize EntityManager
@@ -417,6 +449,9 @@ export class GameEngine {
     }
     if (this.gameState.homingMissileWeapon) {
       this.gameState.homingMissileWeapon['missileSprite'] = this.spriteManager.getSprite('homing_missile');
+    }
+    if (this.gameState.laserBeamWeapon) { // NEW
+      this.gameState.laserBeamWeapon['beamSprite'] = this.spriteManager.getSprite('laser_beam');
     }
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
@@ -453,6 +488,18 @@ export class GameEngine {
       case 'homing_missile_count':
         this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
         break;
+      case 'laser_beam_damage': // NEW
+        this.gameState.laserBeamWeapon?.increaseDamage(10);
+        break;
+      case 'laser_beam_range': // NEW
+        this.gameState.laserBeamWeapon?.increaseRange(50);
+        break;
+      case 'laser_beam_cooldown': // NEW
+        this.gameState.laserBeamWeapon?.reduceCooldown(1);
+        break;
+      case 'laser_beam_duration': // NEW
+        this.gameState.laserBeamWeapon?.increaseDuration(1);
+        break;
       case 'dash_cooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
@@ -485,6 +532,15 @@ export class GameEngine {
         break;
       case 'heal_cooldown':
         this.gameState.healAbility?.reduceCooldown(2);
+        break;
+      case 'time_slow_factor': // NEW
+        this.gameState.timeSlowAbility?.increaseSlowFactor(0.1);
+        break;
+      case 'time_slow_duration': // NEW
+        this.gameState.timeSlowAbility?.increaseDuration(1);
+        break;
+      case 'time_slow_cooldown': // NEW
+        this.gameState.timeSlowAbility?.reduceCooldown(2);
         break;
       case 'player_magnet_radius':
         this.gameState.player.increaseMagnetRadius(50);
@@ -584,6 +640,8 @@ export class GameEngine {
       shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
       healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
+      timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0, // NEW
+      timeSlowCooldownMax: this.gameState.timeSlowAbility ? this.gameState.timeSlowAbility.getCooldownMax() : 0, // NEW
 
       bossActive: !!this.gameState.currentBoss && this.gameState.currentBoss.isAlive(),
       bossHealth: this.gameState.currentBoss?.currentHealth || 0,

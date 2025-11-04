@@ -14,6 +14,8 @@ import { HealAbility } from './HealAbility';
 import { Boss } from './Boss';
 import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
+import { LaserBeamWeapon } from './LaserBeamWeapon'; // NEW
+import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
 
 export class GameState {
   player: Player;
@@ -24,9 +26,11 @@ export class GameState {
   projectileWeapon: ProjectileWeapon | undefined;
   spinningBladeWeapon: SpinningBladeWeapon | undefined;
   homingMissileWeapon: HomingMissileWeapon | undefined;
+  laserBeamWeapon: LaserBeamWeapon | undefined; // NEW
   explosionAbility: ExplosionAbility | undefined;
   shieldAbility: ShieldAbility | undefined;
   healAbility: HealAbility | undefined;
+  timeSlowAbility: TimeSlowAbility | undefined; // NEW
   vendor: Vendor;
   damageNumbers: DamageNumber[]; // Still needed for iteration and collision checks
   currentBoss: Boss | undefined;
@@ -67,9 +71,11 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
+    this.laserBeamWeapon = undefined; // NEW
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined;
+    this.timeSlowAbility = undefined; // NEW
 
     this.enemies = [];
     this.experienceGems = [];
@@ -117,9 +123,11 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
+    this.laserBeamWeapon = undefined; // NEW
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined;
+    this.timeSlowAbility = undefined; // NEW
 
     this.collectedLetters = [];
     this.nextLetterIndex = 0;
