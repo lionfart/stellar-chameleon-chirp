@@ -28,10 +28,9 @@ export class EntityManager {
     const onTakeDamage = (dx: number, dy: number, damage: number) => this.addDamageNumber(dx, dy, damage);
 
     if (type === 'shooter' && projectileStats) {
-      const projectileSprite = this.spriteManager.getSprite('projectile'); // Generic enemy projectile sprite
       this.gameState.enemies.push(new ShooterEnemy(
         x, y, size, speed, 'cyan', health, sprite, this.soundManager, goldDrop, onTakeDamage,
-        projectileStats.speed, projectileStats.fireRate, projectileStats.damage, projectileStats.radius, projectileStats.lifetime, projectileSprite
+        projectileStats.speed, projectileStats.fireRate, projectileStats.damage, projectileStats.radius, projectileStats.lifetime, this.spriteManager.getSprite('projectile')
       ));
     } else {
       this.gameState.enemies.push(new Enemy(x, y, size, speed, 'red', health, sprite, this.soundManager, goldDrop, onTakeDamage));
@@ -43,14 +42,15 @@ export class EntityManager {
     const bossSprite = this.spriteManager.getSprite(spriteName) || this.spriteManager.getSprite('boss'); // Fallback to generic boss
     const onTakeDamage = (dx: number, dy: number, damage: number) => this.addDamageNumber(dx, dy, damage);
     const onAddBossAttackVisual = (visual: BossAttackVisual) => this.addBossAttackVisual(visual);
+    const onAddBossProjectile = (projectile: Projectile) => this.addBossProjectile(projectile); // NEW: Pass this callback
 
     const boss = new Boss(
       x, y, size, speed, 'red', health, bossSprite, this.soundManager, goldDrop, onTakeDamage,
-      bossName, undefined, undefined, onAddBossAttackVisual
+      bossName, undefined, undefined, onAddBossAttackVisual, onAddBossProjectile // NEW: Pass onAddBossProjectile
     );
     this.gameState.enemies.push(boss);
     this.gameState.currentBoss = boss;
-    boss['onDefeatCallback'] = onBossDefeat; // Attach callback for when boss is defeated
+    boss.setOnDefeatCallback(onBossDefeat); // Attach callback for when boss is defeated
   }
 
   spawnExperienceGem(x: number, y: number, value: number) {
@@ -69,6 +69,10 @@ export class EntityManager {
 
   addBossAttackVisual(visual: BossAttackVisual) {
     this.gameState.activeBossAttackVisuals.push(visual);
+  }
+
+  addBossProjectile(projectile: Projectile) { // NEW: Method to add boss projectiles to GameState
+    this.gameState.bossProjectiles.push(projectile);
   }
 
   // --- Update Methods ---
@@ -130,7 +134,7 @@ export class EntityManager {
     // Update player's projectiles (if any)
     this.gameState.projectileWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
     this.gameState.homingMissileWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
-    this.gameState.laserBeamWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies); // NEW
+    this.gameState.laserBeamWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
 
     // Update other entities
     this.gameState.auraWeapon?.update(deltaTime, player.x, player.y, this.gameState.enemies);
@@ -138,7 +142,7 @@ export class EntityManager {
     this.gameState.explosionAbility?.update(deltaTime, this.gameState.enemies);
     this.gameState.shieldAbility?.update(deltaTime, player.x, player.y);
     this.gameState.healAbility?.update(deltaTime);
-    this.gameState.timeSlowAbility?.update(deltaTime, this.gameState.enemies); // NEW
+    this.gameState.timeSlowAbility?.update(deltaTime, this.gameState.enemies);
 
     this.gameState.experienceGems.forEach(gem => gem.update(deltaTime));
     this.gameState.magnetPowerUps.forEach(magnet => magnet.update(deltaTime));
@@ -149,6 +153,18 @@ export class EntityManager {
     // Update and filter boss attack visuals
     this.gameState.activeBossAttackVisuals = this.gameState.activeBossAttackVisuals.filter(visual => visual.update(deltaTime));
 
+    // NEW: Update and filter boss projectiles
+    this.gameState.bossProjectiles = this.gameState.bossProjectiles.filter(projectile => {
+      const isAlive = projectile.update(deltaTime);
+      if (!isAlive) return false;
+
+      if (projectile.collidesWith(player)) {
+        player.takeDamage(projectile.damage);
+        return false; // Remove projectile after hitting player
+      }
+      return true;
+    });
+
     // Filter out defeated enemies and spawn drops
     const defeatedEnemies = this.gameState.enemies.filter(enemy => !enemy.isAlive());
     defeatedEnemies.forEach(enemy => {
@@ -157,9 +173,8 @@ export class EntityManager {
       if (Math.random() < 0.1) { // 10% chance to drop magnet power-up
         this.spawnMagnetPowerUp(enemy.x, enemy.y);
       }
-      if (enemy instanceof Boss && enemy['onDefeatCallback']) {
-        enemy['onDefeatCallback'](); // Trigger boss defeat callback
-      }
+      // The boss's onDefeatCallback is now handled internally by the Boss class itself.
+      // No need to call it from here.
     });
     this.gameState.enemies = this.gameState.enemies.filter(enemy => enemy.isAlive());
 
@@ -214,7 +229,7 @@ export class EntityManager {
     this.gameState.projectileWeapon?.draw(ctx, cameraX, cameraY);
     this.gameState.spinningBladeWeapon?.draw(ctx, cameraX, cameraY);
     this.gameState.homingMissileWeapon?.draw(ctx, cameraX, cameraY);
-    this.gameState.laserBeamWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY); // NEW
+    this.gameState.laserBeamWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY);
     this.gameState.explosionAbility?.draw(ctx, cameraX, cameraY);
 
     this.gameState.experienceGems.forEach(gem => gem.draw(ctx, cameraX, cameraY));
@@ -233,6 +248,9 @@ export class EntityManager {
     // Draw boss attack visuals
     this.gameState.activeBossAttackVisuals.forEach(visual => visual.draw(ctx, cameraX, cameraY));
 
+    // NEW: Draw boss projectiles
+    this.gameState.bossProjectiles.forEach(projectile => projectile.draw(ctx, cameraX, cameraY));
+
     if (this.gameState.activeMagnetRadius > 0) {
       ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';
       ctx.lineWidth = 2;
@@ -249,6 +267,7 @@ export class EntityManager {
     this.gameState.magnetPowerUps = [];
     this.gameState.damageNumbers = [];
     this.gameState.activeBossAttackVisuals = [];
+    this.gameState.bossProjectiles = []; // NEW: Reset boss projectiles
     this.gameState.currentBoss = undefined;
   }
 }

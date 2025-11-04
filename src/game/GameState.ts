@@ -14,8 +14,9 @@ import { HealAbility } from './HealAbility';
 import { Boss } from './Boss';
 import { BossWarning } from './BossWarning';
 import { BossAttackVisual } from './BossAttackVisual';
-import { LaserBeamWeapon } from './LaserBeamWeapon'; // NEW
-import { TimeSlowAbility } from './TimeSlowAbility'; // NEW
+import { LaserBeamWeapon } from './LaserBeamWeapon';
+import { TimeSlowAbility } from './TimeSlowAbility';
+import { Projectile } from './Projectile'; // NEW: Import Projectile
 
 export class GameState {
   player: Player;
@@ -26,17 +27,18 @@ export class GameState {
   projectileWeapon: ProjectileWeapon | undefined;
   spinningBladeWeapon: SpinningBladeWeapon | undefined;
   homingMissileWeapon: HomingMissileWeapon | undefined;
-  laserBeamWeapon: LaserBeamWeapon | undefined; // NEW
+  laserBeamWeapon: LaserBeamWeapon | undefined;
   explosionAbility: ExplosionAbility | undefined;
   shieldAbility: ShieldAbility | undefined;
   healAbility: HealAbility | undefined;
-  timeSlowAbility: TimeSlowAbility | undefined; // NEW
+  timeSlowAbility: TimeSlowAbility | undefined;
   vendor: Vendor;
   damageNumbers: DamageNumber[]; // Still needed for iteration and collision checks
   currentBoss: Boss | undefined;
   bossWarning: BossWarning | undefined;
   isBossWarningActive: boolean;
   activeBossAttackVisuals: BossAttackVisual[]; // Still needed for iteration and collision checks
+  bossProjectiles: Projectile[]; // NEW: Array to hold projectiles fired by bosses
 
   worldWidth: number;
   worldHeight: number;
@@ -71,11 +73,11 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
-    this.laserBeamWeapon = undefined; // NEW
+    this.laserBeamWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined;
-    this.timeSlowAbility = undefined; // NEW
+    this.timeSlowAbility = undefined;
 
     this.enemies = [];
     this.experienceGems = [];
@@ -85,6 +87,7 @@ export class GameState {
     this.bossWarning = undefined;
     this.isBossWarningActive = false;
     this.activeBossAttackVisuals = [];
+    this.bossProjectiles = []; // NEW: Initialize boss projectiles
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
@@ -110,6 +113,7 @@ export class GameState {
     this.bossWarning = undefined;
     this.isBossWarningActive = false;
     this.activeBossAttackVisuals = [];
+    this.bossProjectiles = []; // NEW: Reset boss projectiles
     this.waveNumber = 1;
     this.waveTimeElapsed = 0;
     this.enemySpawnInterval = 2;
@@ -123,11 +127,11 @@ export class GameState {
     this.projectileWeapon = undefined;
     this.spinningBladeWeapon = undefined;
     this.homingMissileWeapon = undefined;
-    this.laserBeamWeapon = undefined; // NEW
+    this.laserBeamWeapon = undefined;
     this.explosionAbility = undefined;
     this.shieldAbility = undefined;
     this.healAbility = undefined;
-    this.timeSlowAbility = undefined; // NEW
+    this.timeSlowAbility = undefined;
 
     this.collectedLetters = [];
     this.nextLetterIndex = 0;

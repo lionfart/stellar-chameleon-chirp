@@ -32,13 +32,11 @@ export interface HUDProps {
   // laserBeamCooldownCurrent: number;
   // laserBeamCooldownMax: number;
 
-  // Boss specific data
   bossActive: boolean;
   bossHealth: number;
   bossMaxHealth: number;
   bossName: string;
 
-  // New properties for Princess Simge rescue
   collectedLetters: string[];
   gameWon: boolean;
 }

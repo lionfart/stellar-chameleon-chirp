@@ -154,7 +154,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Removed cooldown/duration from constructor
+      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Corrected constructor call
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 
@@ -355,7 +355,7 @@ export class GameEngine {
           this.gameState.homingMissileWeapon = new HomingMissileWeapon(20, 250, 2, 12, 4, this.spriteManager.getSprite('homing_missile'), this.soundManager);
           break;
         case 'buy_laser_beam_weapon':
-          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Updated constructor call
+          this.gameState.laserBeamWeapon = new LaserBeamWeapon(30, 300, 5, 0.1, this.spriteManager.getSprite('laser_beam'), this.soundManager); // Corrected constructor call
           // REMOVED: Player no longer sets LaserBeamWeapon as it's automatic
           // this.gameState.player.setLaserBeamWeapon(this.gameState.laserBeamWeapon);
           break;
@@ -418,7 +418,7 @@ export class GameEngine {
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
       new SpinningBladeWeapon(10, 60, 3, 10, 1, undefined, this.soundManager),
       new HomingMissileWeapon(20, 250, 2, 12, 4, undefined, this.soundManager),
-      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Updated constructor call
+      new LaserBeamWeapon(30, 300, 5, 0.1, undefined, this.soundManager), // Corrected constructor call
     ];
     const initialWeapon = startingWeapons[Math.floor(Math.random() * startingWeapons.length)];
 

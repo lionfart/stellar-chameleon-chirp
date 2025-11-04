@@ -3,6 +3,7 @@ import { Player } from './Player';
 import { SoundManager } from './SoundManager';
 import { DamageNumber } from './DamageNumber';
 import { BossAttackVisual } from './BossAttackVisual';
+import { Projectile } from './Projectile'; // NEW: Import Projectile
 
 export class Boss extends Enemy {
   private bossName: string;
@@ -11,7 +12,8 @@ export class Boss extends Enemy {
   private specialAttackCooldown: number;
   private currentSpecialAttackCooldown: number;
   private onAddBossAttackVisual: (visual: BossAttackVisual) => void;
-  private onDefeatCallback: () => void; // New: Callback to be triggered on defeat
+  private onAddBossProjectile: (projectile: Projectile) => void; // NEW: Callback to add boss projectiles
+  private onDefeatCallback: () => void;
 
   constructor(
     x: number, y: number, size: number, speed: number, color: string, maxHealth: number,
@@ -20,7 +22,8 @@ export class Boss extends Enemy {
     bossName: string = "Mega Enemy",
     phaseThresholds: number[] = [0.75, 0.5, 0.25],
     specialAttackCooldown: number = 5,
-    onAddBossAttackVisual: (visual: BossAttackVisual) => void
+    onAddBossAttackVisual: (visual: BossAttackVisual) => void,
+    onAddBossProjectile: (projectile: Projectile) => void // NEW: Add to constructor
   ) {
     super(x, y, size, speed, color, maxHealth, sprite, soundManager, goldDrop, onTakeDamage);
     this.bossName = bossName;
@@ -29,20 +32,20 @@ export class Boss extends Enemy {
     this.specialAttackCooldown = specialAttackCooldown;
     this.currentSpecialAttackCooldown = specialAttackCooldown;
     this.onAddBossAttackVisual = onAddBossAttackVisual;
-    this.onDefeatCallback = () => {}; // Initialize with an empty function
+    this.onAddBossProjectile = onAddBossProjectile; // NEW: Assign callback
+    this.onDefeatCallback = () => {};
     console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`);
   }
 
-  // Setter for the defeat callback
   setOnDefeatCallback(callback: () => void) {
     this.onDefeatCallback = callback;
   }
 
   takeDamage(amount: number) {
-    super.takeDamage(amount); // Call base Enemy takeDamage
+    super.takeDamage(amount);
 
     if (!this.isAlive() && this.onDefeatCallback) {
-      this.onDefeatCallback(); // Trigger callback on defeat
+      this.onDefeatCallback();
     }
   }
 
@@ -111,20 +114,112 @@ export class Boss extends Enemy {
   }
 
   private performSpecialAttack(player: Player) {
-    console.log(`${this.bossName} performs a special attack! Phase: ${this.phase}`);
-    const attackRadius = this.size * 2;
-    const attackDamage = 20 + this.phase * 5;
+    const attackType = Math.floor(Math.random() * 3); // Randomly choose between 3 attack types
 
-    this.onAddBossAttackVisual(new BossAttackVisual(this.x, this.y, attackRadius, 0.5, 'red'));
-
-    const dx = player.x - this.x;
-    const dy = player.y - this.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance < attackRadius + player.size / 2) {
-      player.takeDamage(attackDamage);
+    switch (this.phase) {
+      case 0: // Initial phase
+      case 1:
+        if (attackType === 0) this.performRadialProjectileAttack(player);
+        else if (attackType === 1) this.performTargetedProjectileAttack(player);
+        else this.performGroundSlamAttack(player);
+        break;
+      case 2:
+        if (attackType === 0) this.performTargetedProjectileAttack(player);
+        else if (attackType === 1) this.performGroundSlamAttack(player);
+        else this.performRadialProjectileAttack(player); // Mix it up
+        break;
+      case 3:
+        if (attackType === 0) this.performGroundSlamAttack(player);
+        else if (attackType === 1) this.performTargetedProjectileAttack(player);
+        else this.performRadialProjectileAttack(player); // Mix it up
+        break;
+      default:
+        this.performGroundSlamAttack(player); // Default to a strong attack
+        break;
     }
-    this.soundManager.playSound('explosion', false, 0.7);
+  }
+
+  private performRadialProjectileAttack(player: Player) {
+    console.log(`${this.bossName} performs Radial Projectile Attack!`);
+    const numProjectiles = 8 + this.phase * 2;
+    const projectileSpeed = 150 + this.phase * 20;
+    const projectileDamage = 10 + this.phase * 5;
+    const projectileRadius = 8;
+    const projectileLifetime = 3;
+
+    // Telegraph the attack
+    this.onAddBossAttackVisual(new BossAttackVisual(this.x, this.y, this.size * 1.5, 0.8, 'rgba(255, 165, 0, 0.5)')); // Orange warning
+
+    setTimeout(() => {
+      for (let i = 0; i < numProjectiles; i++) {
+        const angle = (Math.PI * 2 / numProjectiles) * i;
+        const directionX = Math.cos(angle);
+        const directionY = Math.sin(angle);
+
+        const projectile = new Projectile(
+          this.x, this.y, projectileRadius, projectileSpeed, projectileDamage,
+          directionX, directionY, 'orange', projectileLifetime, undefined
+        );
+        this.onAddBossProjectile(projectile);
+      }
+      this.soundManager.playSound('projectile_fire', false, 0.4);
+    }, 800); // Delay to match visual warning
+  }
+
+  private performTargetedProjectileAttack(player: Player) {
+    console.log(`${this.bossName} performs Targeted Projectile Attack!`);
+    const numProjectiles = 3 + this.phase;
+    const projectileSpeed = 200 + this.phase * 30;
+    const projectileDamage = 15 + this.phase * 5;
+    const projectileRadius = 10;
+    const projectileLifetime = 2.5;
+    const delayBetweenShots = 0.2;
+
+    // Telegraph the attack
+    this.onAddBossAttackVisual(new BossAttackVisual(player.x, player.y, player.size * 2, 0.5, 'rgba(255, 0, 0, 0.5)')); // Red warning at player's current position
+
+    for (let i = 0; i < numProjectiles; i++) {
+      setTimeout(() => {
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        let directionX = 0;
+        let directionY = 0;
+        if (distance > 0) {
+          directionX = dx / distance;
+          directionY = dy / distance;
+        }
+
+        const projectile = new Projectile(
+          this.x, this.y, projectileRadius, projectileSpeed, projectileDamage,
+          directionX, directionY, 'red', projectileLifetime, undefined
+        );
+        this.onAddBossProjectile(projectile);
+        this.soundManager.playSound('projectile_fire', false, 0.5);
+      }, 500 + i * delayBetweenShots * 1000); // Delay for visual and staggered shots
+    }
+  }
+
+  private performGroundSlamAttack(player: Player) {
+    console.log(`${this.bossName} performs Ground Slam Attack!`);
+    const attackRadius = this.size * (2 + this.phase * 0.5);
+    const attackDamage = 20 + this.phase * 10;
+    const telegraphDuration = 1.0; // Time for player to react
+
+    // Telegraph the attack with a growing red circle
+    this.onAddBossAttackVisual(new BossAttackVisual(this.x, this.y, attackRadius, telegraphDuration, 'rgba(255, 0, 0, 0.3)'));
+
+    setTimeout(() => {
+      const dx = player.x - this.x;
+      const dy = player.y - this.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < attackRadius + player.size / 2) {
+        player.takeDamage(attackDamage);
+      }
+      this.soundManager.playSound('explosion', false, 0.7);
+    }, telegraphDuration * 1000); // Damage applies after the telegraph duration
   }
 
   getBossName(): string {
