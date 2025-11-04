@@ -21,26 +21,19 @@ export class WaveManager {
   private bossWaveInterval: number = 3; // Spawn a boss every 3 waves
   private bossSpawnLocation: { x: number, y: number } | null = null;
   private bossSpawnCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null = null;
-  private onAddBossAttackVisual: (visual: BossAttackVisual) => void;
-  private spawnEnemyCallback: (x: number, y: number, type: EnemyTypeKey, size: number, speed: number, health: number, goldDrop: number, projectileStats?: { speed: number, fireRate: number, damage: number, radius: number, lifetime: number }) => void;
-  private spawnBossCallback: (x: number, y: number, size: number, speed: number, health: number, goldDrop: number, bossName: string, onBossDefeat: () => void) => void;
-  private onBossDefeatCallback: () => void; // New: Callback for when a boss is defeated
+  private onBossDefeatCallback: () => void; // Callback for when a boss is defeated
 
   constructor(
     gameState: GameState,
     spriteManager: SpriteManager,
     soundManager: SoundManager,
-    onAddBossAttackVisual: (visual: BossAttackVisual) => void,
-    spawnEnemyCallback: (x: number, y: number, type: EnemyTypeKey, size: number, speed: number, health: number, goldDrop: number, projectileStats?: { speed: number, fireRate: number, damage: number, radius: number, lifetime: number }) => void,
-    spawnBossCallback: (x: number, y: number, size: number, speed: number, health: number, goldDrop: number, bossName: string, onBossDefeat: () => void) => void,
-    onBossDefeat: () => void // New parameter
+    entityManager: EntityManager, // Directly pass EntityManager
+    onBossDefeat: () => void // Callback for when a boss is defeated
   ) {
     this.gameState = gameState;
     this.spriteManager = spriteManager;
     this.soundManager = soundManager;
-    this.onAddBossAttackVisual = onAddBossAttackVisual;
-    this.spawnEnemyCallback = spawnEnemyCallback;
-    this.spawnBossCallback = spawnBossCallback;
+    this.entityManager = entityManager; // Assign EntityManager
     this.onBossDefeatCallback = onBossDefeat; // Assign the new callback
     this.enemySpawnTimer = 0;
   }
@@ -128,7 +121,7 @@ export class WaveManager {
       default: bossName = `Wave ${this.gameState.waveNumber} Boss`; break;
     }
 
-    this.spawnBossCallback(
+    this.entityManager.spawnBoss( // Direct call to EntityManager
       this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, bossHealth,
       bossGold, bossName, this.onBossDefeatCallback // Pass the boss defeat callback
     );
@@ -204,7 +197,7 @@ export class WaveManager {
     const enemyGold = Math.floor(randomType.baseGold * goldMultiplier);
 
     if (randomType.type === 'shooter' && randomType.projectileSpeed) {
-      this.spawnEnemyCallback(
+      this.entityManager.spawnEnemy( // Direct call to EntityManager
         spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold,
         {
           speed: randomType.projectileSpeed,
@@ -215,7 +208,7 @@ export class WaveManager {
         }
       );
     } else {
-      this.spawnEnemyCallback(spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold);
+      this.entityManager.spawnEnemy(spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold); // Direct call to EntityManager
     }
   }
 

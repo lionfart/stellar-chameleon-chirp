@@ -156,7 +156,7 @@ export class GameEngine {
     
     // Initialize EntityManager before WaveManager
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager.addBossAttackVisual.bind(this.entityManager), this.entityManager.spawnEnemy.bind(this.entityManager), this.entityManager.spawnBoss.bind(this.entityManager), this.handleBossDefeat);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat); // Pass EntityManager directly
     
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
@@ -298,8 +298,8 @@ export class GameEngine {
   closeShop = () => {
     if (!this.gameState.showShop) return;
     console.log("GameEngine: Closing shop.");
-    this.gameState.showShop = false;
     this.onCloseShopCallback();
+    this.gameState.showShop = false;
     this.resume();
   }
 
@@ -381,7 +381,7 @@ export class GameEngine {
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, initialWeapon);
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager); // Re-initialize EntityManager
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager.addBossAttackVisual.bind(this.entityManager), this.entityManager.spawnEnemy.bind(this.entityManager), this.entityManager.spawnBoss.bind(this.entityManager), this.handleBossDefeat);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat); // Pass EntityManager directly
     
     this.gameOverScreen = new GameOverScreen(this.restartGame, this.ctx.canvas);
     this.gameWinScreen = new GameWinScreen(this.restartGame, this.ctx.canvas);
