@@ -215,6 +215,7 @@ export class GameEngine {
     this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
     this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound());
     this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
+    this.soundManager.loadSound('gold_collect', SoundManager.getGoldCollectSound()); // NEW: Load gold collect sound
   }
 
   private onAllAssetsLoaded = () => {

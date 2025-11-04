@@ -271,6 +271,7 @@ export class Player {
 
   gainGold(amount: number) {
     this.gold += amount * this.goldMultiplier;
+    this.soundManager.playSound('gold_collect'); // NEW: Play sound when gold is collected
     console.log(`Player gained ${amount} gold. Total: ${this.gold}`);
   }
 
