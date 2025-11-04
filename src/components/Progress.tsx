@@ -20,7 +20,7 @@ const Progress = React.forwardRef<
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
-      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
+      "relative h-6 w-full overflow-hidden rounded-full bg-gray-700 border border-gray-600 shadow-inner", // Increased height, darker background, border, inner shadow
       className
     )}
     {...props}
@@ -35,7 +35,7 @@ const Progress = React.forwardRef<
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
     {showText && text && (
-      <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-white z-10 drop-shadow-sm"> {/* Made text bolder and added shadow */}
+      <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white z-10 drop-shadow-md"> {/* Increased font size, stronger shadow */}
         {text}
       </span>
     )}

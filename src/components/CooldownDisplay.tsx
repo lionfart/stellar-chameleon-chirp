@@ -20,7 +20,7 @@ const CooldownDisplay: React.FC<CooldownDisplayProps> = ({
   maxCooldown,
   colorClass,
   iconSizeClass = 'h-5 w-5',
-  progressBarHeightClass = 'h-5',
+  progressBarHeightClass = 'h-6', // Updated default height
 }) => {
   const isReady = currentCooldown <= 0;
   const cooldownPercentage = maxCooldown > 0 ? ((maxCooldown - currentCooldown) / maxCooldown) * 100 : 100;
