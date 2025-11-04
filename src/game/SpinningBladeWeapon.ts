@@ -9,8 +9,8 @@ export class SpinningBladeWeapon {
   private rotationSpeed: number;
   public bladeRadius: number;
   private numBlades: number;
-  public attackCooldown: number; // Public yapıldı
-  public lastHitTime: Map<string, number>; // Public yapıldı
+  private attackCooldown: number;
+  private lastHitTime: Map<string, number>;
   private bladeSprite: HTMLImageElement | undefined;
   private soundManager: SoundManager; // New: SoundManager instance
 
@@ -36,11 +36,29 @@ export class SpinningBladeWeapon {
     return newBlades;
   }
 
-  update(deltaTime: number, playerX: number, playerY: number) { // enemies parametresi kaldırıldı
+  update(deltaTime: number, playerX: number, playerY: number, enemies: Enemy[]) {
     this.blades.forEach(blade => {
       blade.update(deltaTime, playerX, playerY);
-      // Çarpışma mantığı CollisionManager'a taşındı
+
+      for (const enemy of enemies) {
+        if (enemy.isAlive() && blade.collidesWith(enemy)) {
+          const hitKey = `${enemy.x}_${enemy.y}_${blade.angle}`;
+          const currentTime = performance.now() / 1000;
+
+          if (!this.lastHitTime.has(hitKey) || (currentTime - this.lastHitTime.get(hitKey)! > this.attackCooldown)) {
+            enemy.takeDamage(blade.damage); // Enemy's takeDamage will play hit sound
+            this.lastHitTime.set(hitKey, currentTime);
+          }
+        }
+      }
     });
+
+    const currentTime = performance.now() / 1000;
+    for (const [key, time] of this.lastHitTime.entries()) {
+      if (currentTime - time > this.attackCooldown * 2) {
+        this.lastHitTime.delete(key);
+      }
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {

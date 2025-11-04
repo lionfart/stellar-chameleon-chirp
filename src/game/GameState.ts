@@ -14,8 +14,6 @@ import { HealAbility } from './HealAbility';
 import { Boss } from './Boss'; // Import Boss
 import { BossWarning } from './BossWarning'; // Import BossWarning
 import { BossAttackVisual } from './BossAttackVisual'; // Import BossAttackVisual
-import { GameOverScreen } from './GameOverScreen'; // Import GameOverScreen
-import { GameWinScreen } from './GameWinScreen'; // Import GameWinScreen
 
 export class GameState {
   player: Player;
@@ -35,8 +33,6 @@ export class GameState {
   bossWarning: BossWarning | undefined; // New: Boss warning instance
   isBossWarningActive: boolean; // New: Flag to indicate if boss warning is active
   activeBossAttackVisuals: BossAttackVisual[]; // New: For boss attack visualizations
-  gameOverScreen: GameOverScreen; // New: GameOverScreen instance
-  gameWinScreen: GameWinScreen; // New: GameWinScreen instance
 
   worldWidth: number;
   worldHeight: number;
@@ -64,8 +60,6 @@ export class GameState {
     vendor: Vendor,
     worldWidth: number,
     worldHeight: number,
-    gameOverScreen: GameOverScreen, // Add to constructor
-    gameWinScreen: GameWinScreen, // Add to constructor
     initialWeapon?: AuraWeapon | ProjectileWeapon | SpinningBladeWeapon | HomingMissileWeapon,
     initialExplosionAbility?: ExplosionAbility,
     initialShieldAbility?: ShieldAbility,
@@ -103,8 +97,6 @@ export class GameState {
     this.bossWarning = undefined; // Initialize boss warning
     this.isBossWarningActive = false; // Initialize boss warning flag
     this.activeBossAttackVisuals = []; // Initialize activeBossAttackVisuals
-    this.gameOverScreen = gameOverScreen; // Assign
-    this.gameWinScreen = gameWinScreen; // Assign
 
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;

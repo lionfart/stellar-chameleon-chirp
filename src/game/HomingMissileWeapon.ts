@@ -69,8 +69,19 @@ export class HomingMissileWeapon {
       }
     }
 
-    // Missile güncelleme ve filtreleme CollisionManager'a taşındı
-    // this.missiles = this.missiles.filter(missile => { ... });
+    this.missiles = this.missiles.filter(missile => {
+      const isAlive = missile.update(deltaTime, enemies); // Pass enemies for target re-acquisition
+      if (!isAlive) return false;
+
+      for (let i = 0; i < enemies.length; i++) {
+        const enemy = enemies[i];
+        if (enemy.isAlive() && missile.collidesWith(enemy)) {
+          enemy.takeDamage(missile.damage);
+          return false; // Remove missile after hitting enemy
+        }
+      }
+      return true;
+    });
   }
 
   draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
