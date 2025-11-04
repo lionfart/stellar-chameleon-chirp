@@ -1,6 +1,7 @@
 export class GameWinScreen {
   private restartGameCallback: () => void;
   private canvas: HTMLCanvasElement;
+  private isListenerActive: boolean = false; // Yeni: Dinleyicinin aktif olup olmadığını takip eder
 
   constructor(restartGameCallback: () => void, canvas: HTMLCanvasElement) {
     this.restartGameCallback = restartGameCallback;
@@ -28,13 +29,22 @@ export class GameWinScreen {
     ctx.fillStyle = 'white';
     ctx.font = '30px Arial';
     ctx.fillText('Restart Game', canvasWidth / 2, buttonY + buttonHeight / 2 + 10); // Center text vertically
+  }
 
-    // Add event listener for restart button
-    // `if (!this.canvas.onclick)` koşulunu kaldırıyoruz, böylece dinleyici her zaman ayarlanır.
+  // Yeni: Olay dinleyicisini etkinleştirir
+  activate() {
+    if (this.isListenerActive) return; // Zaten aktifse tekrar ekleme
+    this.isListenerActive = true;
+
     this.canvas.onclick = (event) => {
       const rect = this.canvas.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
       const mouseY = event.clientY - rect.top;
+
+      const buttonWidth = 250;
+      const buttonHeight = 70;
+      const buttonX = this.canvas.width / 2 - buttonWidth / 2;
+      const buttonY = this.canvas.height / 2 + 100;
 
       if (mouseX >= buttonX && mouseX <= buttonX + buttonWidth &&
           mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
@@ -45,5 +55,6 @@ export class GameWinScreen {
 
   clearClickListener() {
     this.canvas.onclick = null;
+    this.isListenerActive = false; // Dinleyici kaldırıldığında bayrağı sıfırla
   }
 }

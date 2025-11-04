@@ -111,6 +111,10 @@ export class GameEngine {
   private gameOverScreen: GameOverScreen;
   private gameWinScreen: GameWinScreen; // New: GameWinScreen instance
 
+  // Yeni: Oyun sonu ve kazanma durumlarının önceki karedeki durumunu takip eder
+  private wasGameOver: boolean = false;
+  private wasGameWon: boolean = false;
+
   // World dimensions
   private worldWidth: number = 2000;
   private worldHeight: number = 2000;
@@ -376,6 +380,12 @@ export class GameEngine {
     this.soundManager.stopSound(this.backgroundMusicInstance);
     this.backgroundMusicInstance = null;
 
+    // Olay dinleyicilerini temizle ve durumları sıfırla
+    this.gameOverScreen.clearClickListener();
+    this.gameWinScreen.clearClickListener();
+    this.wasGameOver = false;
+    this.wasGameWon = false;
+
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
 
@@ -406,8 +416,6 @@ export class GameEngine {
     }
     this.gameState.vendor['sprite'] = this.spriteManager.getSprite('vendor');
 
-    this.gameOverScreen.clearClickListener();
-    this.gameWinScreen.clearClickListener(); // Clear win screen listener
     this.gameOverSoundPlayed = false;
     this.gameWinSoundPlayed = false; // Reset win sound flag
     this.lastTime = performance.now();
@@ -489,19 +497,34 @@ export class GameEngine {
   }
 
   private update(deltaTime: number) {
+    // Oyun duraklatılmışsa, varlıklar yüklenmemişse, oyun bitmişse veya kazanılmışsa güncelleme yapma
     if (this.gameState.isPaused || !this.assetsLoaded || this.gameState.gameOver || this.gameState.gameWon) {
+      // Oyun bittiğinde veya kazanıldığında sesleri çal
       if (this.gameState.gameOver && !this.gameOverSoundPlayed) {
         this.soundManager.playSound('game_over');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameOverSoundPlayed = true;
-      }
-      if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
+        this.gameOverScreen.activate(); // Oyun bittiğinde dinleyiciyi etkinleştir
+      } else if (this.gameState.gameWon && !this.gameWinSoundPlayed) {
         this.soundManager.playSound('game_win');
         this.soundManager.stopSound(this.backgroundMusicInstance);
         this.gameWinSoundPlayed = true;
+        this.gameWinScreen.activate(); // Oyun kazanıldığında dinleyiciyi etkinleştir
       }
       return;
     }
+
+    // Oyun bitti veya kazanıldı durumundan çıkıldığında dinleyicileri temizle
+    if (!this.gameState.gameOver && this.wasGameOver) {
+      this.gameOverScreen.clearClickListener();
+    }
+    if (!this.gameState.gameWon && this.wasGameWon) {
+      this.gameWinScreen.clearClickListener();
+    }
+
+    // Mevcut oyun durumu bayraklarını güncelle
+    this.wasGameOver = this.gameState.gameOver;
+    this.wasGameWon = this.gameState.gameWon;
 
     deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 
@@ -760,14 +783,10 @@ export class GameEngine {
 
     if (this.gameState.gameOver) {
       this.gameOverScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    } else {
-      this.gameOverScreen.clearClickListener();
     }
 
     if (this.gameState.gameWon) {
       this.gameWinScreen.draw(this.ctx, this.ctx.canvas.width, this.ctx.canvas.height);
-    } else {
-      this.gameWinScreen.clearClickListener();
     }
 
     // Draw boss warning if active
@@ -799,8 +818,10 @@ export class GameEngine {
       this.animationFrameId = null;
     }
     this.inputHandler.destroy();
-    this.gameOverScreen.clearClickListener();
-    this.gameWinScreen.clearClickListener(); // Clear win screen listener
+    this.gameOverScreen.clearClickListener(); // Durdurulduğunda dinleyicileri temizle
+    this.gameWinScreen.clearClickListener();
+    this.wasGameOver = false; // Durumları sıfırla
+    this.wasGameWon = false;
     this.soundManager.stopSound(this.backgroundMusicInstance);
   }
 
