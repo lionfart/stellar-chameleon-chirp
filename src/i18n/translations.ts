@@ -119,6 +119,9 @@ export const translations = {
     "explosion": "Explosion",
     "heal": "Heal",
     "timeSlow": "Time Slow",
+    "leaderboardDescription": "Top scores from brave knights!",
+    "gold": "Gold",
+    "levelUpShort": "Lv.",
   },
   tr: {
     "gameTitle": "Prenses Simge Kurtarma",
@@ -240,6 +243,9 @@ export const translations = {
     "explosion": "Patlama",
     "heal": "İyileştirme",
     "timeSlow": "Zaman Yavaşlatma",
+    "leaderboardDescription": "Cesur şövalyelerin en yüksek skorları!",
+    "gold": "Altın",
+    "levelUpShort": "Sv.",
   },
 };
 
