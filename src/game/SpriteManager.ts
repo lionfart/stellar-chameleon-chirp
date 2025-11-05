@@ -3,6 +3,7 @@ export class SpriteManager {
   private loadedCount: number;
   private totalCount: number;
   private onAllLoadedCallback: () => void;
+  private backgroundCanvas: HTMLCanvasElement | null = null; // NEW: Offscreen canvas for background
 
   constructor(onAllLoaded: () => void) {
     this.sprites = new Map();
@@ -33,6 +34,39 @@ export class SpriteManager {
 
   getSprite(name: string): HTMLImageElement | undefined {
     return this.sprites.get(name);
+  }
+
+  // NEW: Method to create and return the offscreen background canvas
+  getBackgroundCanvas(worldWidth: number, worldHeight: number): HTMLCanvasElement {
+    if (this.backgroundCanvas) {
+      return this.backgroundCanvas;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = worldWidth;
+    canvas.height = worldHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error("Could not get 2D context for background canvas.");
+    }
+
+    const backgroundTile = this.getSprite('background_tile');
+    if (backgroundTile) {
+      const tileWidth = backgroundTile.width;
+      const tileHeight = backgroundTile.height;
+
+      for (let x = 0; x < worldWidth; x += tileWidth) {
+        for (let y = 0; y < worldHeight; y += tileHeight) {
+          ctx.drawImage(backgroundTile, x, y, tileWidth, tileHeight);
+        }
+      }
+    } else {
+      ctx.fillStyle = '#333'; // Fallback color
+      ctx.fillRect(0, 0, worldWidth, worldHeight);
+    }
+
+    this.backgroundCanvas = canvas;
+    return canvas;
   }
 
   // Updated SVG definitions for better sprites

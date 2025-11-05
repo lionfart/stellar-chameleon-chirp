@@ -22,6 +22,17 @@ export class EntityManager {
     this.soundManager = soundManager;
   }
 
+  // Helper to check if an entity is within camera view
+  private isInCameraView(entity: { x: number; y: number; size: number }, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number): boolean {
+    const buffer = 50; // Extra buffer to ensure objects entering view are drawn smoothly
+    return (
+      entity.x + entity.size / 2 > cameraX - buffer &&
+      entity.x - entity.size / 2 < cameraX + canvasWidth + buffer &&
+      entity.y + entity.size / 2 > cameraY - buffer &&
+      entity.y - entity.size / 2 < cameraY + canvasHeight + buffer
+    );
+  }
+
   // --- Spawning Methods ---
   spawnEnemy(x: number, y: number, type: 'normal' | 'fast' | 'tanky' | 'shooter', size: number, speed: number, health: number, goldDrop: number, projectileStats?: { speed: number, fireRate: number, damage: number, radius: number, lifetime: number }) {
     const sprite = this.spriteManager.getSprite(`enemy_${type}`);
@@ -42,15 +53,16 @@ export class EntityManager {
     const bossSprite = this.spriteManager.getSprite(spriteName) || this.spriteManager.getSprite('boss'); // Fallback to generic boss
     const onTakeDamage = (dx: number, dy: number, damage: number) => this.addDamageNumber(dx, dy, damage);
     const onAddBossAttackVisual = (visual: BossAttackVisual) => this.addBossAttackVisual(visual);
-    const onAddBossProjectile = (projectile: Projectile) => this.addBossProjectile(projectile); // NEW: Pass this callback
+    const onAddBossProjectile = (projectile: Projectile) => this.addBossProjectile(projectile);
 
     const boss = new Boss(
       x, y, size, speed, 'red', health, bossSprite, this.soundManager, goldDrop, onTakeDamage,
-      bossName, undefined, undefined, onAddBossAttackVisual, onAddBossProjectile // NEW: Pass onAddBossProjectile
+      bossName, undefined, undefined, onAddBossAttackVisual, onAddBossProjectile
     );
     this.gameState.enemies.push(boss);
     this.gameState.currentBoss = boss;
-    boss.setOnDefeatCallback(onBossDefeat); // Attach callback for when boss is defeated
+    boss.setOnDefeatCallback(onBossDefeat);
+    // console.log(`Boss ${this.bossName} spawned! Health: ${this.maxHealth}`); // Removed for optimization
   }
 
   spawnExperienceGem(x: number, y: number, value: number) {
@@ -71,7 +83,7 @@ export class EntityManager {
     this.gameState.activeBossAttackVisuals.push(visual);
   }
 
-  addBossProjectile(projectile: Projectile) { // NEW: Method to add boss projectiles to GameState
+  addBossProjectile(projectile: Projectile) {
     this.gameState.bossProjectiles.push(projectile);
   }
 
@@ -153,7 +165,7 @@ export class EntityManager {
     // Update and filter boss attack visuals
     this.gameState.activeBossAttackVisuals = this.gameState.activeBossAttackVisuals.filter(visual => visual.update(deltaTime));
 
-    // NEW: Update and filter boss projectiles
+    // Update and filter boss projectiles
     this.gameState.bossProjectiles = this.gameState.bossProjectiles.filter(projectile => {
       const isAlive = projectile.update(deltaTime);
       if (!isAlive) return false;
@@ -173,8 +185,6 @@ export class EntityManager {
       if (Math.random() < 0.1) { // 10% chance to drop magnet power-up
         this.spawnMagnetPowerUp(enemy.x, enemy.y);
       }
-      // The boss's onDefeatCallback is now handled internally by the Boss class itself.
-      // No need to call it from here.
     });
     this.gameState.enemies = this.gameState.enemies.filter(enemy => enemy.isAlive());
 
@@ -183,7 +193,7 @@ export class EntityManager {
       this.gameState.activeMagnetDuration -= deltaTime;
       if (this.gameState.activeMagnetDuration <= 0) {
         this.gameState.activeMagnetRadius = 0; // Deactivate magnet
-        console.log("Magnet effect ended.");
+        // console.log("Magnet effect ended."); // Removed for optimization
       }
     }
 
@@ -204,7 +214,7 @@ export class EntityManager {
 
       if (gem.collidesWith(player)) {
         player.gainExperience(gem.value);
-        this.soundManager.playSound('gem_collect'); // Play sound on collect
+        this.soundManager.playSound('gem_collect');
         return false;
       }
       return true;
@@ -215,8 +225,8 @@ export class EntityManager {
       if (magnet.collidesWith(player)) {
         this.gameState.activeMagnetRadius = magnet.radius;
         this.gameState.activeMagnetDuration = magnet.duration;
-        this.soundManager.playSound('magnet_collect'); // Play sound on collect
-        console.log(`Magnet power-up collected! Radius: ${this.gameState.activeMagnetRadius}, Duration: ${this.gameState.activeMagnetDuration}`);
+        this.soundManager.playSound('magnet_collect');
+        // console.log(`Magnet power-up collected! Radius: ${this.gameState.activeMagnetRadius}, Duration: ${this.gameState.activeMagnetDuration}`); // Removed for optimization
         return false; // Remove power-up after collection
       }
       return true;
@@ -224,32 +234,68 @@ export class EntityManager {
   }
 
   // --- Draw Methods ---
-  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number) {
+  draw(ctx: CanvasRenderingContext2D, cameraX: number, cameraY: number, canvasWidth: number, canvasHeight: number) {
+    // Draw player's weapons and abilities
     this.gameState.auraWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY);
-    this.gameState.projectileWeapon?.draw(ctx, cameraX, cameraY);
     this.gameState.spinningBladeWeapon?.draw(ctx, cameraX, cameraY);
-    this.gameState.homingMissileWeapon?.draw(ctx, cameraX, cameraY);
-    this.gameState.laserBeamWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY);
     this.gameState.explosionAbility?.draw(ctx, cameraX, cameraY);
-
-    this.gameState.experienceGems.forEach(gem => gem.draw(ctx, cameraX, cameraY));
-    this.gameState.magnetPowerUps.forEach(magnet => magnet.draw(ctx, cameraX, cameraY));
-
-    this.gameState.player.draw(ctx, cameraX, cameraY);
     this.gameState.shieldAbility?.draw(ctx, cameraX, cameraY);
 
-    this.gameState.enemies.forEach(enemy => enemy.draw(ctx, cameraX, cameraY));
+    // Draw entities only if they are within the camera's view
+    this.gameState.experienceGems.forEach(gem => {
+      if (this.isInCameraView(gem, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        gem.draw(ctx, cameraX, cameraY);
+      }
+    });
+    this.gameState.magnetPowerUps.forEach(magnet => {
+      if (this.isInCameraView(magnet, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        magnet.draw(ctx, cameraX, cameraY);
+      }
+    });
+
+    this.gameState.player.draw(ctx, cameraX, cameraY);
+
+    this.gameState.enemies.forEach(enemy => {
+      if (this.isInCameraView(enemy, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        enemy.draw(ctx, cameraX, cameraY);
+      }
+    });
+
+    // Projectiles and Homing Missiles are handled separately as their 'size' is 'radius'
+    this.gameState.projectileWeapon?.projectiles.forEach(p => {
+      if (this.isInCameraView({ x: p.x, y: p.y, size: p.radius * 2 }, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        p.draw(ctx, cameraX, cameraY);
+      }
+    });
+    this.gameState.homingMissileWeapon?.missiles.forEach(m => {
+      if (this.isInCameraView({ x: m.x, y: m.y, size: m.radius * 2 }, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        m.draw(ctx, cameraX, cameraY);
+      }
+    });
+    this.gameState.laserBeamWeapon?.draw(ctx, this.gameState.player.x, this.gameState.player.y, cameraX, cameraY);
+
 
     this.gameState.vendor.draw(ctx, cameraX, cameraY);
 
-    // Draw damage numbers
-    this.gameState.damageNumbers.forEach(dn => dn.draw(ctx, cameraX, cameraY));
+    this.gameState.damageNumbers.forEach(dn => {
+      // Damage numbers are usually short-lived and close to enemies, so culling might not be strictly necessary
+      // but for consistency, we can apply it.
+      if (this.isInCameraView({ x: dn.x, y: dn.y, size: 20 }, cameraX, cameraY, canvasWidth, canvasHeight)) { // Approximate size for damage numbers
+        dn.draw(ctx, cameraX, cameraY);
+      }
+    });
 
-    // Draw boss attack visuals
-    this.gameState.activeBossAttackVisuals.forEach(visual => visual.draw(ctx, cameraX, cameraY));
+    this.gameState.activeBossAttackVisuals.forEach(visual => {
+      if (this.isInCameraView(visual, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        visual.draw(ctx, cameraX, cameraY);
+      }
+    });
 
-    // NEW: Draw boss projectiles
-    this.gameState.bossProjectiles.forEach(projectile => projectile.draw(ctx, cameraX, cameraY));
+    this.gameState.bossProjectiles.forEach(projectile => {
+      if (this.isInCameraView({ x: projectile.x, y: projectile.y, size: projectile.radius * 2 }, cameraX, cameraY, canvasWidth, canvasHeight)) {
+        projectile.draw(ctx, cameraX, cameraY);
+      }
+    });
 
     if (this.gameState.activeMagnetRadius > 0) {
       ctx.strokeStyle = 'rgba(173, 216, 230, 0.5)';
@@ -267,7 +313,7 @@ export class EntityManager {
     this.gameState.magnetPowerUps = [];
     this.gameState.damageNumbers = [];
     this.gameState.activeBossAttackVisuals = [];
-    this.gameState.bossProjectiles = []; // NEW: Reset boss projectiles
+    this.gameState.bossProjectiles = [];
     this.gameState.currentBoss = undefined;
   }
 }

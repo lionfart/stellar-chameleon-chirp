@@ -70,7 +70,7 @@ export interface GameDataProps {
 
   collectedLetters: string[];
   gameWon: boolean;
-  gameOver: boolean; // NEW: Add gameOver to GameDataProps
+  gameOver: boolean;
 
   playerX: number;
   playerY: number;
@@ -83,7 +83,7 @@ export interface GameDataProps {
   enemiesMinimap: MinimapEnemyData[];
   vendorX: number;
   vendorY: number;
-  lastGameScoreEntry: LeaderboardEntry | null; // NEW: Add lastGameScoreEntry
+  lastGameScoreEntry: LeaderboardEntry | null;
 }
 
 const MAX_DELTA_TIME = 1 / 30;
@@ -224,7 +224,7 @@ export class GameEngine {
     if (this.spriteManager['loadedCount'] === this.spriteManager['totalCount'] &&
         this.soundManager['loadedCount'] === this.soundManager['totalCount']) {
       this.assetsLoaded = true;
-      console.log("All game assets (sprites and sounds) loaded!");
+      // console.log("All game assets (sprites and sounds) loaded!"); // Removed for optimization
 
       this.gameState.player.setSprite(this.spriteManager.getSprite('player'));
       if (this.gameState.projectileWeapon) {
@@ -266,14 +266,14 @@ export class GameEngine {
 
       if (this.gameState.nextLetterIndex === this.gameState.princessNameLetters.length) {
         this.gameState.gameWon = true;
-        console.log("All letters collected! Princess Simge rescued!");
+        // console.log("All letters collected! Princess Simge rescued!"); // Removed for optimization
       }
     }
     this.gameState.currentBoss = undefined;
   }
 
   pause() {
-    console.log("GameEngine: Pausing game.");
+    // console.log("GameEngine: Pausing game."); // Removed for optimization
     this.gameState.isPaused = true;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -283,7 +283,7 @@ export class GameEngine {
   }
 
   resume() {
-    console.log("GameEngine: Resuming game.");
+    // console.log("GameEngine: Resuming game."); // Removed for optimization
     this.gameState.isPaused = false;
     this.lastTime = performance.now();
     if (!this.animationFrameId) {
@@ -296,7 +296,7 @@ export class GameEngine {
 
   openShop() {
     if (this.gameState.showShop) return;
-    console.log("GameEngine: Opening shop.");
+    // console.log("GameEngine: Opening shop."); // Removed for optimization
     this.gameState.showShop = true;
     this.pause();
     this.onOpenShopCallback(this.shopItems.filter(item => {
@@ -315,7 +315,7 @@ export class GameEngine {
 
   closeShop = () => {
     if (!this.gameState.showShop) return;
-    console.log("GameEngine: Closing shop.");
+    // console.log("GameEngine: Closing shop."); // Removed for optimization
     this.onCloseShopCallback();
     this.gameState.showShop = false;
     this.resume();
@@ -403,12 +403,12 @@ export class GameEngine {
     leaderboard = leaderboard.slice(0, 10);
 
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-    this.gameState.lastGameScoreEntry = newEntry; // NEW: Save the current game's score
-    console.log("Score saved to leaderboard:", newEntry);
+    this.gameState.lastGameScoreEntry = newEntry;
+    // console.log("Score saved to leaderboard:", newEntry); // Removed for optimization
   }
 
   restartGame = () => {
-    console.log("GameEngine: Restarting game...");
+    // console.log("GameEngine: Restarting game..."); // Removed for optimization
     this.soundManager.stopSound(this.backgroundMusicInstance);
     this.backgroundMusicInstance = null;
 
@@ -552,8 +552,8 @@ export class GameEngine {
 
         collectedLetters: this.gameState.collectedLetters,
         gameWon: this.gameState.gameWon,
-        gameOver: this.gameState.gameOver, // NEW
-        lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+        gameOver: this.gameState.gameOver,
+        lastGameScoreEntry: this.gameState.lastGameScoreEntry,
 
         playerX: this.gameState.player.x,
         playerY: this.gameState.player.y,
@@ -612,8 +612,8 @@ export class GameEngine {
 
         collectedLetters: this.gameState.collectedLetters,
         gameWon: this.gameState.gameWon,
-        gameOver: this.gameState.gameOver, // NEW
-        lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+        gameOver: this.gameState.gameOver,
+        lastGameScoreEntry: this.gameState.lastGameScoreEntry,
 
         playerX: this.gameState.player.x,
         playerY: this.gameState.player.y,
@@ -630,7 +630,7 @@ export class GameEngine {
       return;
     }
 
-    console.log("GameEngine: Updating with deltaTime:", deltaTime);
+    // console.log("GameEngine: Updating with deltaTime:", deltaTime); // Removed for optimization
 
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
     this.gameState.player.handleAbilityInput(this.inputHandler, this.gameState.enemies);
@@ -651,7 +651,7 @@ export class GameEngine {
 
     if (!this.gameState.player.isAlive()) {
       this.gameState.gameOver = true;
-      console.log("Game Over!");
+      // console.log("Game Over!"); // Removed for optimization
     }
 
     this.gameState.isTimeSlowActive = this.gameState.timeSlowAbility?.getIsActive() || false;
@@ -688,8 +688,8 @@ export class GameEngine {
 
       collectedLetters: this.gameState.collectedLetters,
       gameWon: this.gameState.gameWon,
-      gameOver: this.gameState.gameOver, // NEW
-      lastGameScoreEntry: this.gameState.lastGameScoreEntry, // NEW
+      gameOver: this.gameState.gameOver,
+      lastGameScoreEntry: this.gameState.lastGameScoreEntry,
       
       playerX: this.gameState.player.x,
       playerY: this.gameState.player.y,
@@ -718,22 +718,19 @@ export class GameEngine {
 
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 
-    const backgroundTile = this.spriteManager.getSprite('background_tile');
-    if (backgroundTile) {
-      const tileWidth = backgroundTile.width;
-      const tileHeight = backgroundTile.height;
-      const startX = -this.cameraX % tileWidth;
-      const startY = -this.cameraY % tileHeight;
-
-      for (let x = startX; x < this.ctx.canvas.width; x += tileWidth) {
-        for (let y = startY; y < this.ctx.canvas.height; y += tileHeight) {
-          this.ctx.drawImage(backgroundTile, x, y, tileWidth, tileHeight);
-        }
-      }
-    } else {
-      this.ctx.fillStyle = '#333';
-      this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    }
+    // Draw pre-rendered background
+    const backgroundCanvas = this.spriteManager.getBackgroundCanvas(this.gameState.worldWidth, this.gameState.worldHeight);
+    this.ctx.drawImage(
+      backgroundCanvas,
+      this.cameraX,
+      this.cameraY,
+      this.ctx.canvas.width,
+      this.ctx.canvas.height,
+      0,
+      0,
+      this.ctx.canvas.width,
+      this.ctx.canvas.height
+    );
 
     this.ctx.strokeStyle = 'white';
     this.ctx.lineWidth = 2;
@@ -744,7 +741,8 @@ export class GameEngine {
       this.gameState.worldHeight
     );
 
-    this.entityManager.draw(this.ctx, this.cameraX, this.cameraY);
+    // Pass camera bounds for culling
+    this.entityManager.draw(this.ctx, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
 
     if (this.gameState.vendor.isPlayerInRange(this.gameState.player) && !this.gameState.showShop) {
       this.ctx.fillStyle = 'white';

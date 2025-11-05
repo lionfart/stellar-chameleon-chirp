@@ -5,6 +5,7 @@ export class BossAttackVisual {
   private duration: number;
   private currentDuration: number;
   private color: string;
+  size: number; // NEW: Add size property for culling
 
   constructor(x: number, y: number, radius: number, duration: number = 0.5, color: string = 'red') {
     this.x = x;
@@ -13,6 +14,7 @@ export class BossAttackVisual {
     this.duration = duration;
     this.currentDuration = 0;
     this.color = color;
+    this.size = radius * 2; // NEW: Initialize size based on radius for culling
   }
 
   update(deltaTime: number): boolean {
