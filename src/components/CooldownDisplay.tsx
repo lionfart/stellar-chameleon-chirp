@@ -2,6 +2,7 @@ import React from 'react';
 import { Progress } from '@/components/Progress';
 import { Icon as LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
 
 interface CooldownDisplayProps {
   Icon: React.ElementType<any>;
@@ -22,9 +23,10 @@ const CooldownDisplay: React.FC<CooldownDisplayProps> = ({
   iconSizeClass = 'h-5 w-5',
   progressBarHeightClass = 'h-6', // Updated default height
 }) => {
+  const { t } = useLanguage(); // NEW: Use translation hook
   const isReady = currentCooldown <= 0;
   const cooldownPercentage = maxCooldown > 0 ? ((maxCooldown - currentCooldown) / maxCooldown) * 100 : 100;
-  const cooldownText = isReady ? 'Ready' : `${currentCooldown.toFixed(1)}s`;
+  const cooldownText = isReady ? t('ready') : `${currentCooldown.toFixed(1)}s`; // NEW: Translate 'Ready'
 
   // Extract base color from colorClass for shadow
   const shadowColorClass = colorClass.replace('text-', 'shadow-'); // e.g., "text-purple-500" -> "shadow-purple-500"

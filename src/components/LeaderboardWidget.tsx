@@ -4,12 +4,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy } from 'lucide-react';
 import { LeaderboardEntry } from '@/components/LeaderboardDialog'; // Re-use the interface
+import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
 
 interface LeaderboardWidgetProps {
   currentScoreEntry: LeaderboardEntry | null;
 }
 
 const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({ currentScoreEntry }) => {
+  const { t } = useLanguage(); // NEW: Use translation hook
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 
   useEffect(() => {
@@ -25,10 +27,10 @@ const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({ currentScoreEntry
       <CardHeader className="text-center">
         <CardTitle className="text-2xl text-white flex items-center justify-center space-x-2">
           <Trophy className="h-7 w-7 text-yellow-400" />
-          <span>Leaderboard</span>
+          <span>{t('leaderboard')}</span>
         </CardTitle>
         <CardDescription className="text-muted-foreground text-center">
-          Top scores from your adventures!
+          {t('leaderboardDescription')} {/* Assuming you'll add this key */}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
@@ -36,18 +38,18 @@ const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({ currentScoreEntry
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-700/70 hover:bg-gray-700/70">
-                <TableHead className="w-[50px] text-white">Rank</TableHead>
-                <TableHead className="text-white">Player</TableHead>
-                <TableHead className="text-white">Wave</TableHead>
-                <TableHead className="text-white">Letters</TableHead>
-                <TableHead className="text-right text-white">Score</TableHead>
+                <TableHead className="w-[50px] text-white">{t('rank')}</TableHead>
+                <TableHead className="text-white">{t('player')}</TableHead>
+                <TableHead className="text-white">{t('wave')}</TableHead>
+                <TableHead className="text-white">{t('letters')}</TableHead>
+                <TableHead className="text-right text-white">{t('score')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leaderboard.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
-                    No scores yet.
+                    {t('noScoresYet')}
                   </TableCell>
                 </TableRow>
               ) : (

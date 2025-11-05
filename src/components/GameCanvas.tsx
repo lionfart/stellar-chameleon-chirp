@@ -7,6 +7,7 @@ import Minimap from './Minimap';
 import { showSuccess } from '@/utils/toast';
 import LeaderboardWidget from './LeaderboardWidget'; // NEW
 import RestartButton from './RestartButton'; // NEW
+import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
 
 interface ShopItem {
   id: string;
@@ -21,35 +22,35 @@ interface GameCanvasProps {
   initialSoundVolume: number;
 }
 
-const getLevelUpOptions = (gameState: any) => {
+const getLevelUpOptions = (gameState: any, t: (key: string) => string) => { // NEW: Pass t function
   const options = [
-    { id: 'aura_damage', name: 'Increase Aura Damage', description: 'Your aura deals more damage to enemies.' },
-    { id: 'player_speed', name: 'Increase Movement Speed', description: 'Move faster across the map.' },
-    { id: 'player_health', name: 'Increase Max Health', description: 'Gain more maximum health and heal to full.' },
-    { id: 'projectile_damage', name: 'Increase Projectile Damage', description: 'Your projectiles deal more damage.' },
-    { id: 'projectile_fire_rate', name: 'Increase Projectile Fire Rate', description: 'Your projectiles fire more frequently.' },
-    { id: 'homing_missile_damage', name: 'Increase Missile Damage', description: 'Your homing missiles deal more damage.' },
-    { id: 'homing_missile_fire_rate', name: 'Increase Missile Fire Rate', description: 'Your homing missiles fire more frequently.' },
-    { id: 'homing_missile_count', name: 'Add Homing Missile', description: 'Fire an additional homing missile per volley.' },
-    { id: 'laser_beam_damage', name: 'Increase Laser Damage', description: 'Your laser beam deals more damage.' },
-    { id: 'laser_beam_range', name: 'Increase Laser Range', description: 'Your laser beam can target enemies further away.' },
-    { id: 'dash_cooldown', name: 'Reduce Dash Cooldown', description: 'Dash more often to evade enemies.' },
-    { id: 'blade_damage', name: 'Increase Blade Damage', description: 'Your spinning blades deal more damage.' },
-    { id: 'add_blade', name: 'Add Spinning Blade', description: 'Add another blade to orbit you, increasing coverage.' },
-    { id: 'explosion_damage', name: 'Increase Explosion Damage', description: 'Your explosion ability deals more damage.' },
-    { id: 'explosion_cooldown', name: 'Reduce Explosion Cooldown', description: 'Use your explosion ability more often.' },
-    { id: 'explosion_radius', name: 'Increase Explosion Radius', description: 'Your explosion ability affects a larger area.' },
-    { id: 'shield_health', name: 'Increase Shield Health', description: 'Your shield can absorb more damage.' },
-    { id: 'shield_regen', name: 'Increase Shield Regeneration', description: 'Your shield regenerates health faster when inactive.' },
-    { id: 'shield_cooldown', name: 'Reduce Shield Cooldown', description: 'Your shield becomes ready faster after breaking.' },
-    { id: 'heal_amount', name: 'Increase Heal Amount', description: 'Your heal ability restores more health.' },
-    { id: 'heal_cooldown', name: 'Reduce Heal Cooldown', description: 'Your heal ability becomes ready faster.' },
-    { id: 'time_slow_factor', name: 'Increase Time Slow Effect', description: 'Enemies are slowed down even more.' },
-    { id: 'time_slow_duration', name: 'Increase Time Slow Duration', description: 'Time slow lasts longer.' },
-    { id: 'time_slow_cooldown', name: 'Reduce Time Slow Cooldown', description: 'Use time slow more often.' },
-    { id: 'player_magnet_radius', name: 'Increase Magnet Radius', description: 'Increase the radius for collecting experience gems.' },
-    { id: 'experience_boost', name: 'Increase XP Gain', description: 'Gain more experience from defeated enemies.' },
-    { id: 'gold_boost', name: 'Increase Gold Gain', description: 'Gain more gold from defeated enemies.' },
+    { id: 'aura_damage', name: t('auraDamage'), description: t('auraDamageDesc') },
+    { id: 'player_speed', name: t('playerSpeed'), description: t('playerSpeedDesc') },
+    { id: 'player_health', name: t('playerHealth'), description: t('playerHealthDesc') },
+    { id: 'projectile_damage', name: t('projectileDamage'), description: t('projectileDamageDesc') },
+    { id: 'projectile_fire_rate', name: t('projectileFireRate'), description: t('projectileFireRateDesc') },
+    { id: 'homing_missile_damage', name: t('homingMissileDamage'), description: t('homingMissileDamageDesc') },
+    { id: 'homing_missile_fire_rate', name: t('homingMissileFireRate'), description: t('homingMissileFireRateDesc') },
+    { id: 'homing_missile_count', name: t('homingMissileCount'), description: t('homingMissileCountDesc') },
+    { id: 'laser_beam_damage', name: t('laserBeamDamage'), description: t('laserBeamDamageDesc') },
+    { id: 'laser_beam_range', name: t('laserBeamRange'), description: t('laserBeamRangeDesc') },
+    { id: 'dash_cooldown', name: t('dashCooldown'), description: t('dashCooldownDesc') },
+    { id: 'blade_damage', name: t('bladeDamage'), description: t('bladeDamageDesc') },
+    { id: 'add_blade', name: t('addBlade'), description: t('addBladeDesc') },
+    { id: 'explosion_damage', name: t('explosionDamage'), description: t('explosionDamageDesc') },
+    { id: 'explosion_cooldown', name: t('explosionCooldown'), description: t('explosionCooldownDesc') },
+    { id: 'explosion_radius', name: t('explosionRadius'), description: t('explosionRadiusDesc') },
+    { id: 'shield_health', name: t('shieldHealth'), description: t('shieldHealthDesc') },
+    { id: 'shield_regen', name: t('shieldRegen'), description: t('shieldRegenDesc') },
+    { id: 'shield_cooldown', name: t('shieldCooldown'), description: t('shieldCooldownDesc') },
+    { id: 'heal_amount', name: t('healAmount'), description: t('healAmountDesc') },
+    { id: 'heal_cooldown', name: t('healCooldown'), description: t('healCooldownDesc') },
+    { id: 'time_slow_factor', name: t('timeSlowFactor'), description: t('timeSlowFactorDesc') },
+    { id: 'time_slow_duration', name: t('timeSlowDuration'), description: t('timeSlowDurationDesc') },
+    { id: 'time_slow_cooldown', name: t('timeSlowCooldown'), description: t('timeSlowCooldownDesc') },
+    { id: 'player_magnet_radius', name: t('playerMagnetRadius'), description: t('playerMagnetRadiusDesc') },
+    { id: 'experience_boost', name: t('experienceBoost'), description: t('experienceBoostDesc') },
+    { id: 'gold_boost', name: t('goldBoost'), description: t('goldBoostDesc') },
   ];
 
   return options.filter(option => {
@@ -66,6 +67,20 @@ const getLevelUpOptions = (gameState: any) => {
   });
 };
 
+const getShopItems = (t: (key: string) => string): ShopItem[] => [ // Düzeltildi: Dönüş tipi ShopItem[] olarak belirtildi
+  { id: 'buy_aura_weapon', name: t('auraWeapon'), description: t('auraWeaponDesc'), cost: 100, type: 'weapon' },
+  { id: 'buy_projectile_weapon', name: t('projectileWeapon'), description: t('projectileWeaponDesc'), cost: 100, type: 'weapon' },
+  { id: 'buy_spinning_blade_weapon', name: t('spinningBladeWeapon'), description: t('spinningBladeWeaponDesc'), cost: 100, type: 'weapon' },
+  { id: 'buy_homing_missile_weapon', name: t('homingMissileWeapon'), description: t('homingMissileWeaponDesc'), cost: 120, type: 'weapon' },
+  { id: 'buy_laser_beam_weapon', name: t('laserBeamWeapon'), description: t('laserBeamWeaponDesc'), cost: 150, type: 'weapon' },
+  { id: 'buy_explosion_ability', name: t('explosionAbility'), description: t('explosionAbilityDesc'), cost: 150, type: 'ability' },
+  { id: 'buy_shield_ability', name: t('shieldAbility'), description: t('shieldAbilityDesc'), cost: 150, type: 'ability' },
+  { id: 'buy_heal_ability', name: t('healAbility'), description: t('healAbilityDesc'), cost: 120, type: 'ability' },
+  { id: 'buy_time_slow_ability', name: t('timeSlowAbility'), description: t('timeSlowAbilityDesc'), cost: 180, type: 'ability' },
+  { id: 'buy_health_potion', name: t('healthPotion'), description: t('healthPotionDesc'), cost: 50, type: 'consumable' },
+];
+
+
 const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume }) => {
   console.log("GameCanvas component rendering...");
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -76,6 +91,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
   const [currentShopItems, setCurrentShopItems] = useState<ShopItem[]>([]);
   const [playerGold, setPlayerGold] = useState(0);
   const notificationsShownRef = useRef(false);
+  const { t } = useLanguage(); // NEW: Use translation hook
 
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
     playerName: playerName,
@@ -123,12 +139,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
 
   const handleLevelUp = useCallback(() => {
     if (!gameEngineRef.current) return;
-    const availableOptions = getLevelUpOptions(gameEngineRef.current.getGameState());
+    const availableOptions = getLevelUpOptions(gameEngineRef.current.getGameState(), t); // NEW: Pass t
     const shuffled = [...availableOptions].sort(() => 0.5 - Math.random());
     setCurrentLevelUpOptions(shuffled.slice(0, 3));
     setShowLevelUpScreen(true);
     gameEngineRef.current?.pause();
-  }, []);
+  }, [t]); // NEW: Add t to dependencies
 
   const handleSelectUpgrade = useCallback((upgradeId: string) => {
     gameEngineRef.current?.applyUpgrade(upgradeId);
@@ -138,10 +154,23 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
 
   const handleOpenShop = useCallback((items: ShopItem[], gold: number) => {
     console.log("GameCanvas: handleOpenShop called.");
-    setCurrentShopItems(items);
+    // Filter shop items based on what's already owned, using translated names
+    const availableShopItems = getShopItems(t).filter(item => {
+      if (item.id === 'buy_aura_weapon' && gameEngineRef.current?.getGameState().auraWeapon) return false;
+      if (item.id === 'buy_projectile_weapon' && gameEngineRef.current?.getGameState().projectileWeapon) return false;
+      if (item.id === 'buy_spinning_blade_weapon' && gameEngineRef.current?.getGameState().spinningBladeWeapon) return false;
+      if (item.id === 'buy_homing_missile_weapon' && gameEngineRef.current?.getGameState().homingMissileWeapon) return false;
+      if (item.id === 'buy_laser_beam_weapon' && gameEngineRef.current?.getGameState().laserBeamWeapon) return false;
+      if (item.id === 'buy_explosion_ability' && gameEngineRef.current?.getGameState().explosionAbility) return false;
+      if (item.id === 'buy_shield_ability' && gameEngineRef.current?.getGameState().shieldAbility) return false;
+      if (item.id === 'buy_heal_ability' && gameEngineRef.current?.getGameState().healAbility) return false;
+      if (item.id === 'buy_time_slow_ability' && gameEngineRef.current?.getGameState().timeSlowAbility) return false;
+      return true;
+    });
+    setCurrentShopItems(availableShopItems);
     setPlayerGold(gold);
     setShowShopScreen(true);
-  }, []);
+  }, [t]); // NEW: Add t to dependencies
 
   const handleCloseShop = useCallback(() => {
     console.log("GameCanvas: handleCloseShop called.");
@@ -167,17 +196,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume);
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume); // Düzeltildi: 't' argümanı kaldırıldı
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {
-      setTimeout(() => showSuccess("Use W, A, S, D or Arrow Keys to move."), 500);
-      setTimeout(() => showSuccess("Press SHIFT to dash and evade enemies."), 2500);
-      setTimeout(() => showSuccess("Press Q to activate/deactivate your shield."), 4500);
-      setTimeout(() => showSuccess("Press E to trigger an explosion around you."), 6500);
-      setTimeout(() => showSuccess("Press R to use your heal ability."), 8500);
-      setTimeout(() => showSuccess("Press T to slow down time for enemies."), 10500);
-      setTimeout(() => showSuccess("Find the Vendor (gold '$' icon) and press F to open the shop!"), 12500);
+      setTimeout(() => showSuccess(t('moveKeys')), 500); // NEW: Use translated messages
+      setTimeout(() => showSuccess(t('dashKey')), 2500);
+      setTimeout(() => showSuccess(t('abilitiesKeys')), 4500);
+      setTimeout(() => showSuccess(t('vendorShop')), 12500);
       notificationsShownRef.current = true;
     }
 
@@ -198,7 +224,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume]);
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t]); // NEW: Add t to dependencies
 
   const isGameOverOrWon = gameDataState.gameOver || gameDataState.gameWon;
 
@@ -222,7 +248,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       {isGameOverOrWon && (
         <div className="absolute inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center z-50 p-4">
           <h1 className="text-6xl font-bold text-white drop-shadow-lg mb-8">
-            {gameDataState.gameWon ? 'YOU WIN!' : 'GAME OVER'}
+            {gameDataState.gameWon ? t('youWin') : t('gameOver')} {/* NEW: Translate game over/win messages */}
           </h1>
           <div className="space-y-4 w-full max-w-md">
             <LeaderboardWidget currentScoreEntry={gameDataState.lastGameScoreEntry} />

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import EntryScreen from "./pages/EntryScreen"; // New entry screen
 import GamePage from "./pages/GamePage"; // Renamed from Index
 import NotFound from "./pages/NotFound";
+import { LanguageProvider } from "@/contexts/LanguageContext"; // Düzeltildi: './contexts/LanguageContext' yerine '@/contexts/LanguageContext'
 
 const queryClient = new QueryClient();
 
@@ -15,12 +16,14 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<EntryScreen />} /> {/* New entry point */}
-          <Route path="/game" element={<GamePage />} /> {/* Game page */}
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <LanguageProvider>
+          <Routes>
+            <Route path="/" element={<EntryScreen />} />
+            <Route path="/game" element={<GamePage />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </LanguageProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

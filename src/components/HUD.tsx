@@ -4,6 +4,7 @@ import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react';
 import CooldownDisplay from './CooldownDisplay';
+import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
 
 export interface HUDProps {
   playerName: string;
@@ -70,6 +71,8 @@ const HUD: React.FC<HUDProps> = ({
   gameWon,
   gameOver, // NEW
 }) => {
+  const { t } = useLanguage(); // NEW: Use translation hook
+
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
   const shieldPercentage = shieldMaxHealth > 0 ? (shieldCurrentHealth / shieldMaxHealth) * 100 : 0;
@@ -102,12 +105,12 @@ const HUD: React.FC<HUDProps> = ({
                 <Progress value={xpPercentage} className="h-3" indicatorClassName="bg-blue-500" />
                 <span className="text-sm text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
               </div>
-              <Badge variant="secondary" className="text-base">Lv. {playerLevel}</Badge>
+              <Badge variant="secondary" className="text-base">{t('levelUpShort')} {playerLevel}</Badge> {/* NEW: Translate 'Lv.' */}
             </div>
 
             <div className="flex items-center space-x-2">
               <Gem className="h-6 w-6 text-yellow-500" />
-              <span className="text-base font-medium">{playerGold} Gold</span>
+              <span className="text-base font-medium">{playerGold} {t('gold')}</span> {/* NEW: Translate 'Gold' */}
             </div>
 
             {shieldMaxHealth > 0 && (
@@ -116,7 +119,7 @@ const HUD: React.FC<HUDProps> = ({
                 <div className="flex-1">
                   <Progress value={shieldPercentage} className="h-3" indicatorClassName="bg-cyan-400" />
                   <span className="text-sm text-muted-foreground">
-                    {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} Shield` : 'Shield Inactive'}
+                    {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')} {/* NEW: Translate shield status */}
                   </span>
                 </div>
               </div>
@@ -129,7 +132,7 @@ const HUD: React.FC<HUDProps> = ({
           <CardContent className="p-0 space-y-2">
             <CooldownDisplay
               Icon={Footprints}
-              name="Dash"
+              name={t('dash')} // NEW: Translate ability name
               currentCooldown={dashCooldownCurrent}
               maxCooldown={dashCooldownMax}
               colorClass="text-purple-500"
@@ -140,7 +143,7 @@ const HUD: React.FC<HUDProps> = ({
             {explosionCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={Bomb}
-                name="Explosion"
+                name={t('explosion')} // NEW: Translate ability name
                 currentCooldown={explosionCooldownCurrent}
                 maxCooldown={explosionCooldownMax}
                 colorClass="text-orange-500"
@@ -150,7 +153,7 @@ const HUD: React.FC<HUDProps> = ({
             {shieldCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={Shield}
-                name="Shield"
+                name={t('shield')} // NEW: Translate ability name
                 currentCooldown={shieldCooldownCurrent}
                 maxCooldown={shieldCooldownMax}
                 colorClass="text-blue-500"
@@ -160,7 +163,7 @@ const HUD: React.FC<HUDProps> = ({
             {healCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={PlusCircle}
-                name="Heal"
+                name={t('heal')} // NEW: Translate ability name
                 currentCooldown={healCooldownCurrent}
                 maxCooldown={healCooldownMax}
                 colorClass="text-green-500"
@@ -170,7 +173,7 @@ const HUD: React.FC<HUDProps> = ({
             {timeSlowCooldownMax > 0 && (
               <CooldownDisplay
                 Icon={Hourglass}
-                name="Time Slow"
+                name={t('timeSlow')} // NEW: Translate ability name
                 currentCooldown={timeSlowCooldownCurrent}
                 maxCooldown={timeSlowCooldownMax}
                 colorClass="text-indigo-400"
@@ -186,7 +189,7 @@ const HUD: React.FC<HUDProps> = ({
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center justify-center space-x-2">
               <Swords className="h-6 w-6 text-purple-500" />
-              <span className="text-base font-medium">Wave {waveNumber}</span>
+              <span className="text-base font-medium">{t('waveText')} {waveNumber}</span> {/* NEW: Translate 'Wave' */}
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Clock className="h-6 w-6 text-gray-500" />
@@ -195,7 +198,7 @@ const HUD: React.FC<HUDProps> = ({
             {/* Collected Letters Display */}
             <div className="flex items-center justify-center space-x-1 mt-2">
               <Crown className="h-5 w-5 text-yellow-400" />
-              <span className="text-sm font-medium text-white">Simge:</span>
+              <span className="text-sm font-medium text-white">{t('simge')}:</span> {/* NEW: Translate 'Simge' */}
               {princessName.map((letter, index) => (
                 <Badge
                   key={index}

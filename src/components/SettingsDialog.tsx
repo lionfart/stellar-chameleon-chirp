@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Volume2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -12,19 +13,21 @@ interface SettingsDialogProps {
 }
 
 const SettingsDialog: React.FC<SettingsDialogProps> = ({ isOpen, onClose, currentVolume, onVolumeChange }) => {
+  const { t } = useLanguage(); // NEW: Use translation hook
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-background/90 backdrop-blur-md shadow-2xl border border-primary/30">
         <DialogHeader>
-          <DialogTitle className="text-2xl text-white">Game Settings</DialogTitle>
+          <DialogTitle className="text-2xl text-white">{t('gameSettings')}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Adjust game preferences here.
+            {t('adjustPreferences')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="flex items-center space-x-4">
             <Volume2 className="h-6 w-6 text-white" />
-            <Label htmlFor="volume" className="text-white w-20">Volume</Label>
+            <Label htmlFor="volume" className="text-white w-20">{t('volume')}</Label>
             <Slider
               id="volume"
               min={0}
