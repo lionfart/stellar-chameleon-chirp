@@ -1,15 +1,15 @@
 import { Shield } from './Shield';
-import { SoundManager } from './SoundManager'; // Import SoundManager
+import { SoundManager } from './SoundManager';
 
 export class ShieldAbility {
   shield: Shield;
   private cooldown: number; // seconds
   private currentCooldown: number;
   private regenerationRate: number; // health per second
-  private soundManager: SoundManager; // New: SoundManager instance
+  private soundManager: SoundManager;
 
   constructor(initialRadius: number, initialMaxHealth: number, cooldown: number, regenerationRate: number, soundManager: SoundManager) {
-    this.soundManager = soundManager; // Assign SoundManager
+    this.soundManager = soundManager;
     this.shield = new Shield(initialRadius, initialMaxHealth, this.soundManager);
     this.cooldown = cooldown;
     this.currentCooldown = 0;
@@ -77,6 +77,11 @@ export class ShieldAbility {
   }
 
   getCooldownMax(): number {
+    return this.cooldown;
+  }
+
+  // Adding the missing getMaxCooldown method
+  getMaxCooldown(): number {
     return this.cooldown;
   }
 }

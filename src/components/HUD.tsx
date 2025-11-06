@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react';
 import CooldownDisplay from './CooldownDisplay';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { cn } from '@/lib/utils'; // NEW: Import cn for conditional classNames
+import { cn } from '@/lib/utils';
 
 export interface HUDProps {
   playerName: string;
@@ -39,7 +39,7 @@ export interface HUDProps {
   collectedLetters: string[];
   gameWon: boolean;
   gameOver: boolean;
-  isMobile: boolean; // NEW: Add isMobile prop
+  isMobile: boolean;
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -72,7 +72,7 @@ const HUD: React.FC<HUDProps> = ({
   collectedLetters,
   gameWon,
   gameOver,
-  isMobile, // NEW
+  isMobile,
 }) => {
   const { t } = useLanguage();
 
@@ -85,54 +85,54 @@ const HUD: React.FC<HUDProps> = ({
 
   return (
     <>
-      {/* Left HUD - Player Stats */}
-      <div className="absolute top-1 left-1 flex flex-col space-y-1 pointer-events-none z-40"> {/* Konum ve boşluk güncellendi */}
-        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] max-h-[calc(50vh-0.5rem)] overflow-y-auto"> {/* Boyut ve padding güncellendi */}
-          <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
-            <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <User className="h-4 w-4 text-gray-400" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-xs font-medium text-white truncate">{playerName}</span> {/* Font boyutu küçültüldü */}
+      {/* Sol Üst HUD - Oyuncu İstatistikleri */}
+      <div className="absolute top-1 left-1 flex flex-col space-y-1 pointer-events-none z-40">
+        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] max-h-[calc(50vh-0.5rem)] overflow-y-auto">
+          <CardContent className="p-0 space-y-1">
+            <div className="flex items-center space-x-1">
+              <User className="h-4 w-4 text-gray-400" />
+              <span className="text-xs font-medium text-white truncate">{playerName}</span>
             </div>
-            <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Heart className="h-4 w-4 text-red-500" /> {/* İkon boyutu küçültüldü */}
+            <div className="flex items-center space-x-1">
+              <Heart className="h-4 w-4 text-red-500" />
               <div className="flex-1">
-                <Progress value={healthPercentage} className="h-1.5" indicatorClassName="bg-red-500" /> {/* Yükseklik küçültüldü */}
-                <span className="text-[0.65rem] text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
+                <Progress value={healthPercentage} className="h-1.5" indicatorClassName="bg-red-500" />
+                <span className="text-[0.65rem] text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Zap className="h-4 w-4 text-blue-500" /> {/* İkon boyutu küçültüldü */}
+            <div className="flex items-center space-x-1">
+              <Zap className="h-4 w-4 text-blue-500" />
               <div className="flex-1">
-                <Progress value={xpPercentage} className="h-1.5" indicatorClassName="bg-blue-500" /> {/* Yükseklik küçültüldü */}
-                <span className="text-[0.65rem] text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span> {/* Font boyutu küçültüldü */}
+                <Progress value={xpPercentage} className="h-1.5" indicatorClassName="bg-blue-500" />
+                <span className="text-[0.65rem] text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
               </div>
-              <Badge variant="secondary" className="text-[0.65rem]">{t('levelUpShort')} {playerLevel}</Badge> {/* Font boyutu küçültüldü */}
+              <Badge variant="secondary" className="text-[0.65rem]">{t('levelUpShort')} {playerLevel}</Badge>
             </div>
 
-            <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Gem className="h-4 w-4 text-yellow-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-xs font-medium">{playerGold} {t('gold')}</span> {/* Font boyutu küçültüldü */}
+            <div className="flex items-center space-x-1">
+              <Gem className="h-4 w-4 text-yellow-500" />
+              <span className="text-xs font-medium">{playerGold} {t('gold')}</span>
             </div>
 
             {shieldMaxHealth > 0 && (
-              <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-                <Shield className={`h-4 w-4 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} /> {/* İkon boyutu küçültüldü */}
+              <div className="flex items-center space-x-1">
+                <Shield className={`h-4 w-4 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
                 <div className="flex-1">
-                  <Progress value={shieldPercentage} className="h-1.5" indicatorClassName="bg-cyan-400" /> {/* Yükseklik küçültüldü */}
+                  <Progress value={shieldPercentage} className="h-1.5" indicatorClassName="bg-cyan-400" />
                   <span className="text-[0.65rem] text-muted-foreground">
                     {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
-                  </span> {/* Font boyutu küçültüldü */}
+                  </span>
                 </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Ability Cooldowns (Only show on desktop, mobile has dedicated buttons) */}
+        {/* Yetenek Bekleme Süreleri (Sadece masaüstü için) */}
         {!isMobile && (
-          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-1rem)] overflow-y-auto"> {/* Padding ve max-h güncellendi */}
-            <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
+          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-1rem)] overflow-y-auto">
+            <CardContent className="p-0 space-y-1">
               <CooldownDisplay
                 Icon={Footprints}
                 name={t('dash')}
@@ -195,28 +195,28 @@ const HUD: React.FC<HUDProps> = ({
         )}
       </div>
 
-      {/* Top-Center HUD - Wave Info and Collected Letters */}
-      <div className="absolute top-1 left-1/2 -translate-x-1/2 pointer-events-none z-40"> {/* Konum güncellendi */}
-        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[120px] text-center"> {/* Boyut ve padding güncellendi */}
-          <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
-            <div className="flex items-center justify-center space-x-1"> {/* Boşluk güncellendi */}
-              <Swords className="h-4 w-4 text-purple-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-xs font-medium">{t('waveText')} {waveNumber}</span> {/* Font boyutu küçültüldü */}
+      {/* Üst Orta HUD - Dalga Bilgisi ve Toplanan Harfler */}
+      <div className="absolute top-1 left-1/2 -translate-x-1/2 pointer-events-none z-40">
+        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[120px] text-center">
+          <CardContent className="p-0 space-y-1">
+            <div className="flex items-center justify-center space-x-1">
+              <Swords className="h-4 w-4 text-purple-500" />
+              <span className="text-xs font-medium">{t('waveText')} {waveNumber}</span>
             </div>
-            <div className="flex items-center justify-center space-x-1"> {/* Boşluk güncellendi */}
-              <Clock className="h-4 w-4 text-gray-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-xs font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span> {/* Font boyutu küçültüldü */}
+            <div className="flex items-center justify-center space-x-1">
+              <Clock className="h-4 w-4 text-gray-500" />
+              <span className="text-xs font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
             </div>
-            {/* Collected Letters Display */}
-            <div className="flex items-center justify-center space-x-0.5 mt-1"> {/* Boşluk ve margin güncellendi */}
-              <Crown className="h-3 w-3 text-yellow-400" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-[0.65rem] font-medium text-white">{t('simge')}:</span> {/* Font boyutu küçültüldü */}
+            {/* Toplanan Harfler Göstergesi */}
+            <div className="flex items-center justify-center space-x-0.5 mt-1">
+              <Crown className="h-3 w-3 text-yellow-400" />
+              <span className="text-[0.65rem] font-medium text-white">{t('simge')}:</span>
               {princessName.map((letter, index) => (
                 <Badge
                   key={index}
                   variant={collectedLetters.includes(letter) ? 'default' : 'outline'}
                   className={`text-[0.65rem] font-bold ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
-                > {/* Font boyutu küçültüldü */}
+                >
                   {letter}
                 </Badge>
               ))}
@@ -225,14 +225,14 @@ const HUD: React.FC<HUDProps> = ({
         </Card>
       </div>
 
-      {/* Top-Right HUD - Boss Health Bar */}
+      {/* Üst Sağ HUD - Boss Sağlık Çubuğu */}
       {bossActive && (
-        <div className="absolute top-1 right-1 w-full max-w-[160px] pointer-events-none z-40"> {/* Konum ve max-w güncellendi */}
-          <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-red-500/50 text-center"> {/* Padding güncellendi */}
-            <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
-              <h3 className="text-xs font-bold text-red-500 truncate">{bossName}</h3> {/* Font boyutu küçültüldü */}
-              <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" /> {/* Yükseklik küçültüldü */}
-              <span className="text-[0.65rem] text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
+        <div className="absolute top-1 right-1 w-full max-w-[160px] pointer-events-none z-40">
+          <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-red-500/50 text-center">
+            <CardContent className="p-0 space-y-1">
+              <h3 className="text-xs font-bold text-red-500 truncate">{bossName}</h3>
+              <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" />
+              <span className="text-[0.65rem] text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span>
             </CardContent>
           </Card>
         </div>
