@@ -87,42 +87,48 @@ const HUD: React.FC<HUDProps> = ({
     <>
       {/* Sol Üst HUD - Oyuncu İstatistikleri */}
       <div className="absolute top-1 left-1 flex flex-col space-y-1 pointer-events-none z-40">
-        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] max-h-[calc(50vh-0.5rem)] overflow-y-auto">
-          <CardContent className="p-0 space-y-1">
-            <div className="flex items-center space-x-1">
-              <User className="h-4 w-4 text-gray-400" />
-              <span className="text-xs font-medium text-white truncate">{playerName}</span>
+        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[180px]">
+          <CardContent className="p-0 space-y-2">
+            <div className="flex items-center space-x-2">
+              <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <span className="text-sm font-medium text-white truncate">{playerName}</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <Heart className="h-4 w-4 text-red-500" />
-              <div className="flex-1">
-                <Progress value={healthPercentage} className="h-1.5" indicatorClassName="bg-red-500" />
-                <span className="text-[0.65rem] text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span>
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <Heart className="h-5 w-5 text-red-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <Progress value={healthPercentage} className="h-2" indicatorClassName="bg-red-500" />
+                </div>
               </div>
+              <div className="text-xs text-muted-foreground ml-7">{playerHealth.toFixed(0)}/{playerMaxHealth} HP</div>
             </div>
 
-            <div className="flex items-center space-x-1">
-              <Zap className="h-4 w-4 text-blue-500" />
-              <div className="flex-1">
-                <Progress value={xpPercentage} className="h-1.5" indicatorClassName="bg-blue-500" />
-                <span className="text-[0.65rem] text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <Zap className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <Progress value={xpPercentage} className="h-2" indicatorClassName="bg-blue-500" />
+                </div>
+                <Badge variant="secondary" className="text-xs">{t('levelUpShort')} {playerLevel}</Badge>
               </div>
-              <Badge variant="secondary" className="text-[0.65rem]">{t('levelUpShort')} {playerLevel}</Badge>
+              <div className="text-xs text-muted-foreground ml-7">{playerExperience.toFixed(0)}/{playerExperienceToNextLevel} XP</div>
             </div>
 
-            <div className="flex items-center space-x-1">
-              <Gem className="h-4 w-4 text-yellow-500" />
-              <span className="text-xs font-medium">{playerGold} {t('gold')}</span>
+            <div className="flex items-center space-x-2">
+              <Gem className="h-5 w-5 text-yellow-500 flex-shrink-0" />
+              <span className="text-sm font-medium">{playerGold} {t('gold')}</span>
             </div>
 
             {shieldMaxHealth > 0 && (
-              <div className="flex items-center space-x-1">
-                <Shield className={`h-4 w-4 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
-                <div className="flex-1">
-                  <Progress value={shieldPercentage} className="h-1.5" indicatorClassName="bg-cyan-400" />
-                  <span className="text-[0.65rem] text-muted-foreground">
-                    {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
-                  </span>
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Shield className={`h-5 w-5 flex-shrink-0 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
+                  <div className="flex-1">
+                    <Progress value={shieldPercentage} className="h-2" indicatorClassName="bg-cyan-400" />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground ml-7">
+                  {shieldActive ? `${shieldCurrentHealth.toFixed(0)}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
                 </div>
               </div>
             )}
@@ -131,16 +137,16 @@ const HUD: React.FC<HUDProps> = ({
 
         {/* Yetenek Bekleme Süreleri (Sadece masaüstü için) */}
         {!isMobile && (
-          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-1rem)] overflow-y-auto">
-            <CardContent className="p-0 space-y-1">
+          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[180px]">
+            <CardContent className="p-0 space-y-2">
               <CooldownDisplay
                 Icon={Footprints}
                 name={t('dash')}
                 currentCooldown={dashCooldownCurrent}
                 maxCooldown={dashCooldownMax}
                 colorClass="text-purple-500"
-                iconSizeClass="h-4 w-4"
-                progressBarHeightClass="h-4"
+                iconSizeClass="h-5 w-5"
+                progressBarHeightClass="h-2"
               />
 
               {explosionCooldownMax > 0 && (
@@ -150,8 +156,8 @@ const HUD: React.FC<HUDProps> = ({
                   currentCooldown={explosionCooldownCurrent}
                   maxCooldown={explosionCooldownMax}
                   colorClass="text-orange-500"
-                  iconSizeClass="h-4 w-4"
-                  progressBarHeightClass="h-4"
+                  iconSizeClass="h-5 w-5"
+                  progressBarHeightClass="h-2"
                 />
               )}
 
@@ -162,8 +168,8 @@ const HUD: React.FC<HUDProps> = ({
                   currentCooldown={shieldCooldownCurrent}
                   maxCooldown={shieldCooldownMax}
                   colorClass="text-blue-500"
-                  iconSizeClass="h-4 w-4"
-                  progressBarHeightClass="h-4"
+                  iconSizeClass="h-5 w-5"
+                  progressBarHeightClass="h-2"
                 />
               )}
 
@@ -174,8 +180,8 @@ const HUD: React.FC<HUDProps> = ({
                   currentCooldown={healCooldownCurrent}
                   maxCooldown={healCooldownMax}
                   colorClass="text-green-500"
-                  iconSizeClass="h-4 w-4"
-                  progressBarHeightClass="h-4"
+                  iconSizeClass="h-5 w-5"
+                  progressBarHeightClass="h-2"
                 />
               )}
 
@@ -186,8 +192,8 @@ const HUD: React.FC<HUDProps> = ({
                   currentCooldown={timeSlowCooldownCurrent}
                   maxCooldown={timeSlowCooldownMax}
                   colorClass="text-indigo-400"
-                  iconSizeClass="h-4 w-4"
-                  progressBarHeightClass="h-4"
+                  iconSizeClass="h-5 w-5"
+                  progressBarHeightClass="h-2"
                 />
               )}
             </CardContent>
@@ -197,25 +203,25 @@ const HUD: React.FC<HUDProps> = ({
 
       {/* Üst Orta HUD - Dalga Bilgisi ve Toplanan Harfler */}
       <div className="absolute top-1 left-1/2 -translate-x-1/2 pointer-events-none z-40">
-        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[120px] text-center">
-          <CardContent className="p-0 space-y-1">
-            <div className="flex items-center justify-center space-x-1">
-              <Swords className="h-4 w-4 text-purple-500" />
-              <span className="text-xs font-medium">{t('waveText')} {waveNumber}</span>
+        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] text-center">
+          <CardContent className="p-0 space-y-2">
+            <div className="flex items-center justify-center space-x-2">
+              <Swords className="h-5 w-5 text-purple-500" />
+              <span className="text-sm font-medium">{t('waveText')} {waveNumber}</span>
             </div>
-            <div className="flex items-center justify-center space-x-1">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-xs font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
+            <div className="flex items-center justify-center space-x-2">
+              <Clock className="h-5 w-5 text-gray-500" />
+              <span className="text-sm font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
             </div>
             {/* Toplanan Harfler Göstergesi */}
-            <div className="flex items-center justify-center space-x-0.5 mt-1">
-              <Crown className="h-3 w-3 text-yellow-400" />
-              <span className="text-[0.65rem] font-medium text-white">{t('simge')}:</span>
+            <div className="flex items-center justify-center space-x-1 mt-1">
+              <Crown className="h-4 w-4 text-yellow-400 flex-shrink-0" />
+              <span className="text-xs font-medium text-white">{t('simge')}:</span>
               {princessName.map((letter, index) => (
                 <Badge
                   key={index}
                   variant={collectedLetters.includes(letter) ? 'default' : 'outline'}
-                  className={`text-[0.65rem] font-bold ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
+                  className={`text-xs font-bold h-5 ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
                 >
                   {letter}
                 </Badge>
@@ -227,12 +233,14 @@ const HUD: React.FC<HUDProps> = ({
 
       {/* Üst Sağ HUD - Boss Sağlık Çubuğu */}
       {bossActive && (
-        <div className="absolute top-1 right-1 w-full max-w-[160px] pointer-events-none z-40">
-          <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-red-500/50 text-center">
-            <CardContent className="p-0 space-y-1">
-              <h3 className="text-xs font-bold text-red-500 truncate">{bossName}</h3>
-              <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" />
-              <span className="text-[0.65rem] text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span>
+        <div className="absolute top-1 right-1 w-full max-w-[200px] pointer-events-none z-40">
+          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-red-500/50 text-center">
+            <CardContent className="p-0 space-y-2">
+              <h3 className="text-sm font-bold text-red-500 truncate">{bossName}</h3>
+              <div className="space-y-1">
+                <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" />
+                <div className="text-xs text-muted-foreground">{bossHealth.toFixed(0)}/{bossMaxHealth} HP</div>
+              </div>
             </CardContent>
           </Card>
         </div>
