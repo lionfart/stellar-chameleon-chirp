@@ -24,7 +24,7 @@ import { BossAttackVisual } from './BossAttackVisual';
 import { EntityManager } from './EntityManager';
 import { showSuccess, showError } from '@/utils/toast';
 import { LeaderboardEntry } from '@/components/LeaderboardDialog';
-import { TranslationKeys } from '@/i18n/translations'; // NEW: Import TranslationKeys
+import { TranslationKeys } from '@/i18n/translations';
 
 interface ShopItem {
   id: string;
@@ -103,9 +103,9 @@ export class GameEngine {
   private assetsLoaded: boolean = false;
   private gameOverSoundPlayed: boolean = false;
   private gameWinSoundPlayed: boolean = false;
-  private backgroundMusicInstance: HTMLAudioElement | null = null;
-  private t: (key: TranslationKeys) => string; // NEW: Add translation function
-  private isMobile: boolean; // NEW: Track mobile status
+  private backgroundMusicInstance: AudioBufferSourceNode | null = null;
+  private t: (key: TranslationKeys) => string;
+  private isMobile: boolean;
 
   private gameState: GameState;
   private waveManager: WaveManager;
@@ -130,8 +130,17 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number, t: (key: TranslationKeys) => string, isMobile: boolean) { // NEW: Add t and isMobile to constructor
-    // console.log("GameEngine constructor called!"); // Removed for optimization
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    onLevelUp: () => void,
+    onOpenShop: (items: ShopItem[], playerGold: number) => void,
+    onCloseShop: () => void,
+    onUpdateGameData: (gameData: GameDataProps) => void,
+    playerName: string,
+    initialSoundVolume: number,
+    t: (key: TranslationKeys) => string,
+    isMobile: boolean
+  ) {
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
     this.onLevelUpCallback = onLevelUp;
@@ -140,18 +149,28 @@ export class GameEngine {
     this.onUpdateGameDataCallback = onUpdateGameData;
     this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume);
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
-    this.t = t; // NEW: Assign t
-    this.isMobile = isMobile; // NEW: Assign isMobile
+    this.t = t;
+    this.isMobile = isMobile;
 
-    const playerSize = this.isMobile ? 20 : 30; // NEW: Adjust player size for mobile (from 25 to 20)
-    const playerSpeed = this.isMobile ? 160 : 200; // NEW: Adjust player speed for mobile (from 180 to 160)
-    const vendorSize = this.isMobile ? 35 : 50; // NEW: Adjust vendor size for mobile (from 40 to 35)
+    const playerSize = this.isMobile ? 20 : 30;
+    const playerSpeed = this.isMobile ? 160 : 200;
+    const vendorSize = this.isMobile ? 35 : 50;
 
-    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, playerSize, playerSpeed, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
+    const player = new Player(
+      this.worldWidth / 2,
+      this.worldHeight / 2,
+      playerSize,
+      playerSpeed,
+      'blue',
+      100,
+      this.triggerLevelUp,
+      undefined,
+      this.soundManager
+    );
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, vendorSize, undefined);
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, playerName, initialSoundVolume);
-    
+
     const startingWeapons = [
       new AuraWeapon(10, 100, 0.5),
       new ProjectileWeapon(15, 300, 1.5, 8, 3, undefined, this.soundManager),
@@ -172,10 +191,17 @@ export class GameEngine {
     } else if (initialWeapon instanceof LaserBeamWeapon) {
       this.gameState.laserBeamWeapon = initialWeapon;
     }
-    
+
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat, this.isMobile); // NEW: Pass isMobile
-    
+    this.waveManager = new WaveManager(
+      this.gameState,
+      this.spriteManager,
+      this.soundManager,
+      this.entityManager,
+      this.handleBossDefeat,
+      this.isMobile
+    );
+
     this.lastTime = 0;
     this.animationFrameId = null;
 
@@ -183,7 +209,7 @@ export class GameEngine {
   }
 
   private loadAssets() {
-    const playerSize = this.gameState.player.size * 2; // Use player's size for sprite scaling
+    const playerSize = this.gameState.player.size * 2;
     this.spriteManager.loadSprite('player_idle', SpriteManager.getPlayerIdleSpriteSVG(playerSize));
     this.spriteManager.loadSprite('player_walk_0', SpriteManager.getPlayerWalk0SpriteSVG(playerSize));
     this.spriteManager.loadSprite('player_walk_1', SpriteManager.getPlayerWalk1SpriteSVG(playerSize));
@@ -194,58 +220,46 @@ export class GameEngine {
     this.spriteManager.loadSprite('enemy_fast', SpriteManager.getEnemyFastSpriteSVG(30));
     this.spriteManager.loadSprite('enemy_tanky', SpriteManager.getEnemyTankySpriteSVG(50));
     this.spriteManager.loadSprite('enemy_shooter', SpriteManager.getEnemyShooterSpriteSVG(45));
-    this.spriteManager.loadSprite('projectile', SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
-    this.spriteManager.loadSprite('player_projectile', SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16));
-    this.spriteManager.loadSprite('spinning_blade', SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20));
-    this.spriteManager.loadSprite('homing_missile', SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24));
+    this.spriteManager.loadSprite(
+      'projectile',
+      SpriteManager.getProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)
+    );
+    this.spriteManager.loadSprite(
+      'player_projectile',
+      SpriteManager.getPlayerProjectileSpriteSVG(this.gameState.projectileWeapon?.projectileRadius ? this.gameState.projectileWeapon.projectileRadius * 2 : 16)
+    );
+    this.spriteManager.loadSprite(
+      'spinning_blade',
+      SpriteManager.getSpinningBladeSpriteSVG(this.gameState.spinningBladeWeapon?.bladeRadius ? this.gameState.spinningBladeWeapon.bladeRadius * 2 : 20)
+    );
+    this.spriteManager.loadSprite(
+      'homing_missile',
+      SpriteManager.getHomingMissileSpriteSVG(this.gameState.homingMissileWeapon?.missileRadius ? this.gameState.homingMissileWeapon.missileRadius * 2 : 24)
+    );
     this.spriteManager.loadSprite('laser_beam', SpriteManager.getLaserBeamSpriteSVG(20));
     this.spriteManager.loadSprite('experience_gem', SpriteManager.getExperienceGemSpriteSVG(20));
     this.spriteManager.loadSprite('magnet_powerup', SpriteManager.getMagnetPowerUpSpriteSVG(40));
     this.spriteManager.loadSprite('background_tile', SpriteManager.getBackgroundTileSVG(100));
     this.spriteManager.loadSprite('vendor', SpriteManager.getVendorSpriteSVG(this.gameState.vendor.size * 2));
     this.spriteManager.loadSprite('time_slow_ability', SpriteManager.getTimeSlowAbilitySpriteSVG(40));
-    
+
     this.spriteManager.loadSprite('boss_s', SpriteManager.getBossSSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_i', SpriteManager.getBossISpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_m', SpriteManager.getBossMSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_g', SpriteManager.getBossGSpriteSVG(80 * 2));
     this.spriteManager.loadSprite('boss_e', SpriteManager.getBossESpriteSVG(80 * 2));
-    this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2)); 
-
-    this.soundManager.loadSound('dash', SoundManager.getDashSound());
-    this.soundManager.loadSound('level_up', SoundManager.getLevelUpSound());
-    this.soundManager.loadSound('enemy_hit', SoundManager.getEnemyHitSound());
-    this.soundManager.loadSound('enemy_defeat', SoundManager.getEnemyDefeatSound());
-    this.soundManager.loadSound('projectile_fire', SoundManager.getProjectileFireSound());
-    this.soundManager.loadSound('homing_missile_fire', SoundManager.getHomingMissileFireSound());
-    this.soundManager.loadSound('laser_beam_fire', SoundManager.getLaserBeamFireSound());
-    this.soundManager.loadSound('laser_beam_loop', SoundManager.getLaserBeamLoopSound());
-    this.soundManager.loadSound('explosion', SoundManager.getExplosionSound());
-    this.soundManager.loadSound('shield_activate', SoundManager.getShieldActivateSound());
-    this.soundManager.loadSound('shield_deactivate', SoundManager.getShieldDeactivateSound());
-    this.soundManager.loadSound('shield_break', SoundManager.getShieldBreakSound());
-    this.soundManager.loadSound('time_slow_activate', SoundManager.getTimeSlowActivateSound());
-    this.soundManager.loadSound('time_slow_deactivate', SoundManager.getTimeSlowDeactivateSound());
-    this.soundManager.loadSound('gem_collect', SoundManager.getGemCollectSound());
-    this.soundManager.loadSound('magnet_collect', SoundManager.getMagnetCollectSound());
-    this.soundManager.loadSound('player_hit', SoundManager.getPlayerHitSound());
-    this.soundManager.loadSound('game_over', SoundManager.getGameOverSound());
-    this.soundManager.loadSound('game_win', SoundManager.getLevelUpSound());
-    this.soundManager.loadSound('background_music', SoundManager.getBackgroundMusic());
-    this.soundManager.loadSound('gold_collect', SoundManager.getGoldCollectSound());
+    this.spriteManager.loadSprite('boss', SpriteManager.getBossSpriteSVG(80 * 2));
   }
 
   private onAllAssetsLoaded = () => {
-    if (this.spriteManager['loadedCount'] === this.spriteManager['totalCount'] &&
-        this.soundManager['loadedCount'] === this.soundManager['totalCount']) {
+    if (this.spriteManager['loadedCount'] === this.spriteManager['totalCount']) {
       this.assetsLoaded = true;
-      // console.log("All game assets (sprites and sounds) loaded!"); // Removed for optimization
 
       // Set animated player sprites
       const playerAnimationFrames: HTMLImageElement[] = [];
       const idleFrame = this.spriteManager.getSprite('player_idle');
       if (idleFrame) playerAnimationFrames.push(idleFrame);
-      for (let i = 0; i < 4; i++) { // Assuming 4 walk frames
+      for (let i = 0; i < 4; i++) {
         const walkFrame = this.spriteManager.getSprite(`player_walk_${i}`);
         if (walkFrame) playerAnimationFrames.push(walkFrame);
       }
@@ -254,10 +268,8 @@ export class GameEngine {
       // Set animated enemy sprites (example for normal enemy)
       const enemyNormalSprite = this.spriteManager.getSprite('enemy_normal');
       if (enemyNormalSprite) {
-        // For simplicity, using the same sprite for all frames for now,
-        // but this could be extended with multiple frames for each enemy type.
         this.gameState.enemies.forEach(enemy => {
-          if (enemy.color === 'red') { // Assuming 'red' is normal enemy
+          if (enemy.color === 'red') {
             enemy.setSprite([enemyNormalSprite]);
           }
         });
@@ -297,19 +309,17 @@ export class GameEngine {
     if (this.gameState.nextLetterIndex < this.gameState.princessNameLetters.length) {
       const nextLetter = this.gameState.princessNameLetters[this.gameState.nextLetterIndex];
       this.gameState.collectedLetters.push(nextLetter);
-      showSuccess(this.t('collectedLetter') + ` ${nextLetter}!`); // NEW: Translate
+      showSuccess(this.t('collectedLetter') + ` ${nextLetter}!`);
       this.gameState.nextLetterIndex++;
 
       if (this.gameState.nextLetterIndex === this.gameState.princessNameLetters.length) {
         this.gameState.gameWon = true;
-        // console.log("All letters collected! Princess Simge rescued!"); // Removed for optimization
       }
     }
     this.gameState.currentBoss = undefined;
-  }
+  };
 
   pause() {
-    // console.log("GameEngine: Pausing game."); // Removed for optimization
     this.gameState.isPaused = true;
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
@@ -319,53 +329,54 @@ export class GameEngine {
   }
 
   resume() {
-    // console.log("GameEngine: Resuming game."); // Removed for optimization
     this.gameState.isPaused = false;
     this.lastTime = performance.now();
     if (!this.animationFrameId) {
       this.animationFrameId = requestAnimationFrame(this.gameLoop);
     }
     if (this.backgroundMusicInstance) {
-      this.backgroundMusicInstance.play().catch(e => console.warn("Failed to resume background music:", e));
+      // Arka plan müziğini yeniden başlatmak için yeni bir instance oluşturuyoruz
+      this.backgroundMusicInstance = this.soundManager.playSound('background_music', true, 0.3);
     }
   }
 
   openShop() {
     if (this.gameState.showShop) return;
-    // console.log("GameEngine: Opening shop."); // Removed for optimization
     this.gameState.showShop = true;
     this.pause();
-    this.onOpenShopCallback(this.shopItems.filter(item => {
-      if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
-      if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
-      if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-      if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-      if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
-      if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
-      if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
-      if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-      if (item.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
-      return true;
-    }), this.gameState.player.gold);
+    this.onOpenShopCallback(
+      this.shopItems.filter(item => {
+        if (item.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
+        if (item.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
+        if (item.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+        if (item.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+        if (item.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
+        if (item.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+        if (item.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+        if (item.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
+        if (item.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
+        return true;
+      }),
+      this.gameState.player.gold
+    );
   }
 
   closeShop = () => {
     if (!this.gameState.showShop) return;
-    // console.log("GameEngine: Closing shop."); // Removed for optimization
     this.onCloseShopCallback();
     this.gameState.showShop = false;
     this.resume();
-  }
+  };
 
   purchaseItem = (itemId: string) => {
     const item = this.shopItems.find(i => i.id === itemId);
     if (!item) {
-      showError(this.t('itemNotFound')); // NEW: Translate
+      showError(this.t('itemNotFound'));
       return;
     }
 
     if (this.gameState.player.spendGold(item.cost)) {
-      showSuccess(this.t('collectedLetter') + ` ${this.t(item.id as TranslationKeys)}!`); // NEW: Translate
+      showSuccess(this.t('collectedLetter') + ` ${this.t(item.id as TranslationKeys)}!`);
       switch (itemId) {
         case 'buy_aura_weapon':
           this.gameState.auraWeapon = new AuraWeapon(10, 100, 0.5);
@@ -404,22 +415,25 @@ export class GameEngine {
         default:
           console.warn(`Unknown item purchased: ${itemId}`);
       }
-      this.onOpenShopCallback(this.shopItems.filter(i => {
-        if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
-        if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
-        if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
-        if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
-        if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
-        if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
-        if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
-        if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
-        if (i.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
-        return true;
-      }), this.gameState.player.gold);
+      this.onOpenShopCallback(
+        this.shopItems.filter(i => {
+          if (i.id === 'buy_aura_weapon' && this.gameState.auraWeapon) return false;
+          if (i.id === 'buy_projectile_weapon' && this.gameState.projectileWeapon) return false;
+          if (i.id === 'buy_spinning_blade_weapon' && this.gameState.spinningBladeWeapon) return false;
+          if (i.id === 'buy_homing_missile_weapon' && this.gameState.homingMissileWeapon) return false;
+          if (i.id === 'buy_laser_beam_weapon' && this.gameState.laserBeamWeapon) return false;
+          if (i.id === 'buy_explosion_ability' && this.gameState.explosionAbility) return false;
+          if (i.id === 'buy_shield_ability' && this.gameState.shieldAbility) return false;
+          if (i.id === 'buy_heal_ability' && this.gameState.healAbility) return false;
+          if (i.id === 'buy_time_slow_ability' && this.gameState.timeSlowAbility) return false;
+          return true;
+        }),
+        this.gameState.player.gold
+      );
     } else {
-      showError(this.t('notEnoughGold')); // NEW: Translate
+      showError(this.t('notEnoughGold'));
     }
-  }
+  };
 
   private saveScoreToLeaderboard() {
     const savedLeaderboard = localStorage.getItem('leaderboard');
@@ -440,11 +454,9 @@ export class GameEngine {
 
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     this.gameState.lastGameScoreEntry = newEntry;
-    // console.log("Score saved to leaderboard:", newEntry); // Removed for optimization
   }
 
   restartGame = () => {
-    // console.log("GameEngine: Restarting game..."); // Removed for optimization
     this.soundManager.stopSound(this.backgroundMusicInstance);
     this.backgroundMusicInstance = null;
 
@@ -569,13 +581,13 @@ export class GameEngine {
         shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
         waveNumber: this.gameState.waveNumber,
         waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
-        
+
         dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
         dashCooldownMax: this.gameState.player.getDashCooldownMax(),
         explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
         explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
         shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
-        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getMaxCooldown() : 0,
         healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
         healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
         timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
@@ -627,13 +639,13 @@ export class GameEngine {
         shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
         waveNumber: this.gameState.waveNumber,
         waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
-        
+
         dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
         dashCooldownMax: this.gameState.player.getDashCooldownMax(),
         explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
         explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
         shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
-        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+        shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getMaxCooldown() : 0,
         healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
         healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
         timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
@@ -664,8 +676,6 @@ export class GameEngine {
       return;
     }
 
-    // console.log("GameEngine: Updating with deltaTime:", deltaTime); // Removed for optimization
-
     this.gameState.player.update(this.inputHandler, deltaTime, this.gameState.worldWidth, this.gameState.worldHeight);
     this.gameState.player.handleAbilityInput(this.inputHandler, this.gameState.enemies);
 
@@ -685,7 +695,6 @@ export class GameEngine {
 
     if (!this.gameState.player.isAlive()) {
       this.gameState.gameOver = true;
-      // console.log("Game Over!"); // Removed for optimization
     }
 
     this.gameState.isTimeSlowActive = this.gameState.timeSlowAbility?.getIsActive() || false;
@@ -703,13 +712,13 @@ export class GameEngine {
       shieldMaxHealth: this.gameState.shieldAbility?.shield.maxHealth || 0,
       waveNumber: this.gameState.waveNumber,
       waveTimeRemaining: this.gameState.waveDuration - this.gameState.waveTimeElapsed,
-      
+
       dashCooldownCurrent: Math.max(0, this.gameState.player.getDashCooldownCurrent()),
       dashCooldownMax: this.gameState.player.getDashCooldownMax(),
       explosionCooldownCurrent: this.gameState.explosionAbility ? Math.max(0, this.gameState.explosionAbility.getCooldownCurrent()) : 0,
       explosionCooldownMax: this.gameState.explosionAbility ? this.gameState.explosionAbility.getCooldownMax() : 0,
       shieldCooldownCurrent: this.gameState.shieldAbility ? Math.max(0, this.gameState.shieldAbility.getCooldownCurrent()) : 0,
-      shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getCooldownMax() : 0,
+      shieldCooldownMax: this.gameState.shieldAbility ? this.gameState.shieldAbility.getMaxCooldown() : 0,
       healCooldownCurrent: this.gameState.healAbility ? Math.max(0, this.gameState.healAbility.getCooldownCurrent()) : 0,
       healCooldownMax: this.gameState.healAbility ? this.gameState.healAbility.getCooldownMax() : 0,
       timeSlowCooldownCurrent: this.gameState.timeSlowAbility ? Math.max(0, this.gameState.timeSlowAbility.getCooldownCurrent()) : 0,
@@ -724,7 +733,7 @@ export class GameEngine {
       gameWon: this.gameState.gameWon,
       gameOver: this.gameState.gameOver,
       lastGameScoreEntry: this.gameState.lastGameScoreEntry,
-      
+
       playerX: this.gameState.player.x,
       playerY: this.gameState.player.y,
       worldWidth: this.gameState.worldWidth,
@@ -746,7 +755,7 @@ export class GameEngine {
       this.ctx.fillStyle = 'white';
       this.ctx.font = '30px Arial';
       this.ctx.textAlign = 'center';
-      this.ctx.fillText(this.t('loadingAssets'), this.ctx.canvas.width / 2, this.ctx.canvas.height / 2); // NEW: Translate
+      this.ctx.fillText(this.t('loadingAssets'), this.ctx.canvas.width / 2, this.ctx.canvas.height / 2);
       return;
     }
 
@@ -768,12 +777,7 @@ export class GameEngine {
 
     this.ctx.strokeStyle = 'white';
     this.ctx.lineWidth = 2;
-    this.ctx.strokeRect(
-      -this.cameraX,
-      -this.cameraY,
-      this.gameState.worldWidth,
-      this.gameState.worldHeight
-    );
+    this.ctx.strokeRect(-this.cameraX, -this.cameraY, this.gameState.worldWidth, this.gameState.worldHeight);
 
     // Pass camera bounds for culling
     this.entityManager.draw(this.ctx, this.cameraX, this.cameraY, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -784,7 +788,7 @@ export class GameEngine {
       this.ctx.textAlign = 'center';
       this.ctx.shadowColor = 'black';
       this.ctx.shadowBlur = 5;
-      this.ctx.fillText(this.t('pressFToInteract'), this.ctx.canvas.width / 2, this.ctx.canvas.height - 50); // NEW: Translate
+      this.ctx.fillText(this.t('pressFToInteract'), this.ctx.canvas.width / 2, this.ctx.canvas.height - 50);
       this.ctx.shadowColor = 'transparent';
     }
 
