@@ -48,11 +48,8 @@ const getLevelUpOptions = (gameState: any, t: (key: string) => string) => {
     { id: 'healAmount', name: '', description: '' },
     { id: 'healCooldown', name: '', description: '' },
     { id: 'timeSlowFactor', name: '', description: '' },
-    { id: 'timeSlowFactorDesc', name: '', description: '' },
     { id: 'timeSlowDuration', name: '', description: '' },
-    { id: 'timeSlowDurationDesc', name: '', description: '' },
     { id: 'timeSlowCooldown', name: '', description: '' },
-    { id: 'timeSlowCooldownDesc', name: '', description: '' },
     { id: 'playerMagnetRadius', name: '', description: '' },
     { id: 'experienceBoost', name: '', description: '' },
     { id: 'goldBoost', name: '', description: '' },
@@ -259,7 +256,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t, isMobile); // NEW: Pass isMobile to GameEngine
     gameEngineRef.current.init();
 
-    if (!notificationsShownRef.current) {
+    // Conditionally show notifications based on isMobile
+    if (!isMobile && !notificationsShownRef.current) {
       setTimeout(() => showSuccess(t('moveKeys')), 500);
       setTimeout(() => showSuccess(t('dashKey')), 2500);
       setTimeout(() => showSuccess(t('abilitiesKeys')), 4500);
