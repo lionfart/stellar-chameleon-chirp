@@ -6,36 +6,40 @@ import * as ProgressPrimitive from "@radix-ui/react-progress"
 import { cn } from "@/lib/utils"
 
 interface CustomProgressProps extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
-  indicatorClassName?: string; // Prop for indicator styling
-  showText?: boolean; // New prop to show text inside the progress bar
-  text?: string; // New prop for the text to display
-  isCooldown?: boolean; // New prop to indicate if it's on cooldown
-  isReady?: boolean; // NEW: Prop to indicate if it's ready
+  indicatorClassName?: string;
+  showText?: boolean;
+  text?: string;
+  isCooldown?: boolean;
+  isReady?: boolean;
+  textClass?: string; // Yeni eklenen prop
 }
 
 const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   CustomProgressProps
->(({ className, value, indicatorClassName, showText, text, isCooldown, isReady, ...props }, ref) => (
+>(({ className, value, indicatorClassName, showText, text, isCooldown, isReady, textClass, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
-      "relative h-6 w-full overflow-hidden rounded-full bg-gray-700 border border-gray-600 shadow-inner", // Increased height, darker background, border, inner shadow
+      "relative h-6 w-full overflow-hidden rounded-full bg-gray-700 border border-gray-600 shadow-inner",
       className
     )}
     {...props}
   >
     <ProgressPrimitive.Indicator
       className={cn(
-        "h-full w-full flex-1 transition-all duration-300 ease-out", // Added duration for smoother transition
+        "h-full w-full flex-1 transition-all duration-300 ease-out",
         indicatorClassName || "bg-primary",
-        isCooldown && "opacity-50 animate-pulse-cooldown", // Apply opacity and pulse when on cooldown
-        isReady && "animate-pulse-ready" // Apply pulse when ready
+        isCooldown && "opacity-50 animate-pulse-cooldown",
+        isReady && "animate-pulse-ready"
       )}
       style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
     />
     {showText && text && (
-      <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white z-10 drop-shadow-md"> {/* Increased font size, stronger shadow */}
+      <span className={cn(
+        "absolute inset-0 flex items-center justify-center text-sm font-bold text-white z-10 drop-shadow-md",
+        textClass // Yeni prop ile gelen sınıfı uygula
+      )}>
         {text}
       </span>
     )}
