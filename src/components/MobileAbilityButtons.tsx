@@ -56,7 +56,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({
   }, [onRelease, abilityKey]);
 
   return (
-    <div className="relative w-12 h-12"> {/* Düğme boyutu küçültüldü */}
+    <div className="relative w-10 h-10"> {/* Düğme boyutu küçültüldü */}
       <Button
         className={cn(
           "w-full h-full rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-100",
@@ -70,10 +70,10 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({
         onTouchCancel={handleTouchEnd}
         disabled={!isReady && !isActive} // Disable if not ready and not active (for toggle)
       >
-        <Icon className={cn("w-6 h-6", isReady ? "text-white" : "text-gray-400")} /> {/* İkon boyutu küçültüldü */}
+        <Icon className={cn("w-5 h-5", isReady ? "text-white" : "text-gray-400")} /> {/* İkon boyutu küçültüldü */}
       </Button>
       {!isReady && (
-        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center text-white text-[0.6rem] font-bold"> {/* Font boyutu küçültüldü */}
+        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center text-white text-[0.55rem] font-bold"> {/* Font boyutu küçültüldü */}
           {cooldownCurrent.toFixed(1)}s
         </div>
       )}
@@ -83,7 +83,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({
           clipPath: `inset(${cooldownPercentage}% 0 0 0)`,
         }}
       />
-      <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-xs text-white text-shadow-sm whitespace-nowrap"> {/* Konum güncellendi */}
+      <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 text-[0.6rem] text-white text-shadow-sm whitespace-nowrap"> {/* Konum güncellendi */}
         {label}
       </span>
     </div>
@@ -108,7 +108,7 @@ const MobileAbilityButtons: React.FC<MobileAbilityButtonsProps> = ({
   const { t } = useLanguage();
 
   return (
-    <div className="absolute bottom-4 right-4 flex flex-col items-end space-y-3 z-50"> {/* Konum ve boşluk güncellendi */}
+    <div className="absolute bottom-4 right-4 flex flex-col items-end space-y-2 z-50"> {/* Konum ve boşluk güncellendi */}
       <AbilityButton
         Icon={Footprints}
         abilityKey="shift"
@@ -118,7 +118,7 @@ const MobileAbilityButtons: React.FC<MobileAbilityButtonsProps> = ({
         onRelease={onAbilityRelease}
         label={t('dash')}
       />
-      <div className="flex space-x-3"> {/* Boşluk güncellendi */}
+      <div className="flex space-x-2"> {/* Boşluk güncellendi */}
         {explosionCooldownMax > 0 && (
           <AbilityButton
             Icon={Bomb}
@@ -143,7 +143,7 @@ const MobileAbilityButtons: React.FC<MobileAbilityButtonsProps> = ({
           />
         )}
       </div>
-      <div className="flex space-x-3"> {/* Boşluk güncellendi */}
+      <div className="flex space-x-2"> {/* Boşluk güncellendi */}
         {healCooldownMax > 0 && (
           <AbilityButton
             Icon={PlusCircle}

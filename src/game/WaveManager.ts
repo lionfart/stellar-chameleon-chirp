@@ -72,7 +72,7 @@ export class WaveManager {
     const selectedCorner = corners[Math.floor(Math.random() * corners.length)];
     this.bossSpawnCorner = selectedCorner;
 
-    const bossSize = this.isMobile ? 60 : 80; // NEW: Adjust boss size for mobile
+    const bossSize = this.isMobile ? 50 : 80; // NEW: Adjust boss size for mobile (from 60 to 50)
     let spawnX, spawnY;
 
     const offset = bossSize / 2 + 50; 
@@ -107,7 +107,7 @@ export class WaveManager {
       return;
     }
 
-    const bossSize = this.isMobile ? 60 : 80; // NEW: Adjust boss size for mobile
+    const bossSize = this.isMobile ? 50 : 80; // NEW: Adjust boss size for mobile (from 60 to 50)
     const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200;
     const bossSpeed = 80;
     const bossGold = 100;
@@ -198,7 +198,7 @@ export class WaveManager {
     const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
     const enemyGold = Math.floor(randomType.baseGold * goldMultiplier);
-    const enemySize = this.isMobile ? randomType.size * 0.8 : randomType.size; // NEW: Adjust enemy size for mobile
+    const enemySize = this.isMobile ? randomType.size * 0.7 : randomType.size; // NEW: Adjust enemy size for mobile (from 0.8 to 0.7)
 
     if (randomType.type === 'shooter' && randomType.projectileSpeed) {
       this.entityManager.spawnEnemy( // Direct call to EntityManager

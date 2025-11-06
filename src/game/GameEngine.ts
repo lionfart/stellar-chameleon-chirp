@@ -143,9 +143,9 @@ export class GameEngine {
     this.t = t; // NEW: Assign t
     this.isMobile = isMobile; // NEW: Assign isMobile
 
-    const playerSize = this.isMobile ? 25 : 30; // NEW: Adjust player size for mobile
-    const playerSpeed = this.isMobile ? 180 : 200; // NEW: Adjust player speed for mobile
-    const vendorSize = this.isMobile ? 40 : 50; // NEW: Adjust vendor size for mobile
+    const playerSize = this.isMobile ? 20 : 30; // NEW: Adjust player size for mobile (from 25 to 20)
+    const playerSpeed = this.isMobile ? 160 : 200; // NEW: Adjust player speed for mobile (from 180 to 160)
+    const vendorSize = this.isMobile ? 35 : 50; // NEW: Adjust vendor size for mobile (from 40 to 35)
 
     const player = new Player(this.worldWidth / 2, this.worldHeight / 2, playerSize, playerSpeed, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
     const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, vendorSize, undefined);

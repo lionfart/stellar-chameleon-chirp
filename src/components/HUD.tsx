@@ -86,41 +86,41 @@ const HUD: React.FC<HUDProps> = ({
   return (
     <>
       {/* Left HUD - Player Stats */}
-      <div className="absolute top-2 left-2 flex flex-col space-y-2 pointer-events-none z-40"> {/* Konum ve boşluk güncellendi */}
-        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[200px] max-h-[calc(50vh-1rem)] overflow-y-auto"> {/* Boyut ve padding güncellendi */}
+      <div className="absolute top-1 left-1 flex flex-col space-y-1 pointer-events-none z-40"> {/* Konum ve boşluk güncellendi */}
+        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] max-h-[calc(50vh-0.5rem)] overflow-y-auto"> {/* Boyut ve padding güncellendi */}
           <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
             <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <User className="h-5 w-5 text-gray-400" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-sm font-medium text-white truncate">{playerName}</span> {/* Font boyutu küçültüldü */}
+              <User className="h-4 w-4 text-gray-400" /> {/* İkon boyutu küçültüldü */}
+              <span className="text-xs font-medium text-white truncate">{playerName}</span> {/* Font boyutu küçültüldü */}
             </div>
             <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Heart className="h-5 w-5 text-red-500" /> {/* İkon boyutu küçültüldü */}
+              <Heart className="h-4 w-4 text-red-500" /> {/* İkon boyutu küçültüldü */}
               <div className="flex-1">
-                <Progress value={healthPercentage} className="h-2" indicatorClassName="bg-red-500" /> {/* Yükseklik küçültüldü */}
-                <span className="text-xs text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
+                <Progress value={healthPercentage} className="h-1.5" indicatorClassName="bg-red-500" /> {/* Yükseklik küçültüldü */}
+                <span className="text-[0.65rem] text-muted-foreground">{playerHealth}/{playerMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
               </div>
             </div>
 
             <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Zap className="h-5 w-5 text-blue-500" /> {/* İkon boyutu küçültüldü */}
+              <Zap className="h-4 w-4 text-blue-500" /> {/* İkon boyutu küçültüldü */}
               <div className="flex-1">
-                <Progress value={xpPercentage} className="h-2" indicatorClassName="bg-blue-500" /> {/* Yükseklik küçültüldü */}
-                <span className="text-xs text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span> {/* Font boyutu küçültüldü */}
+                <Progress value={xpPercentage} className="h-1.5" indicatorClassName="bg-blue-500" /> {/* Yükseklik küçültüldü */}
+                <span className="text-[0.65rem] text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span> {/* Font boyutu küçültüldü */}
               </div>
-              <Badge variant="secondary" className="text-xs">{t('levelUpShort')} {playerLevel}</Badge> {/* Font boyutu küçültüldü */}
+              <Badge variant="secondary" className="text-[0.65rem]">{t('levelUpShort')} {playerLevel}</Badge> {/* Font boyutu küçültüldü */}
             </div>
 
             <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-              <Gem className="h-5 w-5 text-yellow-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-sm font-medium">{playerGold} {t('gold')}</span> {/* Font boyutu küçültüldü */}
+              <Gem className="h-4 w-4 text-yellow-500" /> {/* İkon boyutu küçültüldü */}
+              <span className="text-xs font-medium">{playerGold} {t('gold')}</span> {/* Font boyutu küçültüldü */}
             </div>
 
             {shieldMaxHealth > 0 && (
               <div className="flex items-center space-x-1"> {/* Boşluk güncellendi */}
-                <Shield className={`h-5 w-5 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} /> {/* İkon boyutu küçültüldü */}
+                <Shield className={`h-4 w-4 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} /> {/* İkon boyutu küçültüldü */}
                 <div className="flex-1">
-                  <Progress value={shieldPercentage} className="h-2" indicatorClassName="bg-cyan-400" /> {/* Yükseklik küçültüldü */}
-                  <span className="text-xs text-muted-foreground">
+                  <Progress value={shieldPercentage} className="h-1.5" indicatorClassName="bg-cyan-400" /> {/* Yükseklik küçültüldü */}
+                  <span className="text-[0.65rem] text-muted-foreground">
                     {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
                   </span> {/* Font boyutu küçültüldü */}
                 </div>
@@ -196,26 +196,26 @@ const HUD: React.FC<HUDProps> = ({
       </div>
 
       {/* Top-Center HUD - Wave Info and Collected Letters */}
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none z-40"> {/* Konum güncellendi */}
-        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[150px] text-center"> {/* Boyut ve padding güncellendi */}
+      <div className="absolute top-1 left-1/2 -translate-x-1/2 pointer-events-none z-40"> {/* Konum güncellendi */}
+        <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-primary/20 w-full max-w-[120px] text-center"> {/* Boyut ve padding güncellendi */}
           <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
             <div className="flex items-center justify-center space-x-1"> {/* Boşluk güncellendi */}
-              <Swords className="h-5 w-5 text-purple-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-sm font-medium">{t('waveText')} {waveNumber}</span> {/* Font boyutu küçültüldü */}
+              <Swords className="h-4 w-4 text-purple-500" /> {/* İkon boyutu küçültüldü */}
+              <span className="text-xs font-medium">{t('waveText')} {waveNumber}</span> {/* Font boyutu küçültüldü */}
             </div>
             <div className="flex items-center justify-center space-x-1"> {/* Boşluk güncellendi */}
-              <Clock className="h-5 w-5 text-gray-500" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-sm font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span> {/* Font boyutu küçültüldü */}
+              <Clock className="h-4 w-4 text-gray-500" /> {/* İkon boyutu küçültüldü */}
+              <span className="text-xs font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span> {/* Font boyutu küçültüldü */}
             </div>
             {/* Collected Letters Display */}
             <div className="flex items-center justify-center space-x-0.5 mt-1"> {/* Boşluk ve margin güncellendi */}
-              <Crown className="h-4 w-4 text-yellow-400" /> {/* İkon boyutu küçültüldü */}
-              <span className="text-xs font-medium text-white">{t('simge')}:</span> {/* Font boyutu küçültüldü */}
+              <Crown className="h-3 w-3 text-yellow-400" /> {/* İkon boyutu küçültüldü */}
+              <span className="text-[0.65rem] font-medium text-white">{t('simge')}:</span> {/* Font boyutu küçültüldü */}
               {princessName.map((letter, index) => (
                 <Badge
                   key={index}
                   variant={collectedLetters.includes(letter) ? 'default' : 'outline'}
-                  className={`text-xs font-bold ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
+                  className={`text-[0.65rem] font-bold ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
                 > {/* Font boyutu küçültüldü */}
                   {letter}
                 </Badge>
@@ -227,12 +227,12 @@ const HUD: React.FC<HUDProps> = ({
 
       {/* Top-Right HUD - Boss Health Bar */}
       {bossActive && (
-        <div className="absolute top-2 right-2 w-full max-w-[200px] pointer-events-none z-40"> {/* Konum ve max-w güncellendi */}
-          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-red-500/50 text-center"> {/* Padding güncellendi */}
+        <div className="absolute top-1 right-1 w-full max-w-[160px] pointer-events-none z-40"> {/* Konum ve max-w güncellendi */}
+          <Card className="bg-background/90 backdrop-blur-md p-1 shadow-xl border border-solid border-red-500/50 text-center"> {/* Padding güncellendi */}
             <CardContent className="p-0 space-y-1"> {/* Boşluk güncellendi */}
-              <h3 className="text-base font-bold text-red-500 truncate">{bossName}</h3> {/* Font boyutu küçültüldü */}
-              <Progress value={bossHealthPercentage} className="h-3" indicatorClassName="bg-red-600" /> {/* Yükseklik küçültüldü */}
-              <span className="text-xs text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
+              <h3 className="text-xs font-bold text-red-500 truncate">{bossName}</h3> {/* Font boyutu küçültüldü */}
+              <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" /> {/* Yükseklik küçültüldü */}
+              <span className="text-[0.65rem] text-muted-foreground">{bossHealth}/{bossMaxHealth} HP</span> {/* Font boyutu küçültüldü */}
             </CardContent>
           </Card>
         </div>
