@@ -117,7 +117,7 @@ const HUD: React.FC<HUDProps> = ({
                 <div className="flex-1">
                   <Progress value={xpPercentage} className={progressHeight} indicatorClassName="bg-blue-500" />
                 </div>
-                <Badge variant="secondary" className={badgeSize}>{t('levelUpShort')} {playerLevel}</Badge>
+                <Badge variant="secondary" className={`${badgeSize} flex-shrink-0`}>{t('levelUpShort')} {playerLevel}</Badge>
               </div>
               <div className={`${badgeSize} text-muted-foreground ml-7`}>{playerExperience.toFixed(0)}/{playerExperienceToNextLevel} XP</div>
             </div>
@@ -227,7 +227,7 @@ const HUD: React.FC<HUDProps> = ({
                 <Badge
                   key={index}
                   variant={collectedLetters.includes(letter) ? 'default' : 'outline'}
-                  className={`text-xs font-bold h-5 ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
+                  className={`text-xs font-bold h-5 w-5 p-0 flex items-center justify-center ${collectedLetters.includes(letter) ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400 border-gray-600'}`}
                 >
                   {letter}
                 </Badge>
