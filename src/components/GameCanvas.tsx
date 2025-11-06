@@ -10,6 +10,7 @@ import RestartButton from './RestartButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/use-mobile'; // NEW: Import useIsMobile
 import MobileAbilityButtons from './MobileAbilityButtons'; // NEW: Import MobileAbilityButtons
+import MobileJoystick from './MobileJoystick'; // NEW: Import MobileJoystick
 
 interface ShopItem {
   id: string;
@@ -202,45 +203,15 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     gameEngineRef.current?.['inputHandler'].simulateKeyUp(key);
   }, []);
 
-  // NEW: Full-screen touch movement handlers
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (!isMobile || !gameEngineRef.current || e.touches.length !== 1) return;
-    e.preventDefault();
-    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // Reset movement on new touch
-  }, [isMobile]);
+  // NEW: Mobile joystick movement handler
+  const handleJoystickMove = useCallback((x: number, y: number) => {
+    gameEngineRef.current?.['inputHandler'].setTouchMove(x, y);
+  }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isMobile || !gameEngineRef.current || !touchStartPos.current || e.touches.length !== 1) return;
-    e.preventDefault();
-
-    const currentTouchX = e.touches[0].clientX;
-    const currentTouchY = e.touches[0].clientY;
-
-    const dx = currentTouchX - touchStartPos.current.x;
-    const dy = currentTouchY - touchStartPos.current.y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if (distance > touchMoveThreshold) {
-      // Normalize dx, dy based on a virtual max distance
-      const clampedDistance = Math.min(distance, virtualJoystickMaxDistance);
-      const scaleFactor = clampedDistance / virtualJoystickMaxDistance;
-
-      const normalizedX = (dx / distance) * scaleFactor;
-      const normalizedY = (dy / distance) * scaleFactor;
-
-      gameEngineRef.current['inputHandler'].setTouchMove(normalizedX, normalizedY);
-    } else {
-      gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // If within dead zone, stop movement
-    }
-  }, [isMobile, virtualJoystickMaxDistance]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (!isMobile || !gameEngineRef.current) return;
-    gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // Stop movement on touch end
-    touchStartPos.current = null;
-  }, [isMobile]);
-
+  // NEW: Mobile joystick stop handler
+  const handleJoystickStop = useCallback(() => {
+    gameEngineRef.current?.['inputHandler'].setTouchMove(0, 0);
+  }, []);
 
   useEffect(() => {
     console.log("GameCanvas useEffect: Initializing GameEngine...");
@@ -292,10 +263,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
         ref={canvasRef}
         className="block bg-black"
         style={{ width: '100vw', height: '100vh' }}
-        onTouchStart={handleTouchStart} // NEW: Add touch event listeners to canvas
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
       />
       {showLevelUpScreen && (
         <LevelUpSelection onSelectUpgrade={handleSelectUpgrade} options={currentLevelUpOptions} />
@@ -313,7 +280,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
 
       {isMobile && !isGameOverOrWon && !showLevelUpScreen && !showShopScreen && (
         <>
-          {/* MobileJoystick kaldırıldı */}
+          <MobileJoystick onMove={handleJoystickMove} onStop={handleJoystickStop} />
           <MobileAbilityButtons
             onAbilityPress={handleAbilityPress}
             onAbilityRelease={handleAbilityRelease}
