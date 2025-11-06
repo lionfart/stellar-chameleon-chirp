@@ -6,8 +6,8 @@ interface MobileJoystickProps {
   onStop: () => void;
 }
 
-const JOYSTICK_SIZE = 100; // Boyut küçültüldü
-const KNOB_SIZE = 60; // Boyut küçültüldü
+const JOYSTICK_SIZE = 80; // Boyut küçültüldü
+const KNOB_SIZE = 48; // Boyut küçültüldü
 const MAX_DISTANCE = (JOYSTICK_SIZE - KNOB_SIZE) / 2;
 
 const MobileJoystick: React.FC<MobileJoystickProps> = ({ onMove, onStop }) => {
@@ -59,7 +59,7 @@ const MobileJoystick: React.FC<MobileJoystickProps> = ({ onMove, onStop }) => {
     <div
       ref={containerRef}
       className={cn(
-        "absolute bottom-8 left-8 rounded-full bg-gray-800/50 border border-gray-700 flex items-center justify-center touch-none",
+        "absolute bottom-4 left-4 rounded-full bg-gray-800/50 border border-gray-700 flex items-center justify-center touch-none", // Konum güncellendi
         `w-[${JOYSTICK_SIZE}px] h-[${JOYSTICK_SIZE}px]`
       )}
       onTouchStart={handleTouchStart}

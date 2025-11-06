@@ -17,7 +17,7 @@ const Minimap: React.FC<MinimapProps> = ({
   vendorY,
 }) => {
   const minimapCanvasRef = useRef<HTMLCanvasElement>(null);
-  const minimapSize = 150; // Minimap'in genişliği ve yüksekliği küçültüldü
+  const minimapSize = 100; // Minimap'in genişliği ve yüksekliği küçültüldü
 
   useEffect(() => {
     const canvas = minimapCanvasRef.current;
@@ -41,21 +41,21 @@ const Minimap: React.FC<MinimapProps> = ({
     // Draw player
     ctx.fillStyle = 'cyan'; // Oyuncu rengi daha canlı
     ctx.beginPath();
-    ctx.arc(playerX * scaleX, playerY * scaleY, 3, 0, Math.PI * 2);
+    ctx.arc(playerX * scaleX, playerY * scaleY, 2, 0, Math.PI * 2); // Oyuncu boyutu küçültüldü
     ctx.fill();
 
     // Draw enemies
     ctx.fillStyle = 'red'; // Düşman rengi
     enemiesMinimap.forEach(enemy => {
       ctx.beginPath();
-      ctx.arc(enemy.x * scaleX, enemy.y * scaleY, 2, 0, Math.PI * 2);
+      ctx.arc(enemy.x * scaleX, enemy.y * scaleY, 1.5, 0, Math.PI * 2); // Düşman boyutu küçültüldü
       ctx.fill();
     });
 
     // Draw vendor
     ctx.fillStyle = 'gold'; // Satıcı rengi
     ctx.beginPath();
-    ctx.arc(vendorX * scaleX, vendorY * scaleY, 4, 0, Math.PI * 2);
+    ctx.arc(vendorX * scaleX, vendorY * scaleY, 3, 0, Math.PI * 2); // Satıcı boyutu küçültüldü
     ctx.fill();
 
     // Draw camera view rectangle
@@ -71,7 +71,7 @@ const Minimap: React.FC<MinimapProps> = ({
   }, [playerX, playerY, worldWidth, worldHeight, cameraX, cameraY, canvasWidth, canvasHeight, enemiesMinimap, vendorX, vendorY]);
 
   return (
-    <div className="absolute top-0 right-0 z-50 bg-gray-900/70 backdrop-blur-sm rounded-lg shadow-xl border border-solid border-gray-700"> {/* Arka plan ve kenarlık güncellendi */}
+    <div className="absolute top-2 right-2 z-50 bg-gray-900/70 backdrop-blur-sm rounded-lg shadow-xl border border-solid border-gray-700 p-1"> {/* Arka plan ve kenarlık güncellendi, padding azaltıldı */}
       <canvas
         ref={minimapCanvasRef}
         width={minimapSize}

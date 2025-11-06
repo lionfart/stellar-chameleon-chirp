@@ -23,32 +23,32 @@ const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({ currentScoreEntry
   }, [currentScoreEntry]); // Re-fetch if currentScoreEntry changes (i.e., new game ended)
 
   return (
-    <Card className="w-11/12 max-w-md bg-background/90 backdrop-blur-md shadow-2xl border border-primary/30"> {/* Adjusted width for mobile */}
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl text-white flex items-center justify-center space-x-2">
-          <Trophy className="h-7 w-7 text-yellow-400" />
+    <Card className="w-11/12 max-w-sm bg-background/90 backdrop-blur-md shadow-2xl border border-primary/30"> {/* Adjusted width for mobile */}
+      <CardHeader className="text-center p-3 pb-2"> {/* Padding azaltıldı */}
+        <CardTitle className="text-xl text-white flex items-center justify-center space-x-1"> {/* Font boyutu ve boşluk küçültüldü */}
+          <Trophy className="h-6 w-6 text-yellow-400" /> {/* İkon boyutu küçültüldü */}
           <span>{t('leaderboard')}</span>
         </CardTitle>
-        <CardDescription className="text-muted-foreground text-center">
+        <CardDescription className="text-muted-foreground text-center text-sm"> {/* Font boyutu küçültüldü */}
           {t('leaderboardDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[200px] w-full rounded-md border bg-gray-800/50">
+        <ScrollArea className="h-[150px] w-full rounded-md border bg-gray-800/50"> {/* Yükseklik küçültüldü */}
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-700/70 hover:bg-gray-700/70">
-                <TableHead className="w-[50px] text-white">{t('rank')}</TableHead>
+              <TableRow className="bg-gray-700/70 hover:bg-gray-700/70 text-xs"> {/* Font boyutu küçültüldü */}
+                <TableHead className="w-[40px] text-white">{t('rank')}</TableHead> {/* Genişlik küçültüldü */}
                 <TableHead className="text-white">{t('player')}</TableHead>
                 <TableHead className="text-white">{t('wave')}</TableHead>
                 <TableHead className="text-white">{t('letters')}</TableHead>
                 <TableHead className="text-right text-white">{t('score')}</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className="text-xs"> {/* Font boyutu küçültüldü */}
               {leaderboard.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-16 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-12 text-center text-muted-foreground"> {/* Yükseklik küçültüldü */}
                     {t('noScoresYet')}
                   </TableCell>
                 </TableRow>
