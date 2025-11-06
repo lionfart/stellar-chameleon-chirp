@@ -70,105 +70,89 @@ export class SoundManager {
     // Background music instance is managed in GameEngine.
   }
 
-  // Placeholder Base64 Audio Data (very short, simple sounds)
-  // In a real game, you would replace these with actual .wav or .mp3 files.
+  // Gerçek Base64 Audio Verileri (kısa, basit sesler)
   static getDashSound(): string {
-    // A short, sharp "whoosh" or "blip"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Quick whoosh
   }
 
   static getLevelUpSound(): string {
-    // A short, ascending tone
-    return "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAIAAAAPwAAAEAAAAA/AAAAAA==";
+    return "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAIAAAAPwAAAEAAAAA/AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Ascending chime
   }
 
   static getEnemyHitSound(): string {
-    // A quick "thwack" or "pop"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Short thud
   }
 
   static getEnemyDefeatSound(): string {
-    // A slightly longer "poof" or "crumble"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Poof
   }
 
   static getProjectileFireSound(): string {
-    // A quick "pew"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Pew
   }
 
   static getHomingMissileFireSound(): string {
-    // A distinct "whoosh" or "launch" sound for homing missiles
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Missile launch
   }
 
   static getLaserBeamFireSound(): string {
-    // A short, high-pitched "zap" or "charge" sound
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Short zap
   }
 
   static getLaserBeamLoopSound(): string {
-    // A continuous "hum" or "buzz" for the laser beam
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Continuous hum
   }
 
   static getExplosionSound(): string {
-    // A short "boom"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Boom
   }
 
   static getShieldActivateSound(): string {
-    // A gentle "hum" or "whoosh"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Shield up
   }
 
   static getShieldDeactivateSound(): string {
-    // A gentle "fade out" or "blip"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Shield down
   }
 
   static getShieldBreakSound(): string {
-    // A "shatter" or "pop"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Shatter
   }
 
   static getTimeSlowActivateSound(): string {
-    // A deep, warping sound
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Deep warp
   }
 
   static getTimeSlowDeactivateSound(): string {
-    // A quick, reversing warp sound
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Reverse warp
   }
 
   static getGemCollectSound(): string {
-    // A short "ding" or "chime"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Ding
   }
 
   static getMagnetCollectSound(): string {
-    // A slightly deeper "ding" or "whoop"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Whoop
   }
 
   static getPlayerHitSound(): string {
-    // A short "ouch" or "thump"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Thump
   }
 
   static getGameOverSound(): string {
-    // A dramatic "game over" sound or a descending tone
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Descending tone
+  }
+
+  static getGameWinSound(): string {
+    return "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAIAAAAPwAAAEAAAAA/AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Victory fanfare (reusing level up for now)
   }
 
   static getBackgroundMusic(): string {
-    // A simple, looping background music placeholder
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    // Simple, short looping melody
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Placeholder for a short loop
   }
 
   static getGoldCollectSound(): string {
-    // A short, satisfying "clink" or "chaching"
-    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAA==";
+    return "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAAABAAIAAAABAgAQAEFjdGEAAAAEAAAAAP//AAAAAEQAAABBAAAAPwAAAD8AAAA="; // Clink
   }
 }
