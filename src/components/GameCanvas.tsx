@@ -48,8 +48,11 @@ const getLevelUpOptions = (gameState: any, t: (key: string) => string) => {
     { id: 'healAmount', name: '', description: '' },
     { id: 'healCooldown', name: '', description: '' },
     { id: 'timeSlowFactor', name: '', description: '' },
+    { id: 'timeSlowFactorDesc', name: '', description: '' },
     { id: 'timeSlowDuration', name: '', description: '' },
+    { id: 'timeSlowDurationDesc', name: '', description: '' },
     { id: 'timeSlowCooldown', name: '', description: '' },
+    { id: 'timeSlowCooldownDesc', name: '', description: '' },
     { id: 'playerMagnetRadius', name: '', description: '' },
     { id: 'experienceBoost', name: '', description: '' },
     { id: 'goldBoost', name: '', description: '' },
@@ -98,7 +101,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
 
   // NEW: Touch input state
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-  const touchMoveThreshold = 10; // Minimum distance to register a move
+  const touchMoveThreshold = 5; // Smaller threshold for more immediate response
+  const virtualJoystickMaxDistance = 100; // Max distance from touchStart to register full speed
 
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
     playerName: playerName,
@@ -206,6 +210,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     if (!isMobile || !gameEngineRef.current || e.touches.length !== 1) return;
     e.preventDefault();
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // Reset movement on new touch
   }, [isMobile]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -219,38 +224,23 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     const dy = currentTouchY - touchStartPos.current.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    const inputHandler = gameEngineRef.current['inputHandler'];
-
-    // Clear previous movement inputs
-    inputHandler.simulateKeyUp('w');
-    inputHandler.simulateKeyUp('s');
-    inputHandler.simulateKeyUp('a');
-    inputHandler.simulateKeyUp('d');
-
     if (distance > touchMoveThreshold) {
-      // Determine direction and simulate key presses
-      const angle = Math.atan2(dy, dx); // Radians
+      // Normalize dx, dy based on a virtual max distance
+      const clampedDistance = Math.min(distance, virtualJoystickMaxDistance);
+      const scaleFactor = clampedDistance / virtualJoystickMaxDistance;
 
-      // 8-directional movement for simplicity
-      if (angle > -Math.PI / 4 && angle <= Math.PI / 4) { // Right
-        inputHandler.simulateKeyDown('d');
-      } else if (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) { // Down
-        inputHandler.simulateKeyDown('s');
-      } else if (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) { // Left
-        inputHandler.simulateKeyDown('a');
-      } else { // Up
-        inputHandler.simulateKeyDown('w');
-      }
+      const normalizedX = (dx / distance) * scaleFactor;
+      const normalizedY = (dy / distance) * scaleFactor;
+
+      gameEngineRef.current['inputHandler'].setTouchMove(normalizedX, normalizedY);
+    } else {
+      gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // If within dead zone, stop movement
     }
-  }, [isMobile]);
+  }, [isMobile, virtualJoystickMaxDistance]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isMobile || !gameEngineRef.current) return;
-    const inputHandler = gameEngineRef.current['inputHandler'];
-    inputHandler.simulateKeyUp('w');
-    inputHandler.simulateKeyUp('s');
-    inputHandler.simulateKeyUp('a');
-    inputHandler.simulateKeyUp('d');
+    gameEngineRef.current['inputHandler'].setTouchMove(0, 0); // Stop movement on touch end
     touchStartPos.current = null;
   }, [isMobile]);
 

@@ -104,8 +104,10 @@ export class Player {
       this.hitTimer -= deltaTime;
     }
 
-    let movedX = 0;
-    let movedY = 0;
+    // Get movement vector from input handler
+    const movementVector = input.getMovementVector();
+    let movedX = movementVector.x;
+    let movedY = movementVector.y;
 
     if (input.isPressed('shift') && !this.isDashing && this.currentDashCooldown <= 0) {
       this.isDashing = true;
@@ -132,26 +134,14 @@ export class Player {
       return trail.alpha > 0 && trail.size > 0;
     });
 
-    if (input.isPressed('w') || input.isPressed('arrowup')) {
-      movedY -= currentSpeed * deltaTime;
-    }
-    if (input.isPressed('s') || input.isPressed('arrowdown')) {
-      movedY += currentSpeed * deltaTime;
-    }
-    if (input.isPressed('a') || input.isPressed('arrowleft')) {
-      movedX -= currentSpeed * deltaTime;
-    }
-    if (input.isPressed('d') || input.isPressed('arrowright')) {
-      movedX += currentSpeed * deltaTime;
-    }
-
-    this.x += movedX;
-    this.y += movedY;
+    // Apply movement based on the vector
+    this.x += movedX * currentSpeed * deltaTime;
+    this.y += movedY * currentSpeed * deltaTime;
 
     this.x = clamp(this.x, this.size / 2, worldWidth - this.size / 2);
     this.y = clamp(this.y, this.size / 2, worldHeight - this.size / 2);
 
-    this.isMoving = (movedX !== 0 || movedY !== 0);
+    this.isMoving = (movedX !== 0 || movedY !== 0); // Check if there's any movement
 
     // Animation update
     if (this.animationFrames.length > 1) { // Only animate if there are multiple frames
