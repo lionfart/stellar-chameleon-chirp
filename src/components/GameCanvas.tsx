@@ -9,7 +9,6 @@ import LeaderboardWidget from './LeaderboardWidget';
 import RestartButton from './RestartButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/use-mobile'; // NEW: Import useIsMobile
-import MobileJoystick from './MobileJoystick'; // NEW: Import MobileJoystick
 import MobileAbilityButtons from './MobileAbilityButtons'; // NEW: Import MobileAbilityButtons
 
 interface ShopItem {
@@ -96,6 +95,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
   const notificationsShownRef = useRef(false);
   const { t } = useLanguage();
   const isMobile = useIsMobile(); // NEW: Use useIsMobile hook
+
+  // NEW: Touch input state
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const touchMoveThreshold = 10; // Minimum distance to register a move
 
   const [gameDataState, setGameDataState] = useState<GameDataProps>({
     playerName: playerName,
@@ -188,27 +191,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     setGameDataState(data);
   }, []);
 
-  // NEW: Joystick movement handler
-  const handleJoystickMove = useCallback((x: number, y: number) => {
-    if (!gameEngineRef.current) return;
-    const inputHandler = gameEngineRef.current['inputHandler'];
-    // Simulate WASD based on joystick direction
-    if (y < -0.2) inputHandler.simulateKeyDown('w'); else inputHandler.simulateKeyUp('w');
-    if (y > 0.2) inputHandler.simulateKeyDown('s'); else inputHandler.simulateKeyUp('s');
-    if (x < -0.2) inputHandler.simulateKeyDown('a'); else inputHandler.simulateKeyUp('a');
-    if (x > 0.2) inputHandler.simulateKeyDown('d'); else inputHandler.simulateKeyUp('d');
-  }, []);
-
-  // NEW: Joystick stop handler
-  const handleJoystickStop = useCallback(() => {
-    if (!gameEngineRef.current) return;
-    const inputHandler = gameEngineRef.current['inputHandler'];
-    inputHandler.simulateKeyUp('w');
-    inputHandler.simulateKeyUp('s');
-    inputHandler.simulateKeyUp('a');
-    inputHandler.simulateKeyUp('d');
-  }, []);
-
   // NEW: Ability button press handler
   const handleAbilityPress = useCallback((key: string) => {
     gameEngineRef.current?.['inputHandler'].simulateKeyDown(key);
@@ -218,6 +200,59 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
   const handleAbilityRelease = useCallback((key: string) => {
     gameEngineRef.current?.['inputHandler'].simulateKeyUp(key);
   }, []);
+
+  // NEW: Full-screen touch movement handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (!isMobile || !gameEngineRef.current || e.touches.length !== 1) return;
+    e.preventDefault();
+    touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, [isMobile]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isMobile || !gameEngineRef.current || !touchStartPos.current || e.touches.length !== 1) return;
+    e.preventDefault();
+
+    const currentTouchX = e.touches[0].clientX;
+    const currentTouchY = e.touches[0].clientY;
+
+    const dx = currentTouchX - touchStartPos.current.x;
+    const dy = currentTouchY - touchStartPos.current.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    const inputHandler = gameEngineRef.current['inputHandler'];
+
+    // Clear previous movement inputs
+    inputHandler.simulateKeyUp('w');
+    inputHandler.simulateKeyUp('s');
+    inputHandler.simulateKeyUp('a');
+    inputHandler.simulateKeyUp('d');
+
+    if (distance > touchMoveThreshold) {
+      // Determine direction and simulate key presses
+      const angle = Math.atan2(dy, dx); // Radians
+
+      // 8-directional movement for simplicity
+      if (angle > -Math.PI / 4 && angle <= Math.PI / 4) { // Right
+        inputHandler.simulateKeyDown('d');
+      } else if (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) { // Down
+        inputHandler.simulateKeyDown('s');
+      } else if (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) { // Left
+        inputHandler.simulateKeyDown('a');
+      } else { // Up
+        inputHandler.simulateKeyDown('w');
+      }
+    }
+  }, [isMobile]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isMobile || !gameEngineRef.current) return;
+    const inputHandler = gameEngineRef.current['inputHandler'];
+    inputHandler.simulateKeyUp('w');
+    inputHandler.simulateKeyUp('s');
+    inputHandler.simulateKeyUp('a');
+    inputHandler.simulateKeyUp('d');
+    touchStartPos.current = null;
+  }, [isMobile]);
 
 
   useEffect(() => {
@@ -231,7 +266,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t);
+    gameEngineRef.current = new GameEngine(ctx, handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t, isMobile); // NEW: Pass isMobile to GameEngine
     gameEngineRef.current.init();
 
     if (!notificationsShownRef.current) {
@@ -259,13 +294,21 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       gameEngineRef.current?.stop();
       window.removeEventListener('resize', handleResize);
     };
-  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t]);
+  }, [handleLevelUp, handleOpenShop, handleCloseShop, handleUpdateGameData, playerName, initialSoundVolume, t, isMobile]);
 
   const isGameOverOrWon = gameDataState.gameOver || gameDataState.gameWon;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      <canvas ref={canvasRef} className="block bg-black" style={{ width: '100vw', height: '100vh' }} />
+      <canvas
+        ref={canvasRef}
+        className="block bg-black"
+        style={{ width: '100vw', height: '100vh' }}
+        onTouchStart={handleTouchStart} // NEW: Add touch event listeners to canvas
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      />
       {showLevelUpScreen && (
         <LevelUpSelection onSelectUpgrade={handleSelectUpgrade} options={currentLevelUpOptions} />
       )}
@@ -282,7 +325,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
 
       {isMobile && !isGameOverOrWon && !showLevelUpScreen && !showShopScreen && (
         <>
-          <MobileJoystick onMove={handleJoystickMove} onStop={handleJoystickStop} />
+          {/* MobileJoystick kaldırıldı */}
           <MobileAbilityButtons
             onAbilityPress={handleAbilityPress}
             onAbilityRelease={handleAbilityRelease}

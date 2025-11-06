@@ -22,19 +22,22 @@ export class WaveManager {
   private bossSpawnLocation: { x: number, y: number } | null = null;
   private bossSpawnCorner: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | null = null;
   private onBossDefeatCallback: () => void; // Callback for when a boss is defeated
+  private isMobile: boolean; // NEW: Track mobile status
 
   constructor(
     gameState: GameState,
     spriteManager: SpriteManager,
     soundManager: SoundManager,
     entityManager: EntityManager, // Directly pass EntityManager
-    onBossDefeat: () => void // Callback for when a boss is defeated
+    onBossDefeat: () => void, // Callback for when a boss is defeated
+    isMobile: boolean // NEW: Add isMobile to constructor
   ) {
     this.gameState = gameState;
     this.spriteManager = spriteManager;
     this.soundManager = soundManager;
     this.entityManager = entityManager; // Assign EntityManager
     this.onBossDefeatCallback = onBossDefeat; // Assign the new callback
+    this.isMobile = isMobile; // NEW: Assign isMobile
     this.enemySpawnTimer = 0;
   }
 
@@ -69,7 +72,7 @@ export class WaveManager {
     const selectedCorner = corners[Math.floor(Math.random() * corners.length)];
     this.bossSpawnCorner = selectedCorner;
 
-    const bossSize = 80;
+    const bossSize = this.isMobile ? 60 : 80; // NEW: Adjust boss size for mobile
     let spawnX, spawnY;
 
     const offset = bossSize / 2 + 50; 
@@ -104,7 +107,7 @@ export class WaveManager {
       return;
     }
 
-    const bossSize = 80;
+    const bossSize = this.isMobile ? 60 : 80; // NEW: Adjust boss size for mobile
     const bossHealth = 500 + (this.gameState.waveNumber / this.bossWaveInterval - 1) * 200;
     const bossSpeed = 80;
     const bossGold = 100;
@@ -123,7 +126,7 @@ export class WaveManager {
 
     this.entityManager.spawnBoss( // Direct call to EntityManager
       this.bossSpawnLocation.x, this.bossSpawnLocation.y, bossSize, bossSpeed, bossHealth,
-      bossGold, bossName, this.onBossDefeatCallback // Pass the boss defeat callback
+      bossGold, bossName, this.onBossDefeatCallback
     );
     
     console.log(`BOSS SPAWNED: ${bossName} at (${this.bossSpawnLocation.x.toFixed(0)}, ${this.bossSpawnLocation.y.toFixed(0)})!`);
@@ -195,10 +198,11 @@ export class WaveManager {
     const enemyHealth = Math.floor(randomType.baseHealth * healthMultiplier);
     const enemySpeed = randomType.baseSpeed * speedMultiplier;
     const enemyGold = Math.floor(randomType.baseGold * goldMultiplier);
+    const enemySize = this.isMobile ? randomType.size * 0.8 : randomType.size; // NEW: Adjust enemy size for mobile
 
     if (randomType.type === 'shooter' && randomType.projectileSpeed) {
       this.entityManager.spawnEnemy( // Direct call to EntityManager
-        spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold,
+        spawnX, spawnY, randomType.type, enemySize, enemySpeed, enemyHealth, enemyGold,
         {
           speed: randomType.projectileSpeed,
           fireRate: randomType.fireRate,
@@ -208,7 +212,7 @@ export class WaveManager {
         }
       );
     } else {
-      this.entityManager.spawnEnemy(spawnX, spawnY, randomType.type, randomType.size, enemySpeed, enemyHealth, enemyGold); // Direct call to EntityManager
+      this.entityManager.spawnEnemy(spawnX, spawnY, randomType.type, enemySize, enemySpeed, enemyHealth, enemyGold); // Direct call to EntityManager
     }
   }
 

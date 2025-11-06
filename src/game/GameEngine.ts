@@ -105,6 +105,7 @@ export class GameEngine {
   private gameWinSoundPlayed: boolean = false;
   private backgroundMusicInstance: HTMLAudioElement | null = null;
   private t: (key: TranslationKeys) => string; // NEW: Add translation function
+  private isMobile: boolean; // NEW: Track mobile status
 
   private gameState: GameState;
   private waveManager: WaveManager;
@@ -129,7 +130,7 @@ export class GameEngine {
     { id: 'buy_health_potion', name: 'Health Potion', description: 'Instantly restores 50 health.', cost: 50, type: 'consumable' },
   ];
 
-  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number, t: (key: TranslationKeys) => string) { // NEW: Add t to constructor
+  constructor(ctx: CanvasRenderingContext2D, onLevelUp: () => void, onOpenShop: (items: ShopItem[], playerGold: number) => void, onCloseShop: () => void, onUpdateGameData: (gameData: GameDataProps) => void, playerName: string, initialSoundVolume: number, t: (key: TranslationKeys) => string, isMobile: boolean) { // NEW: Add t and isMobile to constructor
     // console.log("GameEngine constructor called!"); // Removed for optimization
     this.ctx = ctx;
     this.inputHandler = new InputHandler();
@@ -140,9 +141,14 @@ export class GameEngine {
     this.soundManager = new SoundManager(this.onAllAssetsLoaded, initialSoundVolume);
     this.spriteManager = new SpriteManager(this.onAllAssetsLoaded);
     this.t = t; // NEW: Assign t
+    this.isMobile = isMobile; // NEW: Assign isMobile
 
-    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, 30, 200, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
-    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, 50, undefined);
+    const playerSize = this.isMobile ? 25 : 30; // NEW: Adjust player size for mobile
+    const playerSpeed = this.isMobile ? 180 : 200; // NEW: Adjust player speed for mobile
+    const vendorSize = this.isMobile ? 40 : 50; // NEW: Adjust vendor size for mobile
+
+    const player = new Player(this.worldWidth / 2, this.worldHeight / 2, playerSize, playerSpeed, 'blue', 100, this.triggerLevelUp, undefined, this.soundManager);
+    const vendor = new Vendor(this.worldWidth / 2 + 200, this.worldHeight / 2, vendorSize, undefined);
 
     this.gameState = new GameState(player, vendor, this.worldWidth, this.worldHeight, playerName, initialSoundVolume);
     
@@ -168,7 +174,7 @@ export class GameEngine {
     }
     
     this.entityManager = new EntityManager(this.gameState, this.spriteManager, this.soundManager);
-    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat);
+    this.waveManager = new WaveManager(this.gameState, this.spriteManager, this.soundManager, this.entityManager, this.handleBossDefeat, this.isMobile); // NEW: Pass isMobile
     
     this.lastTime = 0;
     this.animationFrameId = null;
@@ -448,85 +454,85 @@ export class GameEngine {
 
   applyUpgrade(upgradeId: string) {
     switch (upgradeId) {
-      case 'aura_damage':
+      case 'auraDamage':
         this.gameState.auraWeapon?.increaseDamage(5);
         break;
-      case 'player_speed':
+      case 'playerSpeed':
         this.gameState.player.increaseSpeed(20);
         break;
-      case 'player_health':
+      case 'playerHealth':
         this.gameState.player.increaseMaxHealth(20);
         break;
-      case 'projectile_damage':
+      case 'projectileDamage':
         this.gameState.projectileWeapon?.increaseDamage(10);
         break;
-      case 'projectile_fire_rate':
+      case 'projectileFireRate':
         this.gameState.projectileWeapon?.decreaseFireRate(0.2);
         break;
-      case 'homing_missile_damage':
+      case 'homingMissileDamage':
         this.gameState.homingMissileWeapon?.increaseDamage(10);
         break;
-      case 'homing_missile_fire_rate':
+      case 'homingMissileFireRate':
         this.gameState.homingMissileWeapon?.decreaseFireRate(0.3);
         break;
-      case 'homing_missile_count':
+      case 'homingMissileCount':
         this.gameState.homingMissileWeapon?.increaseMissilesPerShot(1);
         break;
-      case 'laser_beam_damage':
+      case 'laserBeamDamage':
         this.gameState.laserBeamWeapon?.increaseDamage(10);
         break;
-      case 'laser_beam_range':
+      case 'laserBeamRange':
         this.gameState.laserBeamWeapon?.increaseRange(50);
         break;
-      case 'dash_cooldown':
+      case 'dashCooldown':
         this.gameState.player.reduceDashCooldown(0.3);
         break;
-      case 'blade_damage':
+      case 'bladeDamage':
         this.gameState.spinningBladeWeapon?.increaseDamage(5);
         break;
-      case 'add_blade':
+      case 'addBlade':
         this.gameState.spinningBladeWeapon?.addBlade();
         break;
-      case 'explosion_damage':
+      case 'explosionDamage':
         this.gameState.explosionAbility?.increaseDamage(20);
         break;
-      case 'explosion_cooldown':
+      case 'explosionCooldown':
         this.gameState.explosionAbility?.reduceCooldown(1);
         break;
-      case 'explosion_radius':
+      case 'explosionRadius':
         this.gameState.explosionAbility?.increaseRadius(20);
         break;
-      case 'shield_health':
+      case 'shieldHealth':
         this.gameState.shieldAbility?.increaseMaxHealth(30);
         break;
-      case 'shield_regen':
+      case 'shieldRegen':
         this.gameState.shieldAbility?.increaseRegeneration(5);
         break;
-      case 'shield_cooldown':
+      case 'shieldCooldown':
         this.gameState.shieldAbility?.reduceCooldown(1.5);
         break;
-      case 'heal_amount':
+      case 'healAmount':
         this.gameState.healAbility?.increaseHealAmount(10);
         break;
-      case 'heal_cooldown':
+      case 'healCooldown':
         this.gameState.healAbility?.reduceCooldown(2);
         break;
-      case 'time_slow_factor':
+      case 'timeSlowFactor':
         this.gameState.timeSlowAbility?.increaseSlowFactor(0.05);
         break;
-      case 'time_slow_duration':
+      case 'timeSlowDuration':
         this.gameState.timeSlowAbility?.increaseDuration(1);
         break;
-      case 'time_slow_cooldown':
+      case 'timeSlowCooldown':
         this.gameState.timeSlowAbility?.reduceCooldown(2);
         break;
-      case 'player_magnet_radius':
+      case 'playerMagnetRadius':
         this.gameState.player.increaseMagnetRadius(50);
         break;
-      case 'experience_boost':
+      case 'experienceBoost':
         this.gameState.player.increaseExperienceGain(0.1);
         break;
-      case 'gold_boost':
+      case 'goldBoost':
         this.gameState.player.increaseGoldGain(0.1);
         break;
       default:
