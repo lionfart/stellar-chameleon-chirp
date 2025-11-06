@@ -4,7 +4,8 @@ import { Progress } from '@/components/Progress';
 import { Badge } from '@/components/ui/badge';
 import { Heart, Zap, Shield, Gem, Clock, Swords, Bomb, Footprints, PlusCircle, Crown, Hourglass, User } from 'lucide-react';
 import CooldownDisplay from './CooldownDisplay';
-import { useLanguage } from '@/contexts/LanguageContext'; // NEW: Import useLanguage
+import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils'; // NEW: Import cn for conditional classNames
 
 export interface HUDProps {
   playerName: string;
@@ -37,7 +38,8 @@ export interface HUDProps {
 
   collectedLetters: string[];
   gameWon: boolean;
-  gameOver: boolean; // NEW: Add gameOver to HUDProps
+  gameOver: boolean;
+  isMobile: boolean; // NEW: Add isMobile prop
 }
 
 const HUD: React.FC<HUDProps> = ({
@@ -69,9 +71,10 @@ const HUD: React.FC<HUDProps> = ({
   bossName,
   collectedLetters,
   gameWon,
-  gameOver, // NEW
+  gameOver,
+  isMobile, // NEW
 }) => {
-  const { t } = useLanguage(); // NEW: Use translation hook
+  const { t } = useLanguage();
 
   const healthPercentage = (playerHealth / playerMaxHealth) * 100;
   const xpPercentage = (playerExperience / playerExperienceToNextLevel) * 100;
@@ -82,9 +85,8 @@ const HUD: React.FC<HUDProps> = ({
 
   return (
     <>
-      {/* Left HUD - Player Stats and Ability Cooldowns */}
+      {/* Left HUD - Player Stats */}
       <div className="absolute top-4 left-4 flex flex-col space-y-4 pointer-events-none z-40">
-        {/* Player Stats */}
         <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 min-w-[250px] max-h-[calc(50vh-2rem)] overflow-y-auto">
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center space-x-2">
@@ -105,12 +107,12 @@ const HUD: React.FC<HUDProps> = ({
                 <Progress value={xpPercentage} className="h-3" indicatorClassName="bg-blue-500" />
                 <span className="text-sm text-muted-foreground">{playerExperience}/{playerExperienceToNextLevel} XP</span>
               </div>
-              <Badge variant="secondary" className="text-base">{t('levelUpShort')} {playerLevel}</Badge> {/* NEW: Translate 'Lv.' */}
+              <Badge variant="secondary" className="text-base">{t('levelUpShort')} {playerLevel}</Badge>
             </div>
 
             <div className="flex items-center space-x-2">
               <Gem className="h-6 w-6 text-yellow-500" />
-              <span className="text-base font-medium">{playerGold} {t('gold')}</span> {/* NEW: Translate 'Gold' */}
+              <span className="text-base font-medium">{playerGold} {t('gold')}</span>
             </div>
 
             {shieldMaxHealth > 0 && (
@@ -119,7 +121,7 @@ const HUD: React.FC<HUDProps> = ({
                 <div className="flex-1">
                   <Progress value={shieldPercentage} className="h-3" indicatorClassName="bg-cyan-400" />
                   <span className="text-sm text-muted-foreground">
-                    {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')} {/* NEW: Translate shield status */}
+                    {shieldActive ? `${shieldCurrentHealth}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
                   </span>
                 </div>
               </div>
@@ -127,60 +129,62 @@ const HUD: React.FC<HUDProps> = ({
           </CardContent>
         </Card>
 
-        {/* Ability Cooldowns (Moved to bottom-left) */}
-        <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-2rem)] overflow-y-auto">
-          <CardContent className="p-0 space-y-2">
-            <CooldownDisplay
-              Icon={Footprints}
-              name={t('dash')} // NEW: Translate ability name
-              currentCooldown={dashCooldownCurrent}
-              maxCooldown={dashCooldownMax}
-              colorClass="text-purple-500"
-              iconSizeClass="h-4 w-4"
-              progressBarHeightClass="h-4"
-            />
-
-            {explosionCooldownMax > 0 && (
+        {/* Ability Cooldowns (Only show on desktop, mobile has dedicated buttons) */}
+        {!isMobile && (
+          <Card className="bg-background/90 backdrop-blur-md p-3 shadow-xl border border-solid border-primary/20 max-w-sm w-full md:w-auto max-h-[calc(50vh-2rem)] overflow-y-auto">
+            <CardContent className="p-0 space-y-2">
               <CooldownDisplay
-                Icon={Bomb}
-                name={t('explosion')} // NEW: Translate ability name
-                currentCooldown={explosionCooldownCurrent}
-                maxCooldown={explosionCooldownMax}
-                colorClass="text-orange-500"
+                Icon={Footprints}
+                name={t('dash')}
+                currentCooldown={dashCooldownCurrent}
+                maxCooldown={dashCooldownMax}
+                colorClass="text-purple-500"
+                iconSizeClass="h-4 w-4"
+                progressBarHeightClass="h-4"
               />
-            )}
 
-            {shieldCooldownMax > 0 && (
-              <CooldownDisplay
-                Icon={Shield}
-                name={t('shield')} // NEW: Translate ability name
-                currentCooldown={shieldCooldownCurrent}
-                maxCooldown={shieldCooldownMax}
-                colorClass="text-blue-500"
-              />
-            )}
+              {explosionCooldownMax > 0 && (
+                <CooldownDisplay
+                  Icon={Bomb}
+                  name={t('explosion')}
+                  currentCooldown={explosionCooldownCurrent}
+                  maxCooldown={explosionCooldownMax}
+                  colorClass="text-orange-500"
+                />
+              )}
 
-            {healCooldownMax > 0 && (
-              <CooldownDisplay
-                Icon={PlusCircle}
-                name={t('heal')} // NEW: Translate ability name
-                currentCooldown={healCooldownCurrent}
-                maxCooldown={healCooldownMax}
-                colorClass="text-green-500"
-              />
-            )}
+              {shieldCooldownMax > 0 && (
+                <CooldownDisplay
+                  Icon={Shield}
+                  name={t('shield')}
+                  currentCooldown={shieldCooldownCurrent}
+                  maxCooldown={shieldCooldownMax}
+                  colorClass="text-blue-500"
+                />
+              )}
 
-            {timeSlowCooldownMax > 0 && (
-              <CooldownDisplay
-                Icon={Hourglass}
-                name={t('timeSlow')} // NEW: Translate ability name
-                currentCooldown={timeSlowCooldownCurrent}
-                maxCooldown={timeSlowCooldownMax}
-                colorClass="text-indigo-400"
-              />
-            )}
-          </CardContent>
-        </Card>
+              {healCooldownMax > 0 && (
+                <CooldownDisplay
+                  Icon={PlusCircle}
+                  name={t('heal')}
+                  currentCooldown={healCooldownCurrent}
+                  maxCooldown={healCooldownMax}
+                  colorClass="text-green-500"
+                />
+              )}
+
+              {timeSlowCooldownMax > 0 && (
+                <CooldownDisplay
+                  Icon={Hourglass}
+                  name={t('timeSlow')}
+                  currentCooldown={timeSlowCooldownCurrent}
+                  maxCooldown={timeSlowCooldownMax}
+                  colorClass="text-indigo-400"
+                />
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Top-Center HUD - Wave Info and Collected Letters */}
@@ -189,7 +193,7 @@ const HUD: React.FC<HUDProps> = ({
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center justify-center space-x-2">
               <Swords className="h-6 w-6 text-purple-500" />
-              <span className="text-base font-medium">{t('waveText')} {waveNumber}</span> {/* NEW: Translate 'Wave' */}
+              <span className="text-base font-medium">{t('waveText')} {waveNumber}</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
               <Clock className="h-6 w-6 text-gray-500" />
@@ -198,7 +202,7 @@ const HUD: React.FC<HUDProps> = ({
             {/* Collected Letters Display */}
             <div className="flex items-center justify-center space-x-1 mt-2">
               <Crown className="h-5 w-5 text-yellow-400" />
-              <span className="text-sm font-medium text-white">{t('simge')}:</span> {/* NEW: Translate 'Simge' */}
+              <span className="text-sm font-medium text-white">{t('simge')}:</span>
               {princessName.map((letter, index) => (
                 <Badge
                   key={index}

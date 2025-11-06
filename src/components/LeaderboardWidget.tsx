@@ -23,14 +23,14 @@ const LeaderboardWidget: React.FC<LeaderboardWidgetProps> = ({ currentScoreEntry
   }, [currentScoreEntry]); // Re-fetch if currentScoreEntry changes (i.e., new game ended)
 
   return (
-    <Card className="w-full max-w-md bg-background/90 backdrop-blur-md shadow-2xl border border-primary/30">
+    <Card className="w-11/12 max-w-md bg-background/90 backdrop-blur-md shadow-2xl border border-primary/30"> {/* Adjusted width for mobile */}
       <CardHeader className="text-center">
         <CardTitle className="text-2xl text-white flex items-center justify-center space-x-2">
           <Trophy className="h-7 w-7 text-yellow-400" />
           <span>{t('leaderboard')}</span>
         </CardTitle>
         <CardDescription className="text-muted-foreground text-center">
-          {t('leaderboardDescription')} {/* Assuming you'll add this key */}
+          {t('leaderboardDescription')}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">

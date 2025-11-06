@@ -12,8 +12,8 @@ const LevelUpSelection: React.FC<LevelUpSelectionProps> = ({ onSelectUpgrade, op
   const { t } = useLanguage(); // NEW: Use translation hook
 
   return (
-    <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <Card className="w-[400px] p-4">
+    <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"> {/* Added p-4 for mobile padding */}
+      <Card className="w-11/12 max-w-md p-4"> {/* Adjusted width for mobile */}
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">{t('levelUp')}</CardTitle>
           <p className="text-muted-foreground">{t('chooseUpgrade')}</p>
@@ -26,8 +26,8 @@ const LevelUpSelection: React.FC<LevelUpSelectionProps> = ({ onSelectUpgrade, op
               variant="secondary"
               onClick={() => onSelectUpgrade(option.id)}
             >
-              <span className="font-semibold text-lg">{t(option.id as any)}</span> {/* NEW: Translate option name */}
-              <span className="text-sm text-muted-foreground">{t(`${option.id}Desc` as any)}</span> {/* NEW: Translate option description */}
+              <span className="font-semibold text-lg">{t(option.id as any)}</span>
+              <span className="text-sm text-muted-foreground">{t(`${option.id}Desc` as any)}</span>
             </Button>
           ))}
         </CardContent>
