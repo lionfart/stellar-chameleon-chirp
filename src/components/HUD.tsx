@@ -83,51 +83,59 @@ const HUD: React.FC<HUDProps> = ({
 
   const princessName = ['S', 'I', 'M', 'G', 'E'];
 
+  // Masaüstü ve mobil için farklı boyutlar
+  const cardMaxWidth = isMobile ? "max-w-[180px]" : "max-w-[200px]";
+  const iconSize = isMobile ? "h-4 w-4" : "h-5 w-5";
+  const textSize = isMobile ? "text-xs" : "text-sm";
+  const progressHeight = isMobile ? "h-1.5" : "h-2";
+  const badgeSize = isMobile ? "text-[0.65rem]" : "text-xs";
+  const bossCardMaxWidth = isMobile ? "max-w-[160px]" : "max-w-[220px]";
+
   return (
     <>
       {/* Sol Üst HUD - Oyuncu İstatistikleri */}
       <div className="absolute top-1 left-1 flex flex-col space-y-1 pointer-events-none z-40">
-        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[180px]">
+        <Card className={`bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full ${cardMaxWidth}`}>
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center space-x-2">
-              <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
-              <span className="text-sm font-medium text-white truncate">{playerName}</span>
+              <User className={`${iconSize} text-gray-400 flex-shrink-0`} />
+              <span className={`${textSize} font-medium text-white truncate`}>{playerName}</span>
             </div>
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <Heart className="h-5 w-5 text-red-500 flex-shrink-0" />
+                <Heart className={`${iconSize} text-red-500 flex-shrink-0`} />
                 <div className="flex-1">
-                  <Progress value={healthPercentage} className="h-2" indicatorClassName="bg-red-500" />
+                  <Progress value={healthPercentage} className={progressHeight} indicatorClassName="bg-red-500" />
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground ml-7">{playerHealth.toFixed(0)}/{playerMaxHealth} HP</div>
+              <div className={`${badgeSize} text-muted-foreground ml-7`}>{playerHealth.toFixed(0)}/{playerMaxHealth} HP</div>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <Zap className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                <Zap className={`${iconSize} text-blue-500 flex-shrink-0`} />
                 <div className="flex-1">
-                  <Progress value={xpPercentage} className="h-2" indicatorClassName="bg-blue-500" />
+                  <Progress value={xpPercentage} className={progressHeight} indicatorClassName="bg-blue-500" />
                 </div>
-                <Badge variant="secondary" className="text-xs">{t('levelUpShort')} {playerLevel}</Badge>
+                <Badge variant="secondary" className={badgeSize}>{t('levelUpShort')} {playerLevel}</Badge>
               </div>
-              <div className="text-xs text-muted-foreground ml-7">{playerExperience.toFixed(0)}/{playerExperienceToNextLevel} XP</div>
+              <div className={`${badgeSize} text-muted-foreground ml-7`}>{playerExperience.toFixed(0)}/{playerExperienceToNextLevel} XP</div>
             </div>
 
             <div className="flex items-center space-x-2">
-              <Gem className="h-5 w-5 text-yellow-500 flex-shrink-0" />
-              <span className="text-sm font-medium">{playerGold} {t('gold')}</span>
+              <Gem className={`${iconSize} text-yellow-500 flex-shrink-0`} />
+              <span className={`${textSize} font-medium`}>{playerGold} {t('gold')}</span>
             </div>
 
             {shieldMaxHealth > 0 && (
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <Shield className={`h-5 w-5 flex-shrink-0 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
+                  <Shield className={`${iconSize} flex-shrink-0 ${shieldActive ? 'text-cyan-400' : 'text-gray-500'}`} />
                   <div className="flex-1">
-                    <Progress value={shieldPercentage} className="h-2" indicatorClassName="bg-cyan-400" />
+                    <Progress value={shieldPercentage} className={progressHeight} indicatorClassName="bg-cyan-400" />
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground ml-7">
+                <div className={`${badgeSize} text-muted-foreground ml-7`}>
                   {shieldActive ? `${shieldCurrentHealth.toFixed(0)}/${shieldMaxHealth} ${t('shield')}` : t('shieldInactive')}
                 </div>
               </div>
@@ -135,83 +143,81 @@ const HUD: React.FC<HUDProps> = ({
           </CardContent>
         </Card>
 
-        {/* Yetenek Bekleme Süreleri (Sadece masaüstü için) */}
-        {!isMobile && (
-          <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[180px]">
-            <CardContent className="p-0 space-y-2">
+        {/* Yetenek Bekleme Süreleri */}
+        <Card className={`bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full ${cardMaxWidth}`}>
+          <CardContent className="p-0 space-y-2">
+            <CooldownDisplay
+              Icon={Footprints}
+              name={t('dash')}
+              currentCooldown={dashCooldownCurrent}
+              maxCooldown={dashCooldownMax}
+              colorClass="text-purple-500"
+              iconSizeClass={iconSize}
+              progressBarHeightClass={progressHeight}
+            />
+
+            {explosionCooldownMax > 0 && (
               <CooldownDisplay
-                Icon={Footprints}
-                name={t('dash')}
-                currentCooldown={dashCooldownCurrent}
-                maxCooldown={dashCooldownMax}
-                colorClass="text-purple-500"
-                iconSizeClass="h-5 w-5"
-                progressBarHeightClass="h-2"
+                Icon={Bomb}
+                name={t('explosion')}
+                currentCooldown={explosionCooldownCurrent}
+                maxCooldown={explosionCooldownMax}
+                colorClass="text-orange-500"
+                iconSizeClass={iconSize}
+                progressBarHeightClass={progressHeight}
               />
+            )}
 
-              {explosionCooldownMax > 0 && (
-                <CooldownDisplay
-                  Icon={Bomb}
-                  name={t('explosion')}
-                  currentCooldown={explosionCooldownCurrent}
-                  maxCooldown={explosionCooldownMax}
-                  colorClass="text-orange-500"
-                  iconSizeClass="h-5 w-5"
-                  progressBarHeightClass="h-2"
-                />
-              )}
+            {shieldCooldownMax > 0 && (
+              <CooldownDisplay
+                Icon={Shield}
+                name={t('shield')}
+                currentCooldown={shieldCooldownCurrent}
+                maxCooldown={shieldCooldownMax}
+                colorClass="text-blue-500"
+                iconSizeClass={iconSize}
+                progressBarHeightClass={progressHeight}
+              />
+            )}
 
-              {shieldCooldownMax > 0 && (
-                <CooldownDisplay
-                  Icon={Shield}
-                  name={t('shield')}
-                  currentCooldown={shieldCooldownCurrent}
-                  maxCooldown={shieldCooldownMax}
-                  colorClass="text-blue-500"
-                  iconSizeClass="h-5 w-5"
-                  progressBarHeightClass="h-2"
-                />
-              )}
+            {healCooldownMax > 0 && (
+              <CooldownDisplay
+                Icon={PlusCircle}
+                name={t('heal')}
+                currentCooldown={healCooldownCurrent}
+                maxCooldown={healCooldownMax}
+                colorClass="text-green-500"
+                iconSizeClass={iconSize}
+                progressBarHeightClass={progressHeight}
+              />
+            )}
 
-              {healCooldownMax > 0 && (
-                <CooldownDisplay
-                  Icon={PlusCircle}
-                  name={t('heal')}
-                  currentCooldown={healCooldownCurrent}
-                  maxCooldown={healCooldownMax}
-                  colorClass="text-green-500"
-                  iconSizeClass="h-5 w-5"
-                  progressBarHeightClass="h-2"
-                />
-              )}
-
-              {timeSlowCooldownMax > 0 && (
-                <CooldownDisplay
-                  Icon={Hourglass}
-                  name={t('timeSlow')}
-                  currentCooldown={timeSlowCooldownCurrent}
-                  maxCooldown={timeSlowCooldownMax}
-                  colorClass="text-indigo-400"
-                  iconSizeClass="h-5 w-5"
-                  progressBarHeightClass="h-2"
-                />
-              )}
-            </CardContent>
-          </Card>
-        )}
+            {timeSlowCooldownMax > 0 && (
+              <CooldownDisplay
+                Icon={Hourglass}
+                name={t('timeSlow')}
+                currentCooldown={timeSlowCooldownCurrent}
+                maxCooldown={timeSlowCooldownMax}
+                colorClass="text-indigo-400"
+                iconSizeClass={iconSize}
+                progressBarHeightClass={progressHeight}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Üst Orta HUD - Dalga Bilgisi ve Toplanan Harfler */}
       <div className="absolute top-1 left-1/2 -translate-x-1/2 pointer-events-none z-40">
-        <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] text-center">
+        <Card className={`bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-primary/20 w-full max-w-[160px] text-center`}>
           <CardContent className="p-0 space-y-2">
             <div className="flex items-center justify-center space-x-2">
-              <Swords className="h-5 w-5 text-purple-500" />
-              <span className="text-sm font-medium">{t('waveText')} {waveNumber}</span>
+              <Swords className={`${iconSize} text-purple-500`} />
+              <span className={`${textSize} font-medium`}>{t('waveText')} {waveNumber}</span>
             </div>
             <div className="flex items-center justify-center space-x-2">
-              <Clock className="h-5 w-5 text-gray-500" />
-              <span className="text-sm font-medium">{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
+              <Clock className={`${iconSize} text-gray-500`} />
+              <span className={`${textSize} font-medium`}>{Math.max(0, Math.floor(waveTimeRemaining))}s</span>
             </div>
             {/* Toplanan Harfler Göstergesi */}
             <div className="flex items-center justify-center space-x-1 mt-1">
@@ -233,13 +239,13 @@ const HUD: React.FC<HUDProps> = ({
 
       {/* Üst Sağ HUD - Boss Sağlık Çubuğu */}
       {bossActive && (
-        <div className="absolute top-1 right-1 w-full max-w-[200px] pointer-events-none z-40">
+        <div className={`absolute top-1 right-1 w-full ${bossCardMaxWidth} pointer-events-none z-40`}>
           <Card className="bg-background/90 backdrop-blur-md p-2 shadow-xl border border-solid border-red-500/50 text-center">
             <CardContent className="p-0 space-y-2">
-              <h3 className="text-sm font-bold text-red-500 truncate">{bossName}</h3>
+              <h3 className={`${textSize} font-bold text-red-500 truncate`}>{bossName}</h3>
               <div className="space-y-1">
-                <Progress value={bossHealthPercentage} className="h-2" indicatorClassName="bg-red-600" />
-                <div className="text-xs text-muted-foreground">{bossHealth.toFixed(0)}/{bossMaxHealth} HP</div>
+                <Progress value={bossHealthPercentage} className={progressHeight} indicatorClassName="bg-red-600" />
+                <div className={`${badgeSize} text-muted-foreground`}>{bossHealth.toFixed(0)}/{bossMaxHealth} HP</div>
               </div>
             </CardContent>
           </Card>
