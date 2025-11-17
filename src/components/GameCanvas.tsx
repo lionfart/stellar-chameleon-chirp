@@ -74,12 +74,12 @@ const getShopItems = (t: (key: string) => string): ShopItem[] => [
   { id: 'buy_aura_weapon', name: t('auraWeapon'), description: t('auraWeaponDesc'), cost: 100, type: 'weapon' },
   { id: 'buy_projectile_weapon', name: t('projectileWeapon'), description: t('projectileWeaponDesc'), cost: 100, type: 'weapon' },
   { id: 'buy_spinning_blade_weapon', name: t('spinningBladeWeapon'), description: t('spinningBladeWeaponDesc'), cost: 100, type: 'weapon' },
-  { id: 'buy_homing_missile_weapon', name: t('homingMissileWeapon'), description: t('homingMissileWeaponDesc'), cost: 120, type: 'weapon' },
-  { id: 'buy_laser_beam_weapon', name: t('laserBeamWeapon'), description: t('laserBeamWeaponDesc'), cost: 150, type: 'weapon' },
+  { id: 'buy_homingMissile_weapon', name: t('homingMissileWeapon'), description: t('homingMissileWeaponDesc'), cost: 120, type: 'weapon' },
+  { id: 'buy_laserBeam_weapon', name: t('laserBeamWeapon'), description: t('laserBeamWeaponDesc'), cost: 150, type: 'weapon' },
   { id: 'buy_explosion_ability', name: t('explosionAbility'), description: t('explosionAbilityDesc'), cost: 150, type: 'ability' },
   { id: 'buy_shield_ability', name: t('shieldAbility'), description: t('shieldAbilityDesc'), cost: 150, type: 'ability' },
   { id: 'buy_heal_ability', name: t('healAbility'), description: t('healAbilityDesc'), cost: 120, type: 'ability' },
-  { id: 'buy_time_slow_ability', name: t('timeSlowAbility'), description: t('timeSlowAbilityDesc'), cost: 180, type: 'ability' },
+  { id: 'buy_timeSlow_ability', name: t('timeSlowAbility'), description: t('timeSlowAbilityDesc'), cost: 180, type: 'ability' },
   { id: 'buy_health_potion', name: t('healthPotion'), description: t('healthPotionDesc'), cost: 50, type: 'consumable' },
 ];
 
@@ -167,12 +167,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ playerName, initialSoundVolume 
       if (item.id === 'buy_aura_weapon' && gameEngineRef.current?.getGameState().auraWeapon) return false;
       if (item.id === 'buy_projectile_weapon' && gameEngineRef.current?.getGameState().projectileWeapon) return false;
       if (item.id === 'buy_spinning_blade_weapon' && gameEngineRef.current?.getGameState().spinningBladeWeapon) return false;
-      if (item.id === 'buy_homing_missile_weapon' && gameEngineRef.current?.getGameState().homingMissileWeapon) return false;
-      if (item.id === 'buy_laser_beam_weapon' && gameEngineRef.current?.getGameState().laserBeamWeapon) return false;
+      if (item.id === 'buy_homingMissile_weapon' && gameEngineRef.current?.getGameState().homingMissileWeapon) return false;
+      if (item.id === 'buy_laserBeam_weapon' && gameEngineRef.current?.getGameState().laserBeamWeapon) return false;
       if (item.id === 'buy_explosion_ability' && gameEngineRef.current?.getGameState().explosionAbility) return false;
       if (item.id === 'buy_shield_ability' && gameEngineRef.current?.getGameState().shieldAbility) return false;
       if (item.id === 'buy_heal_ability' && gameEngineRef.current?.getGameState().healAbility) return false;
-      if (item.id === 'buy_time_slow_ability' && gameEngineRef.current?.getGameState().timeSlowAbility) return false;
+      if (item.id === 'buy_timeSlow_ability' && gameEngineRef.current?.getGameState().timeSlowAbility) return false;
       return true;
     });
     setCurrentShopItems(availableShopItems);

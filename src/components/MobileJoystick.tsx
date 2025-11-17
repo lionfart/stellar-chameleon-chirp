@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 interface MobileJoystickProps {
   onMove: (x: number, y: number) => void;
-  onStop: () => void;
+  onStop: () => stop;
 }
 
 const JOYSTICK_SIZE = 80; // Boyut küçültüldü

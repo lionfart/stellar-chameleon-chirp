@@ -73,7 +73,7 @@ const AbilityButton: React.FC<AbilityButtonProps> = ({
         <Icon className={cn("w-5 h-5", isReady ? "text-white" : "text-gray-400")} /> {/* İkon boyutu küçültüldü */}
       </Button>
       {!isReady && (
-        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center text-white text-[0.55rem] font-bold"> {/* Font boyutu küçültüldü */}
+        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center text-xs font-bold"> {/* Font boyutu küçültüldü */}
           {cooldownCurrent.toFixed(1)}s
         </div>
       )}
